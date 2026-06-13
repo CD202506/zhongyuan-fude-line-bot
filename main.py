@@ -1,12 +1,15 @@
+import json
 import os
+from typing import Any
 
+import gspread
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.2",
+    version="0.1.3",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -17,8 +20,72 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.2",
+        "version": "0.1.3",
     }
+
+
+def get_google_sheet_client() -> gspread.Client:
+    raw_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+
+    if not raw_json:
+        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON is not set")
+
+    try:
+        service_account_info = json.loads(raw_json)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON") from exc
+
+    return gspread.service_account_from_dict(service_account_info)
+
+
+def read_sheet_records(sheet_name: str) -> list[dict[str, Any]]:
+    sheet_id = os.getenv("GOOGLE_SHEET_ID")
+
+    if not sheet_id:
+        raise RuntimeError("GOOGLE_SHEET_ID is not set")
+
+    client = get_google_sheet_client()
+    spreadsheet = client.open_by_key(sheet_id)
+    worksheet = spreadsheet.worksheet(sheet_name)
+
+    return worksheet.get_all_records()
+
+
+@app.get("/debug/sheets")
+async def debug_sheets():
+    """
+    Temporary debug endpoint.
+
+    Reads the shrines sheet from the V2 temporary Google Sheet.
+    This endpoint should be removed or protected after verification.
+    """
+    try:
+        records = read_sheet_records("shrines")
+
+        sample_names = []
+        for row in records[:3]:
+            sample_names.append(row.get("name", ""))
+
+        headers = list(records[0].keys()) if records else []
+
+        return {
+            "status": "ok",
+            "sheet": "shrines",
+            "record_count": len(records),
+            "headers": headers,
+            "sample_names": sample_names,
+        }
+
+    except Exception as exc:
+        print("debug_sheets error:", str(exc))
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": str(exc),
+            },
+        )
 
 
 async def reply_text_message(reply_token: str, text: str) -> None:
@@ -59,7 +126,8 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.2 reads LINE text messages and replies with a fixed echo message.
+    V0.1.3 still replies with a fixed echo message.
+    Google Sheets reading is only tested through /debug/sheets.
     """
     try:
         body = await request.json()
