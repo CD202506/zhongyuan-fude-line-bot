@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.4",
+    version="0.1.5",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -20,7 +20,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.4",
+        "version": "0.1.5",
     }
 
 
@@ -56,24 +56,30 @@ async def debug_sheets():
     """
     Temporary debug endpoint.
 
-    Reads the shrines sheet from the V2 temporary Google Sheet.
+    Reads the shrines and members sheets from the V2 temporary Google Sheet.
     This endpoint should be removed or protected after verification.
     """
     try:
-        records = read_sheet_records("shrines")
+        shrines = read_sheet_records("shrines")
+        members = read_sheet_records("members")
 
-        sample_names = []
-        for row in records[:3]:
-            sample_names.append(row.get("name", ""))
-
-        headers = list(records[0].keys()) if records else []
+        shrine_names = [row.get("name", "") for row in shrines[:3]]
+        member_names = [row.get("name", "") for row in members[:3]]
 
         return {
             "status": "ok",
-            "sheet": "shrines",
-            "record_count": len(records),
-            "headers": headers,
-            "sample_names": sample_names,
+            "sheets": {
+                "shrines": {
+                    "record_count": len(shrines),
+                    "headers": list(shrines[0].keys()) if shrines else [],
+                    "sample_names": shrine_names,
+                },
+                "members": {
+                    "record_count": len(members),
+                    "headers": list(members[0].keys()) if members else [],
+                    "sample_names": member_names,
+                },
+            },
         }
 
     except Exception as exc:
@@ -96,32 +102,67 @@ def is_yes(value: Any) -> bool:
     return normalize_text(value).lower() in {"yes", "y", "true", "1", "是"}
 
 
-def find_public_shrine(query_text: str, shrines: list[dict[str, Any]]) -> dict[str, Any] | None:
+def find_member_by_line_uid(
+    line_user_id: str | None,
+    members: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if not line_user_id:
+        return None
+
+    for member in members:
+        if normalize_text(member.get("line_uid")) == normalize_text(line_user_id):
+            return member
+
+    return None
+
+
+def can_view_internal_shrine(member: dict[str, Any] | None) -> bool:
+    if not member:
+        return False
+
+    return (
+        is_yes(member.get("active"))
+        and is_yes(member.get("can_view_internal_shrine"))
+    )
+
+
+def find_shrine(
+    query_text: str,
+    shrines: list[dict[str, Any]],
+    allow_internal: bool,
+) -> dict[str, Any] | None:
     query = normalize_text(query_text)
 
     if not query:
         return None
 
-    public_shrines = [
-        shrine
-        for shrine in shrines
-        if is_yes(shrine.get("public_visible"))
-    ]
+    searchable_shrines = []
+
+    for shrine in shrines:
+        public_visible = is_yes(shrine.get("public_visible"))
+        internal_only = is_yes(shrine.get("internal_only"))
+
+        if public_visible:
+            searchable_shrines.append(shrine)
+            continue
+
+        if allow_internal and internal_only:
+            searchable_shrines.append(shrine)
 
     # 1. name 完全相等
-    for shrine in public_shrines:
+    for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if name == query:
             return shrine
 
     # 2. alias contains query
-    for shrine in public_shrines:
+    for shrine in searchable_shrines:
         alias = normalize_text(shrine.get("alias"))
         if query in alias:
             return shrine
 
     # 3. name contains query
-    for shrine in public_shrines:
+    for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if query in name:
             return shrine
@@ -146,6 +187,43 @@ def build_public_shrine_reply(shrine: dict[str, Any]) -> str:
     )
 
 
+def build_internal_shrine_reply(
+    shrine: dict[str, Any],
+    member: dict[str, Any] | None,
+) -> str:
+    name = normalize_text(shrine.get("name"))
+    main_god = normalize_text(shrine.get("main_god"))
+    public_summary = normalize_text(shrine.get("public_summary"))
+    cultural_taboos = normalize_text(shrine.get("cultural_taboos"))
+    history_context = normalize_text(shrine.get("history_context"))
+    internal_note = normalize_text(shrine.get("internal_note"))
+    member_name = normalize_text(member.get("name")) if member else ""
+
+    sections = [
+        "🏮 友宮資料查詢結果",
+        "",
+        f"廟名：{name}",
+        f"主祀神明：{main_god}",
+        "",
+        "公開摘要：",
+        public_summary or "尚未建立公開摘要。",
+    ]
+
+    if cultural_taboos:
+        sections.extend(["", "內部提醒：", cultural_taboos])
+
+    if history_context:
+        sections.extend(["", "交誼背景：", history_context])
+
+    if internal_note:
+        sections.extend(["", "內部備註：", internal_note])
+
+    if member_name:
+        sections.extend(["", f"查詢身分：{member_name}"])
+
+    return "\n".join(sections)
+
+
 def build_not_found_reply(query_text: str) -> str:
     query = normalize_text(query_text)
 
@@ -158,12 +236,23 @@ def build_not_found_reply(query_text: str) -> str:
     )
 
 
-def build_shrine_query_reply(query_text: str) -> str:
+def build_shrine_query_reply(query_text: str, line_user_id: str | None) -> str:
     shrines = read_sheet_records("shrines")
-    shrine = find_public_shrine(query_text, shrines)
+    members = read_sheet_records("members")
+
+    member = find_member_by_line_uid(line_user_id, members)
+    allow_internal = can_view_internal_shrine(member)
+
+    print("member_found:", bool(member))
+    print("allow_internal:", allow_internal)
+
+    shrine = find_shrine(query_text, shrines, allow_internal=allow_internal)
 
     if not shrine:
         return build_not_found_reply(query_text)
+
+    if allow_internal:
+        return build_internal_shrine_reply(shrine, member)
 
     return build_public_shrine_reply(shrine)
 
@@ -206,8 +295,8 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.4 reads LINE text messages, searches public shrine records,
-    and replies with public shrine information or a not-found message.
+    V0.1.5 reads LINE text messages, searches shrine records,
+    checks member permission, and replies with public or internal information.
     """
     try:
         body = await request.json()
@@ -234,7 +323,7 @@ async def line_webhook(request: Request):
                 and message_text
             ):
                 try:
-                    reply_text = build_shrine_query_reply(message_text)
+                    reply_text = build_shrine_query_reply(message_text, user_id)
                 except Exception as exc:
                     print("build_shrine_query_reply error:", str(exc))
                     reply_text = "系統暫時無法查詢友宮資料，請稍後再試。"
