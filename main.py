@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.3",
+    version="0.1.4",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -20,7 +20,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.3",
+        "version": "0.1.4",
     }
 
 
@@ -88,6 +88,86 @@ async def debug_sheets():
         )
 
 
+def normalize_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def is_yes(value: Any) -> bool:
+    return normalize_text(value).lower() in {"yes", "y", "true", "1", "是"}
+
+
+def find_public_shrine(query_text: str, shrines: list[dict[str, Any]]) -> dict[str, Any] | None:
+    query = normalize_text(query_text)
+
+    if not query:
+        return None
+
+    public_shrines = [
+        shrine
+        for shrine in shrines
+        if is_yes(shrine.get("public_visible"))
+    ]
+
+    # 1. name 完全相等
+    for shrine in public_shrines:
+        name = normalize_text(shrine.get("name"))
+        if name == query:
+            return shrine
+
+    # 2. alias contains query
+    for shrine in public_shrines:
+        alias = normalize_text(shrine.get("alias"))
+        if query in alias:
+            return shrine
+
+    # 3. name contains query
+    for shrine in public_shrines:
+        name = normalize_text(shrine.get("name"))
+        if query in name:
+            return shrine
+
+    return None
+
+
+def build_public_shrine_reply(shrine: dict[str, Any]) -> str:
+    name = normalize_text(shrine.get("name"))
+    main_god = normalize_text(shrine.get("main_god"))
+    public_summary = normalize_text(shrine.get("public_summary"))
+    public_notice = normalize_text(shrine.get("public_notice"))
+
+    return (
+        "🏮 友宮公開資料\n\n"
+        f"廟名：{name}\n"
+        f"主祀神明：{main_god}\n\n"
+        "公開摘要：\n"
+        f"{public_summary}\n\n"
+        "公開提醒：\n"
+        f"{public_notice}"
+    )
+
+
+def build_not_found_reply(query_text: str) -> str:
+    query = normalize_text(query_text)
+
+    return (
+        "🙏 目前查無友宮資料\n\n"
+        f"您輸入的是：{query}\n\n"
+        "請確認是否輸入完整廟名，例如：\n"
+        "白沙屯拱天宮、北港朝天宮。\n\n"
+        "若資料尚未建立，請通知廟方人員補充。"
+    )
+
+
+def build_shrine_query_reply(query_text: str) -> str:
+    shrines = read_sheet_records("shrines")
+    shrine = find_public_shrine(query_text, shrines)
+
+    if not shrine:
+        return build_not_found_reply(query_text)
+
+    return build_public_shrine_reply(shrine)
+
+
 async def reply_text_message(reply_token: str, text: str) -> None:
     channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
@@ -126,8 +206,8 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.3 still replies with a fixed echo message.
-    Google Sheets reading is only tested through /debug/sheets.
+    V0.1.4 reads LINE text messages, searches public shrine records,
+    and replies with public shrine information or a not-found message.
     """
     try:
         body = await request.json()
@@ -153,7 +233,12 @@ async def line_webhook(request: Request):
                 and reply_token
                 and message_text
             ):
-                reply_text = f"收到：{message_text}"
+                try:
+                    reply_text = build_shrine_query_reply(message_text)
+                except Exception as exc:
+                    print("build_shrine_query_reply error:", str(exc))
+                    reply_text = "系統暫時無法查詢友宮資料，請稍後再試。"
+
                 await reply_text_message(reply_token, reply_text)
 
         return JSONResponse(
