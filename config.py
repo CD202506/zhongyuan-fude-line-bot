@@ -2,7 +2,7 @@ import os
 from datetime import timedelta, timezone
 
 
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.5.1"
 SERVICE_NAME = "zhongyuan-fude-line-bot"
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
 TAIPEI_TZ = timezone(timedelta(hours=8))

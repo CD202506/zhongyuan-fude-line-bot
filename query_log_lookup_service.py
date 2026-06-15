@@ -4,11 +4,19 @@ from typing import Any
 from permission_service import normalize_text
 
 
+_MANAGEMENT_QUERY_TYPES = {"log_recent", "log_not_found"}
+
+
 def find_recent_query_logs(
     records: list[dict[str, Any]],
     limit: int = 5,
 ) -> list[dict[str, Any]]:
-    return _sort_recent(records)[:limit]
+    general_records = [
+        record
+        for record in records
+        if _get_query_type(record) not in _MANAGEMENT_QUERY_TYPES
+    ]
+    return _sort_recent(general_records)[:limit]
 
 
 def find_recent_not_found_logs(
@@ -18,9 +26,16 @@ def find_recent_not_found_logs(
     not_found = [
         record
         for record in records
-        if normalize_text(record.get("result_status")).lower() == "not_found"
+        if (
+            normalize_text(record.get("result_status")).lower() == "not_found"
+            and _get_query_type(record) not in _MANAGEMENT_QUERY_TYPES
+        )
     ]
     return _sort_recent(not_found)[:limit]
+
+
+def _get_query_type(record: dict[str, Any]) -> str:
+    return normalize_text(record.get("query_type")).lower()
 
 
 def _sort_recent(records: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -1,8 +1,26 @@
+from datetime import datetime
 from typing import Any
 
 from announcement_service import get_announcement_display_fields
 from permission_service import normalize_text
 from shrine_visit_service import get_visit_display_fields
+
+
+_QUERY_TYPE_LABELS = {
+    "shrine": "友宮",
+    "visit": "來訪 / 請帖",
+    "announcement": "公告",
+    "help": "說明",
+    "unknown": "未知",
+    "log_recent": "查詢紀錄",
+    "log_not_found": "查無資料",
+}
+_RESULT_STATUS_LABELS = {
+    "success": "成功",
+    "not_found": "查無資料",
+    "forbidden": "無權限",
+    "error": "錯誤",
+}
 
 
 def safe_text(value: Any) -> str:
@@ -62,20 +80,35 @@ def build_recent_query_logs_reply(
     records: list[dict[str, Any]],
 ) -> str:
     if not records:
-        return "目前尚無查詢紀錄。"
+        return "目前尚無一般查詢紀錄。"
 
     sections = ["📋 最近查詢紀錄"]
 
     for index, record in enumerate(records, start=1):
         query_text = truncate_text(record.get("query_text"), 100) or "未填"
         lines = [f"{index}. {query_text}"]
-        _append_log_field(lines, "類型", record.get("query_type"), 50)
-        _append_log_field(lines, "結果", record.get("result_status"), 50)
+        _append_log_field(
+            lines,
+            "類型",
+            format_query_type_for_reply(record.get("query_type")),
+            50,
+        )
+        _append_log_field(
+            lines,
+            "結果",
+            format_result_status_for_reply(record.get("result_status")),
+            50,
+        )
         _append_log_field(lines, "命中", record.get("matched_record_name"), 100)
-        _append_log_field(lines, "時間", record.get("query_datetime"), 80)
+        _append_log_field(
+            lines,
+            "時間",
+            format_datetime_for_reply(record.get("query_datetime")),
+            80,
+        )
         sections.append("\n".join(lines))
 
-    sections.append("僅顯示最近 5 筆。")
+    sections.append("僅顯示最近 5 筆一般查詢。")
     return join_non_empty_sections(sections)
 
 
@@ -90,13 +123,60 @@ def build_not_found_logs_reply(
     for index, record in enumerate(records, start=1):
         query_text = truncate_text(record.get("query_text"), 100) or "未填"
         lines = [f"{index}. {query_text}"]
-        _append_log_field(lines, "類型", record.get("query_type"), 50)
+        _append_log_field(
+            lines,
+            "類型",
+            format_query_type_for_reply(record.get("query_type")),
+            50,
+        )
         _append_log_field(lines, "目標表", record.get("target_sheet"), 80)
-        _append_log_field(lines, "時間", record.get("query_datetime"), 80)
+        _append_log_field(
+            lines,
+            "時間",
+            format_datetime_for_reply(record.get("query_datetime")),
+            80,
+        )
         sections.append("\n".join(lines))
 
     sections.append("可依這些紀錄補充 V2 暫存表資料。")
     return join_non_empty_sections(sections)
+
+
+def format_datetime_for_reply(value: Any) -> str:
+    text = safe_text(value)
+
+    if not text:
+        return ""
+
+    normalized = text.replace("Z", "+00:00")
+
+    try:
+        return datetime.fromisoformat(normalized).strftime("%Y-%m-%d %H:%M")
+    except ValueError:
+        pass
+
+    for date_format in (
+        "%Y/%m/%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y/%m/%d %H:%M",
+        "%Y-%m-%d %H:%M",
+    ):
+        try:
+            return datetime.strptime(text, date_format).strftime("%Y-%m-%d %H:%M")
+        except ValueError:
+            continue
+
+    return text
+
+
+def format_query_type_for_reply(value: Any) -> str:
+    text = safe_text(value)
+    return _QUERY_TYPE_LABELS.get(text.lower(), text)
+
+
+def format_result_status_for_reply(value: Any) -> str:
+    text = safe_text(value)
+    return _RESULT_STATUS_LABELS.get(text.lower(), text)
 
 
 def _append_log_field(
