@@ -1,0 +1,16 @@
+import os
+from datetime import timedelta, timezone
+
+
+APP_VERSION = "0.2.0"
+SERVICE_NAME = "zhongyuan-fude-line-bot"
+LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
+TAIPEI_TZ = timezone(timedelta(hours=8))
+
+
+def get_debug_token() -> str:
+    return os.getenv("DEBUG_TOKEN", "").strip()
+
+
+def is_debug_endpoint_enabled() -> bool:
+    return os.getenv("ENABLE_DEBUG_ENDPOINT", "").strip().lower() == "true"
