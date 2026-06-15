@@ -51,11 +51,14 @@ def find_latest_announcements(
 def get_announcement_display_fields(
     announcement: dict[str, Any],
 ) -> dict[str, str]:
+    line_body = normalize_text(announcement.get("line_body"))
+
     return {
         "title": first_value(announcement, ("line_title", "title")),
-        "body": first_value(
+        "line_body": line_body,
+        "body": line_body or first_value(
             announcement,
-            ("line_body", "body", "content", "description"),
+            ("body", "content", "description"),
         ),
         "date": first_value(announcement, ("event_date", "publish_date")),
         "time": first_value(announcement, ("event_time", "time")),

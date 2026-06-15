@@ -52,14 +52,23 @@ def build_shrine_visits_reply(
         if fields["date"]:
             details.append(f"日期：{truncate_text(fields['date'], 50)}")
 
+        if fields["time"]:
+            details.append(f"時間：{truncate_text(fields['time'], 80)}")
+
         if fields["type"]:
             details.append(f"類型：{truncate_text(fields['type'], 100)}")
 
-        if fields["activity"]:
-            details.append(f"活動：{truncate_text(fields['activity'], 200)}")
+        if fields["direction"]:
+            details.append(f"方向：{truncate_text(fields['direction'], 80)}")
 
-        if fields["note"]:
-            details.append(f"備註：{truncate_text(fields['note'], 200)}")
+        if fields["title"]:
+            details.append(f"主題：{truncate_text(fields['title'], 200)}")
+
+        if fields["location"]:
+            details.append(f"地點：{truncate_text(fields['location'], 200)}")
+
+        if fields["summary"]:
+            details.append(f"摘要：{truncate_text(fields['summary'], 120)}")
 
         if details:
             lines = [f"{index}. {details[0]}"]
@@ -79,27 +88,44 @@ def build_announcements_reply(
 
     for index, announcement in enumerate(announcements, start=1):
         fields = get_announcement_display_fields(announcement)
-        date_text = fields["date"]
+        title = truncate_text(fields["title"], 150) or "未命名公告"
+
+        if fields["line_body"]:
+            body = _remove_duplicate_title_line(fields["line_body"], fields["title"])
+            lines = [f"{index}. {title}"]
+
+            if body:
+                lines.append(truncate_text(body, 900))
+
+            sections.append("\n\n".join(lines))
+            continue
+
+        lines = [f"{index}. 標題：{title}"]
+
+        if fields["date"]:
+            lines.append(f"   日期：{truncate_text(fields['date'], 80)}")
 
         if fields["time"]:
-            date_text = f"{date_text} {fields['time']}".strip()
-
-        lines = [
-            f"{index}. 標題：{truncate_text(fields['title'], 150) or '未命名公告'}"
-        ]
-
-        if date_text:
-            lines.append(f"   日期：{truncate_text(date_text, 100)}")
+            lines.append(f"   時間：{truncate_text(fields['time'], 80)}")
 
         if fields["location"]:
             lines.append(f"   地點：{truncate_text(fields['location'], 150)}")
 
         if fields["body"]:
-            lines.append(f"   說明：{truncate_text(fields['body'], 300)}")
+            lines.append(f"   說明：{truncate_text(fields['body'], 500)}")
 
         sections.append("\n".join(lines))
 
     return join_non_empty_sections(sections)
+
+
+def _remove_duplicate_title_line(body: str, title: str) -> str:
+    lines = body.splitlines()
+
+    if not lines or safe_text(lines[0]) != safe_text(title):
+        return body
+
+    return "\n".join(lines[1:]).lstrip()
 
 
 def build_public_shrine_reply(shrine: dict[str, Any]) -> str:

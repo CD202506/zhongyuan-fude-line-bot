@@ -5,11 +5,37 @@ from permission_service import normalize_text
 
 
 _SHRINE_ID_FIELDS = ("related_shrine_id", "shrine_id")
-_SHRINE_NAME_FIELDS = ("related_shrine_name", "shrine_name")
-_DATE_FIELDS = ("event_date", "visit_date", "created_at")
-_TYPE_FIELDS = ("visit_type", "event_type", "type", "category")
-_ACTIVITY_FIELDS = ("event_name", "activity", "title", "subject")
-_NOTE_FIELDS = ("note", "notes", "remark", "remarks", "description")
+_SHRINE_NAME_FIELDS = ("related_shrine_name", "shrine_name", "name")
+_DATE_FIELDS = ("event_date", "visit_date", "created_at", "source_date")
+_TIME_FIELDS = ("event_time", "visit_time", "time")
+_LOCATION_FIELDS = ("location", "place", "venue")
+_TITLE_FIELDS = (
+    "title",
+    "event_title",
+    "visit_title",
+    "subject",
+    "summary",
+    "event_name",
+    "activity",
+)
+_TYPE_FIELDS = ("record_type", "visit_type", "event_type", "type", "category")
+_DIRECTION_FIELDS = ("direction", "visit_direction")
+_CONTENT_FIELDS = (
+    "description",
+    "content",
+    "detail",
+    "details",
+    "note",
+    "notes",
+    "remark",
+    "remarks",
+    "source_note",
+    "internal_note",
+    "people",
+    "people_list",
+    "attendees",
+    "contact_names",
+)
 
 
 def find_recent_shrine_visits(
@@ -59,9 +85,12 @@ def find_recent_shrine_visits_by_keyword(
 def get_visit_display_fields(visit: dict[str, Any]) -> dict[str, str]:
     return {
         "date": first_value(visit, _DATE_FIELDS),
+        "time": first_value(visit, _TIME_FIELDS),
         "type": first_value(visit, _TYPE_FIELDS),
-        "activity": first_value(visit, _ACTIVITY_FIELDS),
-        "note": first_value(visit, _NOTE_FIELDS),
+        "direction": first_value(visit, _DIRECTION_FIELDS),
+        "title": first_value(visit, _TITLE_FIELDS),
+        "location": first_value(visit, _LOCATION_FIELDS),
+        "summary": first_value(visit, _CONTENT_FIELDS),
     }
 
 
