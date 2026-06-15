@@ -3,6 +3,20 @@ from typing import Any
 from permission_service import normalize_text
 
 
+def build_help_reply() -> str:
+    return (
+        "可用指令：\n"
+        "白沙屯\n"
+        "查友宮 白沙屯\n"
+        "查來訪 白沙屯\n"
+        "查公告"
+    )
+
+
+def build_unknown_command_reply() -> str:
+    return "請輸入友宮名稱，例如：白沙屯，或輸入「說明」查看可用指令。"
+
+
 def build_public_shrine_reply(shrine: dict[str, Any]) -> str:
     name = normalize_text(shrine.get("name"))
     main_god = normalize_text(shrine.get("main_god"))

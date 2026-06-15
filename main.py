@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from command_router import Command, parse_command
 from config import (
     APP_VERSION,
     SERVICE_NAME,
@@ -18,9 +19,11 @@ from permission_service import (
     normalize_text,
 )
 from reply_builder import (
+    build_help_reply,
     build_internal_shrine_reply,
     build_not_found_reply,
     build_public_shrine_reply,
+    build_unknown_command_reply,
 )
 from sheets_client import read_sheet_records
 from shrine_search_service import find_shrine
@@ -156,16 +159,12 @@ async def line_webhook(request: Request):
             print("message_type:", message_type)
             print("message_text:", message_text)
 
-            if (
-                event_type == "message"
-                and message_type == "text"
-                and reply_token
-                and message_text
-            ):
+            if event_type == "message" and reply_token:
                 await handle_text_message(
                     reply_token=reply_token,
                     user_id=user_id,
                     message_text=message_text,
+                    message_type=message_type,
                 )
 
         return JSONResponse(status_code=200, content={"status": "ok"})
@@ -181,21 +180,25 @@ async def handle_text_message(
     *,
     reply_token: str,
     user_id: str | None,
-    message_text: str,
+    message_text: str | None,
+    message_type: str = "text",
 ) -> None:
+    command = parse_command(message_text, message_type)
     log_meta = {
         "member": None,
         "shrine": None,
         "reply_type": "error",
         "result_status": "error",
+        "query_type": command.command_type,
+        "target_sheet": "",
         "error_message": "",
     }
 
     try:
-        reply_text, log_meta = build_shrine_query_reply(message_text, user_id)
+        reply_text, log_meta = build_command_reply(command, user_id)
     except Exception as exc:
         error_message = str(exc)
-        print("build_shrine_query_reply error:", error_message)
+        print("build_command_reply error:", error_message)
         reply_text = "系統暫時無法查詢友宮資料，請稍後再試。"
         log_meta["error_message"] = error_message
 
@@ -208,11 +211,70 @@ async def handle_text_message(
         append_line_query_log(
             line_user_id=user_id,
             member=log_meta.get("member"),
-            query_text=message_text,
+            query_text=message_text or "",
             shrine=log_meta.get("shrine"),
             reply_type=normalize_text(log_meta.get("reply_type")) or "error",
             result_status=normalize_text(log_meta.get("result_status")) or "error",
+            query_type=normalize_text(log_meta.get("query_type")) or "unknown",
+            target_sheet=normalize_text(log_meta.get("target_sheet")),
             error_message=normalize_text(log_meta.get("error_message")),
         )
     except Exception as exc:
         print("append_line_query_log error:", str(exc))
+
+
+def build_command_reply(
+    command: Command,
+    line_user_id: str | None,
+) -> tuple[str, dict[str, Any]]:
+    if command.command_type == "shrine":
+        reply_text, log_meta = build_shrine_query_reply(
+            command.query_text,
+            line_user_id,
+        )
+        log_meta["query_type"] = "shrine"
+        log_meta["target_sheet"] = "shrines"
+        return reply_text, log_meta
+
+    if command.command_type == "help":
+        return build_help_reply(), {
+            "member": None,
+            "shrine": None,
+            "reply_type": "help",
+            "result_status": "success",
+            "query_type": "help",
+            "target_sheet": "",
+            "error_message": "",
+        }
+
+    if command.command_type == "visit_placeholder":
+        return "友宮來訪查詢功能建置中", {
+            "member": None,
+            "shrine": None,
+            "reply_type": "visit_placeholder",
+            "result_status": "success",
+            "query_type": "visit_placeholder",
+            "target_sheet": "shrine_visits",
+            "error_message": "",
+        }
+
+    if command.command_type == "announcement_placeholder":
+        return "公告查詢功能建置中", {
+            "member": None,
+            "shrine": None,
+            "reply_type": "announcement_placeholder",
+            "result_status": "success",
+            "query_type": "announcement_placeholder",
+            "target_sheet": "announcements",
+            "error_message": "",
+        }
+
+    return build_unknown_command_reply(), {
+        "member": None,
+        "shrine": None,
+        "reply_type": "unknown",
+        "result_status": "not_found",
+        "query_type": "unknown",
+        "target_sheet": "",
+        "error_message": "",
+    }

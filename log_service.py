@@ -19,6 +19,8 @@ def append_line_query_log(
     shrine: dict[str, Any] | None,
     reply_type: str,
     result_status: str,
+    query_type: str = "shrine",
+    target_sheet: str = "shrines",
     error_message: str = "",
 ) -> None:
     timestamp = now_taipei_iso()
@@ -32,8 +34,8 @@ def append_line_query_log(
         "member_id": normalize_text(member.get("member_id")) if member else "",
         "member_name": normalize_text(member.get("name")) if member else "",
         "query_text": normalize_text(query_text),
-        "query_type": "shrine",
-        "target_sheet": "shrines",
+        "query_type": query_type,
+        "target_sheet": target_sheet,
         "matched_record_id": normalize_text(shrine.get("shrine_id")) if shrine else "",
         "matched_record_name": normalize_text(shrine.get("name")) if shrine else "",
         "matched_shrine_id": normalize_text(shrine.get("shrine_id")) if shrine else "",
