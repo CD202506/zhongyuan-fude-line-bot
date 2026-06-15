@@ -1,5 +1,6 @@
 import json
 import os
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -11,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.8",
+    version="0.1.9",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -23,7 +24,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.8",
+        "version": "0.1.9",
     }
 
 
@@ -85,13 +86,34 @@ def append_sheet_record_by_headers(sheet_name: str, record: dict[str, Any]) -> N
 
 
 @app.get("/debug/sheets")
-async def debug_sheets():
+async def debug_sheets(token: str | None = None):
     """
-    Temporary debug endpoint.
+    Read non-sensitive sheet metadata when explicitly enabled.
+    """
+    debug_enabled = normalize_text(os.getenv("ENABLE_DEBUG_ENDPOINT")).lower() == "true"
 
-    Reads the shrines and members sheets from the V2 temporary Google Sheet.
-    This endpoint should be removed or protected after verification.
-    """
+    if not debug_enabled:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": "disabled",
+                "message": "Debug endpoint is not enabled.",
+            },
+        )
+
+    debug_token = normalize_text(os.getenv("DEBUG_TOKEN"))
+
+    if debug_token and (
+        not token or not secrets.compare_digest(token, debug_token)
+    ):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "forbidden",
+                "message": "A valid debug token is required.",
+            },
+        )
+
     try:
         shrines = read_sheet_records("shrines")
         members = read_sheet_records("members")
@@ -122,7 +144,7 @@ async def debug_sheets():
             status_code=500,
             content={
                 "status": "error",
-                "message": str(exc),
+                "message": "Unable to read sheet metadata.",
             },
         )
 
@@ -309,7 +331,7 @@ def append_line_query_log(
         "reply_mode": reply_type,
         "reply_token_used": "yes",
         "source_type": "user_message",
-        "scenario_version": "Python_Render_V0.1.8",
+        "scenario_version": "Python_Render_V0.1.9",
         "result_status": result_status,
         "error_message": error_message,
         "created_at": timestamp,
@@ -398,7 +420,7 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.8 replies with public/internal shrine data and writes line_query_logs
+    V0.1.9 replies with public/internal shrine data and writes line_query_logs
     by matching Google Sheets headers.
     """
     try:
