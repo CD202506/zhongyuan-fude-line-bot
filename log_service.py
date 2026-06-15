@@ -1,3 +1,5 @@
+import os
+import re
 import uuid
 from datetime import datetime
 from typing import Any
@@ -5,6 +7,27 @@ from typing import Any
 from config import APP_VERSION, TAIPEI_TZ
 from permission_service import normalize_text
 from sheets_client import append_sheet_record_by_headers
+
+
+LINE_QUERY_LOG_SHEET = "line_query_logs"
+LINE_QUERY_LOG_HEADERS = (
+    "log_id",
+    "query_datetime",
+    "line_uid",
+    "member_id",
+    "query_text",
+    "query_type",
+    "target_sheet",
+    "matched_record_id",
+    "matched_record_name",
+    "result_status",
+    "reply_mode",
+    "reply_token_used",
+    "error_message",
+    "source_type",
+    "scenario_version",
+    "note",
+)
 
 
 def now_taipei_iso() -> str:
@@ -47,7 +70,41 @@ def append_line_query_log(
         "scenario_version": f"Python_Render_V{APP_VERSION}",
         "result_status": result_status,
         "error_message": error_message,
+        "note": "",
         "created_at": timestamp,
     }
 
-    append_sheet_record_by_headers("line_query_logs", record)
+    append_sheet_record_by_headers(
+        LINE_QUERY_LOG_SHEET,
+        record,
+        required_headers=LINE_QUERY_LOG_HEADERS,
+    )
+    print(
+        "[query_log] append success: "
+        f"sheet={LINE_QUERY_LOG_SHEET}, "
+        f"log_id={log_id}, "
+        f"query_type={query_type}, "
+        f"result_status={result_status}"
+    )
+
+
+def safe_query_log_error(exc: Exception) -> str:
+    message = normalize_text(exc) or exc.__class__.__name__
+
+    for env_name in (
+        "LINE_CHANNEL_ACCESS_TOKEN",
+        "GOOGLE_SERVICE_ACCOUNT_JSON",
+        "GOOGLE_SHEET_ID",
+        "DEBUG_TOKEN",
+    ):
+        secret_value = os.getenv(env_name)
+
+        if secret_value:
+            message = message.replace(secret_value, f"<redacted:{env_name}>")
+
+    message = re.sub(
+        r'(?i)(private[_ -]?key)(["\']?\s*[:=]\s*)([^,\s}]+)',
+        r"\1\2<redacted>",
+        message,
+    )
+    return " ".join(message.split())[:500]

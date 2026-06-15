@@ -69,12 +69,30 @@ def clear_sheet_cache() -> None:
 def append_sheet_record_by_headers(
     sheet_name: str,
     record: dict[str, Any],
+    required_headers: tuple[str, ...] = (),
 ) -> None:
     """
     Append a row by matching record keys to the sheet's header row.
     """
     spreadsheet = get_spreadsheet()
-    worksheet = spreadsheet.worksheet(sheet_name)
-    headers = worksheet.row_values(1)
+    try:
+        worksheet = spreadsheet.worksheet(sheet_name)
+    except gspread.WorksheetNotFound as exc:
+        raise RuntimeError(f"Worksheet not found: {sheet_name}") from exc
+
+    headers = [_normalize_header(header) for header in worksheet.row_values(1)]
+    missing_headers = [
+        header for header in required_headers if header not in headers
+    ]
+
+    if missing_headers:
+        raise RuntimeError(
+            f"{sheet_name} missing required headers: {', '.join(missing_headers)}"
+        )
+
     row_values = [record.get(header, "") for header in headers]
     worksheet.append_row(row_values, value_input_option="USER_ENTERED")
+
+
+def _normalize_header(header: Any) -> str:
+    return str(header or "").lstrip("\ufeff").strip()

@@ -13,7 +13,11 @@ from config import (
     is_debug_endpoint_enabled,
 )
 from line_client import reply_text_message
-from log_service import append_line_query_log
+from log_service import (
+    LINE_QUERY_LOG_SHEET,
+    append_line_query_log,
+    safe_query_log_error,
+)
 from permission_service import (
     can_view_internal_shrine,
     find_member_by_line_uid,
@@ -164,7 +168,7 @@ async def line_webhook(request: Request):
             message_text = message.get("text")
 
             print("event_type:", event_type)
-            print("user_id:", user_id)
+            print("user_id_present:", bool(user_id))
             print("message_type:", message_type)
             print("message_text:", message_text)
 
@@ -229,7 +233,15 @@ async def handle_text_message(
             error_message=normalize_text(log_meta.get("error_message")),
         )
     except Exception as exc:
-        print("append_line_query_log error:", str(exc))
+        query_type = normalize_text(log_meta.get("query_type")) or "unknown"
+        result_status = normalize_text(log_meta.get("result_status")) or "error"
+        print(
+            "[query_log] append failed: "
+            f"sheet={LINE_QUERY_LOG_SHEET}, "
+            f"query_type={query_type}, "
+            f"result_status={result_status}, "
+            f"error={safe_query_log_error(exc)}"
+        )
 
 
 def build_command_reply(
