@@ -23,10 +23,12 @@ from reply_builder import (
     build_internal_shrine_reply,
     build_not_found_reply,
     build_public_shrine_reply,
+    build_shrine_visits_reply,
     build_unknown_command_reply,
 )
 from sheets_client import read_sheet_records
 from shrine_search_service import find_shrine
+from shrine_visit_service import find_recent_shrine_visits
 
 
 app = FastAPI(
@@ -247,16 +249,11 @@ def build_command_reply(
             "error_message": "",
         }
 
-    if command.command_type == "visit_placeholder":
-        return "友宮來訪查詢功能建置中", {
-            "member": None,
-            "shrine": None,
-            "reply_type": "visit_placeholder",
-            "result_status": "success",
-            "query_type": "visit_placeholder",
-            "target_sheet": "shrine_visits",
-            "error_message": "",
-        }
+    if command.command_type == "visit":
+        return build_shrine_visit_query_reply(
+            command.query_text,
+            line_user_id,
+        )
 
     if command.command_type == "announcement_placeholder":
         return "公告查詢功能建置中", {
@@ -276,5 +273,62 @@ def build_command_reply(
         "result_status": "not_found",
         "query_type": "unknown",
         "target_sheet": "",
+        "error_message": "",
+    }
+
+
+def build_shrine_visit_query_reply(
+    query_text: str,
+    line_user_id: str | None,
+) -> tuple[str, dict[str, Any]]:
+    members = read_sheet_records("members")
+    member = find_member_by_line_uid(line_user_id, members)
+
+    if not can_view_internal_shrine(member):
+        return "此功能限內部人員使用。", {
+            "member": member,
+            "shrine": None,
+            "reply_type": "forbidden",
+            "result_status": "forbidden",
+            "query_type": "visit",
+            "target_sheet": "shrine_visits",
+            "error_message": "",
+        }
+
+    shrines = read_sheet_records("shrines")
+    shrine = find_shrine(query_text, shrines, allow_internal=True)
+
+    if not shrine:
+        return "目前查無此友宮的來訪 / 請帖紀錄。", {
+            "member": member,
+            "shrine": None,
+            "reply_type": "not_found",
+            "result_status": "not_found",
+            "query_type": "visit",
+            "target_sheet": "shrine_visits",
+            "error_message": "",
+        }
+
+    visits = read_sheet_records("shrine_visits")
+    matched_visits = find_recent_shrine_visits(shrine, visits)
+
+    if not matched_visits:
+        return "目前查無此友宮的來訪 / 請帖紀錄。", {
+            "member": member,
+            "shrine": shrine,
+            "reply_type": "not_found",
+            "result_status": "not_found",
+            "query_type": "visit",
+            "target_sheet": "shrine_visits",
+            "error_message": "",
+        }
+
+    return build_shrine_visits_reply(shrine, matched_visits), {
+        "member": member,
+        "shrine": shrine,
+        "reply_type": "visit",
+        "result_status": "success",
+        "query_type": "visit",
+        "target_sheet": "shrine_visits",
         "error_message": "",
     }

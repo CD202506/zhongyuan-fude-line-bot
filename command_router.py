@@ -24,10 +24,10 @@ def parse_command(message_text: str | None, message_type: str = "text") -> Comma
     if text == "查公告":
         return Command("announcement_placeholder")
 
-    visit_query = _strip_prefix(text, ("查來訪",))
+    visit_query = _strip_prefix(text, ("查來訪", "來訪"))
     if visit_query is not None:
         return Command(
-            "visit_placeholder" if visit_query else "unknown",
+            "visit" if visit_query else "unknown",
             visit_query,
         )
 

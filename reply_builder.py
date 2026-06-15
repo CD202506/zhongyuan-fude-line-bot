@@ -1,6 +1,7 @@
 from typing import Any
 
 from permission_service import normalize_text
+from shrine_visit_service import get_visit_display_fields
 
 
 def build_help_reply() -> str:
@@ -15,6 +16,32 @@ def build_help_reply() -> str:
 
 def build_unknown_command_reply() -> str:
     return "請輸入友宮名稱，例如：白沙屯，或輸入「說明」查看可用指令。"
+
+
+def build_shrine_visits_reply(
+    shrine: dict[str, Any],
+    visits: list[dict[str, Any]],
+) -> str:
+    sections = [
+        "🧾 友宮來訪紀錄",
+        "",
+        f"友宮：{normalize_text(shrine.get('name'))}",
+    ]
+
+    for index, visit in enumerate(visits, start=1):
+        fields = get_visit_display_fields(visit)
+        sections.extend(
+            [
+                "",
+                f"{index}. 日期：{fields['date'] or '未填'}",
+                f"   類型：{fields['type'] or '未填'}",
+                f"   活動：{fields['activity'] or '未填'}",
+                f"   備註：{fields['note'] or '未填'}",
+            ]
+        )
+
+    sections.extend(["", "詳細資料請至 V2 暫存表查看。"])
+    return "\n".join(sections)
 
 
 def build_public_shrine_reply(shrine: dict[str, Any]) -> str:
