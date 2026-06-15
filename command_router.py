@@ -21,8 +21,8 @@ def parse_command(message_text: str | None, message_type: str = "text") -> Comma
     if text == "說明":
         return Command("help")
 
-    if text == "查公告":
-        return Command("announcement_placeholder")
+    if text in {"查公告", "公告"}:
+        return Command("announcement")
 
     visit_query = _strip_prefix(text, ("查來訪", "來訪"))
     if visit_query is not None:

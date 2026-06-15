@@ -1,5 +1,6 @@
 from typing import Any
 
+from announcement_service import get_announcement_display_fields
 from permission_service import normalize_text
 from shrine_visit_service import get_visit_display_fields
 
@@ -41,6 +42,31 @@ def build_shrine_visits_reply(
         )
 
     sections.extend(["", "詳細資料請至 V2 暫存表查看。"])
+    return "\n".join(sections)
+
+
+def build_announcements_reply(
+    announcements: list[dict[str, Any]],
+) -> str:
+    sections = ["📣 最新公告"]
+
+    for index, announcement in enumerate(announcements, start=1):
+        fields = get_announcement_display_fields(announcement)
+        date_text = fields["date"]
+
+        if fields["time"]:
+            date_text = f"{date_text} {fields['time']}".strip()
+
+        sections.extend(
+            [
+                "",
+                f"{index}. 標題：{fields['title'] or '未命名公告'}",
+                f"   日期：{date_text or '未填'}",
+                f"   地點：{fields['location'] or '未填'}",
+                f"   說明：{fields['body'] or '未填'}",
+            ]
+        )
+
     return "\n".join(sections)
 
 

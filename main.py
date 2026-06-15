@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from announcement_service import find_latest_announcements
 from command_router import Command, parse_command
 from config import (
     APP_VERSION,
@@ -19,6 +20,7 @@ from permission_service import (
     normalize_text,
 )
 from reply_builder import (
+    build_announcements_reply,
     build_help_reply,
     build_internal_shrine_reply,
     build_not_found_reply,
@@ -255,16 +257,8 @@ def build_command_reply(
             line_user_id,
         )
 
-    if command.command_type == "announcement_placeholder":
-        return "公告查詢功能建置中", {
-            "member": None,
-            "shrine": None,
-            "reply_type": "announcement_placeholder",
-            "result_status": "success",
-            "query_type": "announcement_placeholder",
-            "target_sheet": "announcements",
-            "error_message": "",
-        }
+    if command.command_type == "announcement":
+        return build_announcement_query_reply()
 
     return build_unknown_command_reply(), {
         "member": None,
@@ -330,5 +324,31 @@ def build_shrine_visit_query_reply(
         "result_status": "success",
         "query_type": "visit",
         "target_sheet": "shrine_visits",
+        "error_message": "",
+    }
+
+
+def build_announcement_query_reply() -> tuple[str, dict[str, Any]]:
+    announcements = read_sheet_records("announcements")
+    latest_announcements = find_latest_announcements(announcements)
+
+    if not latest_announcements:
+        return "目前沒有可顯示的公告。", {
+            "member": None,
+            "shrine": None,
+            "reply_type": "not_found",
+            "result_status": "not_found",
+            "query_type": "announcement",
+            "target_sheet": "announcements",
+            "error_message": "",
+        }
+
+    return build_announcements_reply(latest_announcements), {
+        "member": None,
+        "shrine": None,
+        "reply_type": "announcement",
+        "result_status": "success",
+        "query_type": "announcement",
+        "target_sheet": "announcements",
         "error_message": "",
     }
