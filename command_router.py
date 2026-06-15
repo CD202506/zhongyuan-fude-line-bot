@@ -21,17 +21,27 @@ def parse_command(message_text: str | None, message_type: str = "text") -> Comma
     if text == "說明":
         return Command("help")
 
-    if text in {"查公告", "公告"}:
+    if text in {"查公告", "公告", "最新公告", "活動公告", "近期公告"}:
         return Command("announcement")
 
-    visit_query = _strip_prefix(text, ("查來訪", "來訪"))
+    visit_query = _strip_prefix(text, ("查來訪", "來訪", "查請帖", "請帖"))
     if visit_query is not None:
         return Command(
             "visit" if visit_query else "unknown",
             visit_query,
         )
 
-    shrine_query = _strip_prefix(text, ("查友宮", "友宮"))
+    visit_query = _strip_suffix(text, ("來訪",))
+    if visit_query is not None:
+        return Command(
+            "visit" if visit_query else "unknown",
+            visit_query,
+        )
+
+    shrine_query = _strip_prefix(
+        text,
+        ("查友宮", "友宮", "查廟", "查宮廟", "友宮查詢"),
+    )
     if shrine_query is not None:
         return Command("shrine" if shrine_query else "unknown", shrine_query)
 
@@ -45,5 +55,16 @@ def _strip_prefix(text: str, prefixes: tuple[str, ...]) -> str | None:
 
         if text.startswith(f"{prefix} "):
             return text[len(prefix):].strip()
+
+    return None
+
+
+def _strip_suffix(text: str, suffixes: tuple[str, ...]) -> str | None:
+    for suffix in suffixes:
+        if text == suffix:
+            return ""
+
+        if text.endswith(suffix):
+            return text[:-len(suffix)].strip()
 
     return None

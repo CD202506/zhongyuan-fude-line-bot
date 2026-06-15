@@ -20,6 +20,7 @@ from permission_service import (
     normalize_text,
 )
 from reply_builder import (
+    build_announcement_not_found_reply,
     build_announcements_reply,
     build_help_reply,
     build_internal_shrine_reply,
@@ -27,6 +28,7 @@ from reply_builder import (
     build_public_shrine_reply,
     build_shrine_visits_reply,
     build_unknown_command_reply,
+    build_visit_not_found_reply,
 )
 from sheets_client import read_sheet_records
 from shrine_search_service import find_shrine
@@ -303,7 +305,7 @@ def build_shrine_visit_query_reply(
         )
 
         if not matched_visits:
-            return "目前查無此友宮的來訪 / 請帖紀錄。", {
+            return build_visit_not_found_reply(query_text), {
                 "member": member,
                 "shrine": None,
                 "reply_type": "not_found",
@@ -328,7 +330,7 @@ def build_shrine_visit_query_reply(
     matched_visits = find_recent_shrine_visits(shrine, visits)
 
     if not matched_visits:
-        return "目前查無此友宮的來訪 / 請帖紀錄。", {
+        return build_visit_not_found_reply(query_text), {
             "member": member,
             "shrine": shrine,
             "reply_type": "not_found",
@@ -354,7 +356,7 @@ def build_announcement_query_reply() -> tuple[str, dict[str, Any]]:
     latest_announcements = find_latest_announcements(announcements)
 
     if not latest_announcements:
-        return "目前沒有可顯示的公告。", {
+        return build_announcement_not_found_reply(), {
             "member": None,
             "shrine": None,
             "reply_type": "not_found",

@@ -24,16 +24,38 @@ def join_non_empty_sections(sections: list[str]) -> str:
 
 def build_help_reply() -> str:
     return (
-        "可用指令：\n"
+        "🙏 中原福德宮 LINE 查詢說明\n\n"
+        "可輸入：\n\n"
+        "1. 查友宮\n"
         "白沙屯\n"
-        "查友宮 白沙屯\n"
-        "查來訪 白沙屯\n"
-        "查公告"
+        "查友宮 白沙屯\n\n"
+        "2. 查來訪 / 請帖\n"
+        "查來訪 集慶福德廟\n"
+        "來訪 大有\n"
+        "請帖 大有\n\n"
+        "3. 查公告\n"
+        "公告\n"
+        "最新公告\n\n"
+        "若查不到資料，請確認名稱或通知廟方人員補充。"
     )
 
 
 def build_unknown_command_reply() -> str:
     return "請輸入友宮名稱，例如：白沙屯，或輸入「說明」查看可用指令。"
+
+
+def build_visit_not_found_reply(query_text: str) -> str:
+    query = truncate_text(query_text, 100)
+    return (
+        "🙏 目前查無來訪 / 請帖紀錄\n\n"
+        f"您查詢的是：{query}\n\n"
+        "可嘗試輸入完整友宮名稱。\n"
+        "若資料尚未整理，請至 V2 暫存表確認。"
+    )
+
+
+def build_announcement_not_found_reply() -> str:
+    return "📣 目前沒有可公開顯示的公告。"
 
 
 def build_shrine_visits_reply(
