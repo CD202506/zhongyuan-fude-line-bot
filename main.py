@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.7",
+    version="0.1.8",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -23,7 +23,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.7",
+        "version": "0.1.8",
     }
 
 
@@ -306,6 +306,10 @@ def append_line_query_log(
         "matched_shrine_id": normalize_text(shrine.get("shrine_id")) if shrine else "",
         "matched_shrine_name": normalize_text(shrine.get("name")) if shrine else "",
         "reply_type": reply_type,
+        "reply_mode": reply_type,
+        "reply_token_used": "yes",
+        "source_type": "user_message",
+        "scenario_version": "Python_Render_V0.1.8",
         "result_status": result_status,
         "error_message": error_message,
         "created_at": timestamp,
@@ -394,7 +398,7 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.7 replies with public/internal shrine data and writes line_query_logs
+    V0.1.8 replies with public/internal shrine data and writes line_query_logs
     by matching Google Sheets headers.
     """
     try:
