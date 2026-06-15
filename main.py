@@ -1,5 +1,7 @@
 import json
 import os
+import uuid
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 import gspread
@@ -9,10 +11,11 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.5",
+    version="0.1.6",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
+TAIPEI_TZ = timezone(timedelta(hours=8))
 
 
 @app.get("/health")
@@ -20,8 +23,12 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.5",
+        "version": "0.1.6",
     }
+
+
+def now_taipei_iso() -> str:
+    return datetime.now(TAIPEI_TZ).isoformat(timespec="seconds")
 
 
 def get_google_sheet_client() -> gspread.Client:
@@ -38,17 +45,27 @@ def get_google_sheet_client() -> gspread.Client:
     return gspread.service_account_from_dict(service_account_info)
 
 
-def read_sheet_records(sheet_name: str) -> list[dict[str, Any]]:
+def get_spreadsheet() -> gspread.Spreadsheet:
     sheet_id = os.getenv("GOOGLE_SHEET_ID")
 
     if not sheet_id:
         raise RuntimeError("GOOGLE_SHEET_ID is not set")
 
     client = get_google_sheet_client()
-    spreadsheet = client.open_by_key(sheet_id)
+    return client.open_by_key(sheet_id)
+
+
+def read_sheet_records(sheet_name: str) -> list[dict[str, Any]]:
+    spreadsheet = get_spreadsheet()
     worksheet = spreadsheet.worksheet(sheet_name)
 
     return worksheet.get_all_records()
+
+
+def append_sheet_row(sheet_name: str, row_values: list[Any]) -> None:
+    spreadsheet = get_spreadsheet()
+    worksheet = spreadsheet.worksheet(sheet_name)
+    worksheet.append_row(row_values, value_input_option="USER_ENTERED")
 
 
 @app.get("/debug/sheets")
@@ -149,19 +166,16 @@ def find_shrine(
         if allow_internal and internal_only:
             searchable_shrines.append(shrine)
 
-    # 1. name 完全相等
     for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if name == query:
             return shrine
 
-    # 2. alias contains query
     for shrine in searchable_shrines:
         alias = normalize_text(shrine.get("alias"))
         if query in alias:
             return shrine
 
-    # 3. name contains query
     for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if query in name:
@@ -236,7 +250,41 @@ def build_not_found_reply(query_text: str) -> str:
     )
 
 
-def build_shrine_query_reply(query_text: str, line_user_id: str | None) -> str:
+def append_line_query_log(
+    *,
+    line_user_id: str | None,
+    member: dict[str, Any] | None,
+    query_text: str,
+    shrine: dict[str, Any] | None,
+    reply_type: str,
+    result_status: str,
+    error_message: str = "",
+) -> None:
+    timestamp = now_taipei_iso()
+    log_id = f"LQ-{uuid.uuid4().hex[:12]}"
+
+    row = [
+        log_id,
+        timestamp,
+        normalize_text(line_user_id),
+        normalize_text(member.get("member_id")) if member else "",
+        normalize_text(member.get("name")) if member else "",
+        normalize_text(query_text),
+        normalize_text(shrine.get("shrine_id")) if shrine else "",
+        normalize_text(shrine.get("name")) if shrine else "",
+        reply_type,
+        result_status,
+        error_message,
+        timestamp,
+    ]
+
+    append_sheet_row("line_query_logs", row)
+
+
+def build_shrine_query_reply(
+    query_text: str,
+    line_user_id: str | None,
+) -> tuple[str, dict[str, Any]]:
     shrines = read_sheet_records("shrines")
     members = read_sheet_records("members")
 
@@ -249,12 +297,30 @@ def build_shrine_query_reply(query_text: str, line_user_id: str | None) -> str:
     shrine = find_shrine(query_text, shrines, allow_internal=allow_internal)
 
     if not shrine:
-        return build_not_found_reply(query_text)
+        return build_not_found_reply(query_text), {
+            "member": member,
+            "shrine": None,
+            "reply_type": "not_found",
+            "result_status": "not_found",
+            "error_message": "",
+        }
 
     if allow_internal:
-        return build_internal_shrine_reply(shrine, member)
+        return build_internal_shrine_reply(shrine, member), {
+            "member": member,
+            "shrine": shrine,
+            "reply_type": "internal",
+            "result_status": "success",
+            "error_message": "",
+        }
 
-    return build_public_shrine_reply(shrine)
+    return build_public_shrine_reply(shrine), {
+        "member": member,
+        "shrine": shrine,
+        "reply_type": "public",
+        "result_status": "success",
+        "error_message": "",
+    }
 
 
 async def reply_text_message(reply_token: str, text: str) -> None:
@@ -295,8 +361,7 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.5 reads LINE text messages, searches shrine records,
-    checks member permission, and replies with public or internal information.
+    V0.1.6 replies with public/internal shrine data and writes line_query_logs.
     """
     try:
         body = await request.json()
@@ -322,11 +387,34 @@ async def line_webhook(request: Request):
                 and reply_token
                 and message_text
             ):
+                log_meta = {
+                    "member": None,
+                    "shrine": None,
+                    "reply_type": "error",
+                    "result_status": "error",
+                    "error_message": "",
+                }
+
                 try:
-                    reply_text = build_shrine_query_reply(message_text, user_id)
+                    reply_text, log_meta = build_shrine_query_reply(message_text, user_id)
                 except Exception as exc:
-                    print("build_shrine_query_reply error:", str(exc))
+                    error_message = str(exc)
+                    print("build_shrine_query_reply error:", error_message)
                     reply_text = "系統暫時無法查詢友宮資料，請稍後再試。"
+                    log_meta["error_message"] = error_message
+
+                try:
+                    append_line_query_log(
+                        line_user_id=user_id,
+                        member=log_meta.get("member"),
+                        query_text=message_text,
+                        shrine=log_meta.get("shrine"),
+                        reply_type=normalize_text(log_meta.get("reply_type")) or "error",
+                        result_status=normalize_text(log_meta.get("result_status")) or "error",
+                        error_message=normalize_text(log_meta.get("error_message")),
+                    )
+                except Exception as exc:
+                    print("append_line_query_log error:", str(exc))
 
                 await reply_text_message(reply_token, reply_text)
 
