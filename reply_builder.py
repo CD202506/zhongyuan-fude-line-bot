@@ -58,6 +58,59 @@ def build_announcement_not_found_reply() -> str:
     return "📣 目前沒有可公開顯示的公告。"
 
 
+def build_recent_query_logs_reply(
+    records: list[dict[str, Any]],
+) -> str:
+    if not records:
+        return "目前尚無查詢紀錄。"
+
+    sections = ["📋 最近查詢紀錄"]
+
+    for index, record in enumerate(records, start=1):
+        query_text = truncate_text(record.get("query_text"), 100) or "未填"
+        lines = [f"{index}. {query_text}"]
+        _append_log_field(lines, "類型", record.get("query_type"), 50)
+        _append_log_field(lines, "結果", record.get("result_status"), 50)
+        _append_log_field(lines, "命中", record.get("matched_record_name"), 100)
+        _append_log_field(lines, "時間", record.get("query_datetime"), 80)
+        sections.append("\n".join(lines))
+
+    sections.append("僅顯示最近 5 筆。")
+    return join_non_empty_sections(sections)
+
+
+def build_not_found_logs_reply(
+    records: list[dict[str, Any]],
+) -> str:
+    if not records:
+        return "目前沒有查無資料紀錄。"
+
+    sections = ["🧩 最近查無資料"]
+
+    for index, record in enumerate(records, start=1):
+        query_text = truncate_text(record.get("query_text"), 100) or "未填"
+        lines = [f"{index}. {query_text}"]
+        _append_log_field(lines, "類型", record.get("query_type"), 50)
+        _append_log_field(lines, "目標表", record.get("target_sheet"), 80)
+        _append_log_field(lines, "時間", record.get("query_datetime"), 80)
+        sections.append("\n".join(lines))
+
+    sections.append("可依這些紀錄補充 V2 暫存表資料。")
+    return join_non_empty_sections(sections)
+
+
+def _append_log_field(
+    lines: list[str],
+    label: str,
+    value: Any,
+    max_length: int,
+) -> None:
+    text = truncate_text(value, max_length)
+
+    if text:
+        lines.append(f"   {label}：{text}")
+
+
 def build_shrine_visits_reply(
     shrine: dict[str, Any],
     visits: list[dict[str, Any]],

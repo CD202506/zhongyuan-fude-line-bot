@@ -28,11 +28,17 @@ from reply_builder import (
     build_announcements_reply,
     build_help_reply,
     build_internal_shrine_reply,
+    build_not_found_logs_reply,
     build_not_found_reply,
     build_public_shrine_reply,
+    build_recent_query_logs_reply,
     build_shrine_visits_reply,
     build_unknown_command_reply,
     build_visit_not_found_reply,
+)
+from query_log_lookup_service import (
+    find_recent_not_found_logs,
+    find_recent_query_logs,
 )
 from sheets_client import read_sheet_records
 from shrine_search_service import find_shrine
@@ -268,6 +274,12 @@ def build_command_reply(
             "error_message": "",
         }
 
+    if command.command_type in {"log_recent", "log_not_found"}:
+        return build_query_log_lookup_reply(
+            command.command_type,
+            line_user_id,
+        )
+
     if command.command_type == "visit":
         return build_shrine_visit_query_reply(
             command.query_text,
@@ -284,6 +296,45 @@ def build_command_reply(
         "result_status": "not_found",
         "query_type": "unknown",
         "target_sheet": "",
+        "error_message": "",
+    }
+
+
+def build_query_log_lookup_reply(
+    command_type: str,
+    line_user_id: str | None,
+) -> tuple[str, dict[str, Any]]:
+    members = read_sheet_records("members")
+    member = find_member_by_line_uid(line_user_id, members)
+
+    if not can_view_internal_shrine(member):
+        return "此功能限內部人員使用。", {
+            "member": member,
+            "shrine": None,
+            "reply_type": "forbidden",
+            "result_status": "forbidden",
+            "query_type": command_type,
+            "target_sheet": LINE_QUERY_LOG_SHEET,
+            "error_message": "",
+        }
+
+    records = read_sheet_records(LINE_QUERY_LOG_SHEET)
+
+    if command_type == "log_not_found":
+        matched_records = find_recent_not_found_logs(records)
+        reply_text = build_not_found_logs_reply(matched_records)
+    else:
+        matched_records = find_recent_query_logs(records)
+        reply_text = build_recent_query_logs_reply(matched_records)
+
+    result_status = "success" if matched_records else "not_found"
+    return reply_text, {
+        "member": member,
+        "shrine": None,
+        "reply_type": command_type,
+        "result_status": result_status,
+        "query_type": command_type,
+        "target_sheet": LINE_QUERY_LOG_SHEET,
         "error_message": "",
     }
 
