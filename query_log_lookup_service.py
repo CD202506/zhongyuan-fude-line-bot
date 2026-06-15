@@ -4,7 +4,12 @@ from typing import Any
 from permission_service import normalize_text
 
 
-_MANAGEMENT_QUERY_TYPES = {"log_recent", "log_not_found"}
+_MANAGEMENT_QUERY_TYPES = {
+    "log_recent",
+    "log_not_found",
+    "backfill_suggestions",
+}
+_BACKFILL_QUERY_TYPES = {"shrine", "visit", "announcement", "unknown"}
 
 
 def find_recent_query_logs(
@@ -32,6 +37,71 @@ def find_recent_not_found_logs(
         )
     ]
     return _sort_recent(not_found)[:limit]
+
+
+def build_backfill_suggestions(
+    records: list[dict[str, Any]],
+    limit: int = 5,
+) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+
+    for index, record in enumerate(records):
+        query_type = _get_query_type(record)
+        result_status = normalize_text(record.get("result_status")).lower()
+        query_text = " ".join(normalize_text(record.get("query_text")).split())
+        target_sheet = normalize_text(record.get("target_sheet")).lower()
+
+        if (
+            result_status != "not_found"
+            or query_type in _MANAGEMENT_QUERY_TYPES
+            or query_type not in _BACKFILL_QUERY_TYPES
+            or not query_text
+        ):
+            continue
+
+        key = (query_text, query_type, target_sheet)
+        query_datetime = normalize_text(record.get("query_datetime"))
+        latest_timestamp = _parse_datetime(query_datetime)
+        latest_key = (
+            latest_timestamp is not None,
+            latest_timestamp or float("-inf"),
+            index,
+        )
+
+        if key not in grouped:
+            grouped[key] = {
+                "query_text": query_text,
+                "query_type": query_type,
+                "target_sheet": target_sheet,
+                "count": 0,
+                "latest_query_datetime": query_datetime,
+                "_latest_key": latest_key,
+            }
+
+        suggestion = grouped[key]
+        suggestion["count"] += 1
+
+        if latest_key > suggestion["_latest_key"]:
+            suggestion["latest_query_datetime"] = query_datetime
+            suggestion["_latest_key"] = latest_key
+
+    suggestions = list(grouped.values())
+    suggestions.sort(
+        key=lambda item: (
+            item["count"],
+            item["_latest_key"],
+        ),
+        reverse=True,
+    )
+
+    return [
+        {
+            key: value
+            for key, value in suggestion.items()
+            if not key.startswith("_")
+        }
+        for suggestion in suggestions[:limit]
+    ]
 
 
 def _get_query_type(record: dict[str, Any]) -> str:

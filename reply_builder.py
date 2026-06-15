@@ -14,6 +14,7 @@ _QUERY_TYPE_LABELS = {
     "unknown": "未知",
     "log_recent": "查詢紀錄",
     "log_not_found": "查無資料",
+    "backfill_suggestions": "補資料建議",
 }
 _RESULT_STATUS_LABELS = {
     "success": "成功",
@@ -142,6 +143,44 @@ def build_not_found_logs_reply(
     return join_non_empty_sections(sections)
 
 
+def build_backfill_suggestions_reply(
+    suggestions: list[dict[str, Any]],
+) -> str:
+    if not suggestions:
+        return "目前沒有可整理的補資料待辦。"
+
+    sections = ["🧩 補資料待辦建議"]
+
+    for index, suggestion in enumerate(suggestions, start=1):
+        query_text = truncate_text(suggestion.get("query_text"), 100) or "未填"
+        lines = [f"{index}. {query_text}"]
+        _append_log_field(
+            lines,
+            "類型",
+            format_query_type_for_reply(suggestion.get("query_type")),
+            50,
+        )
+        _append_log_field(lines, "次數", suggestion.get("count"), 20)
+        _append_log_field(
+            lines,
+            "最近",
+            format_datetime_for_reply(
+                suggestion.get("latest_query_datetime"),
+            ),
+            80,
+        )
+        _append_log_field(
+            lines,
+            "建議",
+            _build_backfill_advice(suggestion),
+            160,
+        )
+        sections.append("\n".join(lines))
+
+    sections.append("僅顯示前 5 筆。請人工確認後再補入 V2 暫存表。")
+    return join_non_empty_sections(sections)
+
+
 def format_datetime_for_reply(value: Any) -> str:
     text = safe_text(value)
 
@@ -189,6 +228,22 @@ def _append_log_field(
 
     if text:
         lines.append(f"   {label}：{text}")
+
+
+def _build_backfill_advice(suggestion: dict[str, Any]) -> str:
+    query_type = safe_text(suggestion.get("query_type")).lower()
+    target_sheet = safe_text(suggestion.get("target_sheet")).lower()
+
+    if query_type == "shrine" or target_sheet == "shrines":
+        return "補到 shrines，建立廟名、別名、主祀神明、公開摘要。"
+
+    if query_type == "visit" or target_sheet == "shrine_visits":
+        return "補到 shrine_visits，建立友宮名稱、日期、類型、主題、摘要。"
+
+    if query_type == "announcement" or target_sheet == "announcements":
+        return "補到 announcements，建立公告標題、日期、地點、LINE 短文。"
+
+    return "請先判斷這是友宮、來訪、公告或其他需求，再決定補哪張表。"
 
 
 def build_shrine_visits_reply(

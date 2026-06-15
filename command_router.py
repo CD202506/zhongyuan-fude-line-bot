@@ -24,6 +24,9 @@ def parse_command(message_text: str | None, message_type: str = "text") -> Comma
     if text in {"查紀錄", "最近查詢", "查詢紀錄"}:
         return Command("log_recent")
 
+    if text in {"補資料建議", "待補清單", "資料待辦"}:
+        return Command("backfill_suggestions")
+
     if text in {"查無資料", "補資料", "待補資料"}:
         return Command("log_not_found")
 

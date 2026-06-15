@@ -26,6 +26,7 @@ from permission_service import (
 from reply_builder import (
     build_announcement_not_found_reply,
     build_announcements_reply,
+    build_backfill_suggestions_reply,
     build_help_reply,
     build_internal_shrine_reply,
     build_not_found_logs_reply,
@@ -37,6 +38,7 @@ from reply_builder import (
     build_visit_not_found_reply,
 )
 from query_log_lookup_service import (
+    build_backfill_suggestions,
     find_recent_not_found_logs,
     find_recent_query_logs,
 )
@@ -274,7 +276,11 @@ def build_command_reply(
             "error_message": "",
         }
 
-    if command.command_type in {"log_recent", "log_not_found"}:
+    if command.command_type in {
+        "log_recent",
+        "log_not_found",
+        "backfill_suggestions",
+    }:
         return build_query_log_lookup_reply(
             command.command_type,
             line_user_id,
@@ -320,7 +326,10 @@ def build_query_log_lookup_reply(
 
     records = read_sheet_records(LINE_QUERY_LOG_SHEET)
 
-    if command_type == "log_not_found":
+    if command_type == "backfill_suggestions":
+        matched_records = build_backfill_suggestions(records)
+        reply_text = build_backfill_suggestions_reply(matched_records)
+    elif command_type == "log_not_found":
         matched_records = find_recent_not_found_logs(records)
         reply_text = build_not_found_logs_reply(matched_records)
     else:
