@@ -200,6 +200,11 @@ async def handle_text_message(
         log_meta["error_message"] = error_message
 
     try:
+        await reply_text_message(reply_token, reply_text)
+    except Exception as exc:
+        print("reply_text_message error:", str(exc))
+
+    try:
         append_line_query_log(
             line_user_id=user_id,
             member=log_meta.get("member"),
@@ -211,5 +216,3 @@ async def handle_text_message(
         )
     except Exception as exc:
         print("append_line_query_log error:", str(exc))
-
-    await reply_text_message(reply_token, reply_text)

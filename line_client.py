@@ -26,12 +26,17 @@ async def reply_text_message(reply_token: str, text: str) -> None:
         ],
     }
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.post(
-            LINE_REPLY_API_URL,
-            headers=headers,
-            json=payload,
-        )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                LINE_REPLY_API_URL,
+                headers=headers,
+                json=payload,
+            )
+    except httpx.HTTPError as exc:
+        print("LINE reply status: unavailable")
+        print("LINE reply response:", str(exc))
+        raise
 
     print("LINE reply status:", response.status_code)
     print("LINE reply response:", response.text)
