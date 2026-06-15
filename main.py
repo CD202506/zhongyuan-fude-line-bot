@@ -30,7 +30,10 @@ from reply_builder import (
 )
 from sheets_client import read_sheet_records
 from shrine_search_service import find_shrine
-from shrine_visit_service import find_recent_shrine_visits
+from shrine_visit_service import (
+    find_recent_shrine_visits,
+    find_recent_shrine_visits_by_keyword,
+)
 
 
 app = FastAPI(
@@ -293,11 +296,29 @@ def build_shrine_visit_query_reply(
     shrine = find_shrine(query_text, shrines, allow_internal=True)
 
     if not shrine:
-        return "目前查無此友宮的來訪 / 請帖紀錄。", {
+        visits = read_sheet_records("shrine_visits")
+        shrine_name, matched_visits = find_recent_shrine_visits_by_keyword(
+            query_text,
+            visits,
+        )
+
+        if not matched_visits:
+            return "目前查無此友宮的來訪 / 請帖紀錄。", {
+                "member": member,
+                "shrine": None,
+                "reply_type": "not_found",
+                "result_status": "not_found",
+                "query_type": "visit",
+                "target_sheet": "shrine_visits",
+                "error_message": "",
+            }
+
+        shrine = {"name": shrine_name}
+        return build_shrine_visits_reply(shrine, matched_visits), {
             "member": member,
-            "shrine": None,
-            "reply_type": "not_found",
-            "result_status": "not_found",
+            "shrine": shrine,
+            "reply_type": "visit",
+            "result_status": "success",
             "query_type": "visit",
             "target_sheet": "shrine_visits",
             "error_message": "",

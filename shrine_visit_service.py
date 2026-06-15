@@ -28,6 +28,34 @@ def find_recent_shrine_visits(
     return _sort_recent(matched)[:limit]
 
 
+def find_recent_shrine_visits_by_keyword(
+    query_text: str,
+    visits: list[dict[str, Any]],
+    limit: int = 3,
+) -> tuple[str, list[dict[str, Any]]]:
+    query = normalize_text(query_text)
+
+    if not query:
+        return "", []
+
+    identity_type, identity = _find_best_identity(visits, query)
+
+    if not identity:
+        return "", []
+
+    matched = [
+        visit
+        for visit in visits
+        if _has_identity(visit, identity_type, identity)
+    ]
+    sorted_matches = _sort_recent(matched)[:limit]
+    display_name = (
+        first_value(sorted_matches[0], _SHRINE_NAME_FIELDS)
+        or identity
+    )
+    return display_name, sorted_matches
+
+
 def get_visit_display_fields(visit: dict[str, Any]) -> dict[str, str]:
     return {
         "date": first_value(visit, _DATE_FIELDS),
@@ -66,6 +94,45 @@ def _matches_shrine(
         (shrine_id and shrine_id in visit_ids)
         or (shrine_name and shrine_name in visit_names)
     )
+
+
+def _find_best_identity(
+    visits: list[dict[str, Any]],
+    query: str,
+) -> tuple[str, str]:
+    candidates = []
+
+    for visit_index, visit in enumerate(visits):
+        for identity_type, fields, exact_score, partial_score in (
+            ("name", _SHRINE_NAME_FIELDS, 4, 2),
+            ("id", _SHRINE_ID_FIELDS, 3, 1),
+        ):
+            for field in fields:
+                value = normalize_text(visit.get(field))
+
+                if value == query:
+                    candidates.append(
+                        (exact_score, -len(value), -visit_index, identity_type, value)
+                    )
+                elif query in value:
+                    candidates.append(
+                        (partial_score, -len(value), -visit_index, identity_type, value)
+                    )
+
+    if not candidates:
+        return "", ""
+
+    _, _, _, identity_type, identity = max(candidates)
+    return identity_type, identity
+
+
+def _has_identity(
+    visit: dict[str, Any],
+    identity_type: str,
+    identity: str,
+) -> bool:
+    fields = _SHRINE_NAME_FIELDS if identity_type == "name" else _SHRINE_ID_FIELDS
+    return any(normalize_text(visit.get(field)) == identity for field in fields)
 
 
 def _sort_recent(visits: list[dict[str, Any]]) -> list[dict[str, Any]]:
