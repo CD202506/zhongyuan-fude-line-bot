@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import gspread
@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Zhongyuan Fude LINE Bot",
-    version="0.1.6",
+    version="0.1.7",
 )
 
 LINE_REPLY_API_URL = "https://api.line.me/v2/bot/message/reply"
@@ -23,7 +23,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "zhongyuan-fude-line-bot",
-        "version": "0.1.6",
+        "version": "0.1.7",
     }
 
 
@@ -65,6 +65,22 @@ def read_sheet_records(sheet_name: str) -> list[dict[str, Any]]:
 def append_sheet_row(sheet_name: str, row_values: list[Any]) -> None:
     spreadsheet = get_spreadsheet()
     worksheet = spreadsheet.worksheet(sheet_name)
+    worksheet.append_row(row_values, value_input_option="USER_ENTERED")
+
+
+def append_sheet_record_by_headers(sheet_name: str, record: dict[str, Any]) -> None:
+    """
+    Append a row by matching record keys to the sheet's header row.
+
+    This avoids column misalignment when Google Sheets column order differs
+    from the code's assumed order.
+    """
+    spreadsheet = get_spreadsheet()
+    worksheet = spreadsheet.worksheet(sheet_name)
+
+    headers = worksheet.row_values(1)
+    row_values = [record.get(header, "") for header in headers]
+
     worksheet.append_row(row_values, value_input_option="USER_ENTERED")
 
 
@@ -166,16 +182,19 @@ def find_shrine(
         if allow_internal and internal_only:
             searchable_shrines.append(shrine)
 
+    # 1. name 完全相等
     for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if name == query:
             return shrine
 
+    # 2. alias contains query
     for shrine in searchable_shrines:
         alias = normalize_text(shrine.get("alias"))
         if query in alias:
             return shrine
 
+    # 3. name contains query
     for shrine in searchable_shrines:
         name = normalize_text(shrine.get("name"))
         if query in name:
@@ -260,25 +279,39 @@ def append_line_query_log(
     result_status: str,
     error_message: str = "",
 ) -> None:
+    """
+    Write one LINE query log record.
+
+    The actual write uses header-based mapping, so it works with the current
+    V2 sheet column order:
+    log_id, query_datetime, line_uid, member_id, query_text, query_type,
+    target_sheet, matched_record_id, matched_record_name, result_status,
+    reply_type, ...
+    """
     timestamp = now_taipei_iso()
     log_id = f"LQ-{uuid.uuid4().hex[:12]}"
 
-    row = [
-        log_id,
-        timestamp,
-        normalize_text(line_user_id),
-        normalize_text(member.get("member_id")) if member else "",
-        normalize_text(member.get("name")) if member else "",
-        normalize_text(query_text),
-        normalize_text(shrine.get("shrine_id")) if shrine else "",
-        normalize_text(shrine.get("name")) if shrine else "",
-        reply_type,
-        result_status,
-        error_message,
-        timestamp,
-    ]
+    record = {
+        "log_id": log_id,
+        "query_datetime": timestamp,
+        "timestamp": timestamp,
+        "line_uid": normalize_text(line_user_id),
+        "member_id": normalize_text(member.get("member_id")) if member else "",
+        "member_name": normalize_text(member.get("name")) if member else "",
+        "query_text": normalize_text(query_text),
+        "query_type": "shrine",
+        "target_sheet": "shrines",
+        "matched_record_id": normalize_text(shrine.get("shrine_id")) if shrine else "",
+        "matched_record_name": normalize_text(shrine.get("name")) if shrine else "",
+        "matched_shrine_id": normalize_text(shrine.get("shrine_id")) if shrine else "",
+        "matched_shrine_name": normalize_text(shrine.get("name")) if shrine else "",
+        "reply_type": reply_type,
+        "result_status": result_status,
+        "error_message": error_message,
+        "created_at": timestamp,
+    }
 
-    append_sheet_row("line_query_logs", row)
+    append_sheet_record_by_headers("line_query_logs", record)
 
 
 def build_shrine_query_reply(
@@ -361,7 +394,8 @@ async def line_webhook(request: Request):
     """
     LINE Webhook entry point.
 
-    V0.1.6 replies with public/internal shrine data and writes line_query_logs.
+    V0.1.7 replies with public/internal shrine data and writes line_query_logs
+    by matching Google Sheets headers.
     """
     try:
         body = await request.json()
