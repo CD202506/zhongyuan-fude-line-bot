@@ -69,7 +69,7 @@ def build_visit_not_found_reply(query_text: str) -> str:
         "🙏 目前查無來訪 / 請帖紀錄\n\n"
         f"您查詢的是：{query}\n\n"
         "可嘗試輸入完整友宮名稱。\n"
-        "若資料尚未整理，請至 V2 暫存表確認。"
+        "若資料尚未整理，請至廟方資料表確認。"
     )
 
 
@@ -139,7 +139,7 @@ def build_not_found_logs_reply(
         )
         sections.append("\n".join(lines))
 
-    sections.append("可依這些紀錄補充 V2 暫存表資料。")
+    sections.append("可依這些紀錄補充廟方資料表。")
     return join_non_empty_sections(sections)
 
 
@@ -177,7 +177,7 @@ def build_backfill_suggestions_reply(
         )
         sections.append("\n".join(lines))
 
-    sections.append("僅顯示前 5 筆。請人工確認後再補入 V2 暫存表。")
+    sections.append("僅顯示前 5 筆。請人工確認後再補入廟方資料表。")
     return join_non_empty_sections(sections)
 
 
@@ -287,7 +287,7 @@ def build_shrine_visits_reply(
         else:
             sections.append(f"{index}. 尚無詳細內容")
 
-    sections.append("詳細資料請至 V2 暫存表查看。")
+    sections.append("詳細資料請至廟方資料表查看。")
     return join_non_empty_sections(sections)
 
 
