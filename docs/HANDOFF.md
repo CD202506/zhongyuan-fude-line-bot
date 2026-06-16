@@ -1,34 +1,52 @@
 # Handoff
 
-## 目前狀態
+## 目前正式狀態
 
-版本 `0.2.3`。LINE 友宮查詢 MVP 已完成：
+- 目前正式資料來源：`中原福德宮_AppSheet_0612`
+- Render：`GOOGLE_SHEET_ID` 已正式指向 V1
+- AppSheet：`中原福德宮_AppSheet` 已接 V1，基本檢查通過
+- V2 暫存表：保留備份 / 測試，不再作正式來源
+- V1_LINE_TEST：保留測試，不刪除
+- LINE 官方帳號預設自動回覆：已關閉
+- Runtime version：`0.6.0`
 
-- 依 `shrines` 的廟名或 alias 查詢
-- 依 `members.line_uid`、`active`、`can_view_internal_shrine` 回公開版或內部版
-- 查無資料回覆
-- `line_query_logs` 紀錄
-- Sheets TTL cache
-- `/debug/sheets` 預設關閉
-- log 寫入失敗不阻擋 LINE 回覆
+## 目前可用 LINE 指令
+
+```text
+說明
+白沙屯
+查友宮 白沙屯
+查廟 白沙屯
+查來訪 集慶福德廟
+查來訪 大有福德宮
+請帖 大有
+活動公告
+查紀錄
+查記錄
+最近記錄
+查無資料
+補資料建議
+```
+
+## 目前不要做
+
+- 不要刪 V2 暫存表
+- 不要刪 V1_LINE_TEST
+- 不要清空 `line_query_logs`
+- 不要讓前端伙伴修改 tab / 欄位
+- 不要把 AppSheet 改接 V2
+- 不要更換 Render `GOOGLE_SHEET_ID`，除非有明確 rollback 需求
+- 不要手動改 Service Account JSON
 
 ## 確認系統正常
 
-1. 開啟 `/health`，確認 `status=ok`、版本為 `0.2.3`。
-2. 在 LINE 輸入「白沙屯」，確認收到一則友宮資料回覆。
-3. 輸入「白沙屯測試」，確認回查無資料。
-4. 檢查 `line_query_logs` 有新增紀錄。
-5. 若失敗，查看 Render Logs，再檢查 LINE token、Sheet ID、Service Account 權限與
-   Google Sheets tab 名稱。
-
-## 公開版 / 內部版測試
-
-使用指定測試 member，確認 `line_uid` 與測試 LINE 帳號相符：
-
-- 內部版：`active=yes`、`can_view_internal_shrine=yes`
-- 公開版：`active=yes`、`can_view_internal_shrine=no`
-
-變更後等待 `SHEETS_CACHE_TTL_SECONDS` 再測，完成後還原原值。不要修改其他 member。
+1. 開啟 `/health`，確認 `status=ok`。
+2. LINE 輸入「白沙屯」，確認收到友宮資料。
+3. LINE 輸入「查來訪 集慶福德廟」，確認可查來訪或請帖。
+4. LINE 輸入「活動公告」，確認可查公告。
+5. LINE 輸入「白沙屯測試」，確認回查無資料。
+6. LINE 輸入「查紀錄」與「查記錄」，確認內部查詢紀錄可讀。
+7. 檢查正式 V1 的 `line_query_logs` 有新增紀錄。
 
 ## 主要檔案
 
@@ -36,18 +54,19 @@
 | --- | --- |
 | `main.py` | FastAPI routes 與 LINE webhook 流程 |
 | `config.py` | 版本與環境設定 |
+| `command_router.py` | LINE 文字指令分流 |
 | `line_client.py` | 呼叫 LINE Reply API |
 | `sheets_client.py` | Google Sheets 讀寫與 TTL cache |
 | `permission_service.py` | members 查找與內部權限判斷 |
 | `shrine_search_service.py` | shrines 搜尋 |
-| `reply_builder.py` | 公開版、內部版、查無資料文字 |
+| `shrine_visit_service.py` | 友宮來訪 / 請帖查詢 |
+| `announcement_service.py` | 公告被動查詢 |
+| `query_log_lookup_service.py` | 內部查詢紀錄與補資料建議 |
+| `reply_builder.py` | LINE 純文字回覆組合 |
 | `log_service.py` | `line_query_logs` 寫入 |
 
 ## 下一步建議
 
-- 先不要急著做公告發布。
-- 可評估加入 `shrine_visits`。
-- 可評估加入 `announcements`。
-- 可評估整理 V2 → V1 改版清單。
-
-新增功能前先保持目前 MVP 穩定，並避免同時修改 LINE 回覆、權限與 Sheets 結構。
+- `0.7.8`：AppSheet 公告管理畫面規劃
+- `0.7.9`：廟方資料維護流程簡化
+- `0.8.0`：LINE 發布公告 / 主動推播規劃
