@@ -70,3 +70,10 @@
 - `0.7.8`：AppSheet 公告管理畫面規劃
 - `0.7.9`：廟方資料維護流程簡化
 - `0.8.0`：LINE 發布公告 / 主動推播規劃
+
+## 交付文件
+
+- [目前專案狀態](CURRENT_PROJECT_STATUS.md)
+- [試營運前檢查清單](PRE_LAUNCH_CHECKLIST.md)
+- [AppSheet 使用者簡易守則](APP_SHEET_USER_GUIDE.md)
+- [回復與維護](ROLLBACK_AND_MAINTENANCE.md)

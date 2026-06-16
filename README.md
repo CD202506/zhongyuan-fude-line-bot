@@ -93,4 +93,10 @@ header 寫入，不要任意重新命名 tab 或欄位。
 | 權限結果未更新 | `line_uid`、`active`、`can_view_internal_shrine`，並等待 cache TTL |
 | query log 沒寫入 | `line_query_logs` headers 與 Render Logs |
 
-目前交接狀態與程式檔案分工見 [docs/HANDOFF.md](docs/HANDOFF.md)。
+## 交付文件
+
+- [交接狀態](docs/HANDOFF.md)
+- [目前專案狀態](docs/CURRENT_PROJECT_STATUS.md)
+- [試營運前檢查清單](docs/PRE_LAUNCH_CHECKLIST.md)
+- [AppSheet 使用者簡易守則](docs/APP_SHEET_USER_GUIDE.md)
+- [回復與維護](docs/ROLLBACK_AND_MAINTENANCE.md)
