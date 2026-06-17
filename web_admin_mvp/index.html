@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>中原福德宮 Web 後台 MVP 預覽</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主要導覽">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">福</div>
+          <div>
+            <p class="eyebrow">開發預覽</p>
+            <h1>中原福德宮後台</h1>
+          </div>
+        </div>
+        <div class="preview-notice">
+          <strong>不影響正式 LINE Bot</strong>
+          <span>只使用本機 mock/dev data，不會寫入正式資料。</span>
+        </div>
+        <nav class="nav-list" id="primaryNav"></nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">0.8.0A-1 Controlled Prototype</p>
+            <h2 id="pageTitle">主控台</h2>
+          </div>
+          <div class="status-strip" aria-label="安全狀態">
+            <span>開發預覽</span>
+            <span>不連正式表單</span>
+            <span>不正式發送</span>
+          </div>
+        </header>
+
+        <section class="page-banner">
+          <div>
+            <strong>預覽，不會寫入正式資料</strong>
+            <span>這裡用來確認廟方管理流程、截圖與操作回饋。</span>
+          </div>
+        </section>
+
+        <section id="appRoot" class="view-container" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <script src="./mockData.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
