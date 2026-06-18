@@ -23,6 +23,7 @@
 - `0.8.0A-1` Web 後台 V2 架構文件補強進行中：補充人員層級、善信管理、團隊管理、值勤班表與帳務關聯模型。本輪只修改文件，不修改 prototype 畫面、runtime、資料源或部署設定。
 - `0.8.0A-1` 帳務管理定位補強進行中：未來正式模組命名建議使用「帳務管理」，短期定位為廟務流水帳紀錄、收支摘要、月度收支公告草稿與 LINE 群組公告內容輔助，不做完整會計、報稅、審計或銀行帳務功能。
 - `0.8.0A-4` Internal UX Cleanup Before Third-party Preview 進行中：整理返回 CTA、管理者設定分類、標籤 / 主檔分組與職務任期歸屬，再交給第三方驗證。
+- `0.8.0A-6` Information Architecture Cleanup Before Third-party Preview 進行中：第三方 ZIP 預覽前，先清理主控台近期廟務動態、友宮主檔、來訪 / 請帖與公告 / 活動的資料語意。
 
 ## Current data source roles
 
@@ -78,6 +79,7 @@
 - 依 V2 架構文件開始將新模組落到 `web_admin_mvp/` prototype：新增善信管理、團隊管理、帳務管理與月報公告草稿可視畫面，並維持本機測試資料、不接正式 Google Sheets、不修改 runtime、不部署。
 - 未獲正式明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`，不接 Google Sheets、FastAPI runtime 或 Render。
 - 第三方驗證前 UX cleanup 原則：次頁、詳情頁、表單頁不可只依賴瀏覽器返回；管理者設定只放系統參數、規則與維運說明，不放具體人員任期資料；標籤 / 主檔管理需分清發布管道、發布狀態、廟務職務、友宮聯絡人職稱、系統權限與帳務分類。
+- 第三方驗證前資訊架構 cleanup 原則：主控台顯示近期廟務動態，不顯示系統 log；系統操作紀錄歸管理者設定；友宮名稱不得混入來訪主題；來訪 / 請帖是互動事件，公告 / 活動是發布或活動內容。
 
 ## Next optional steps
 

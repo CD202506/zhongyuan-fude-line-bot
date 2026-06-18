@@ -18,6 +18,7 @@ window.webAdminMockData = {
       phone: "037-xxx-xxx",
       relationStatus: "長期往來",
       latestVisitDate: "2026-05-19",
+      latestInteraction: "會香",
       enabled: true,
       publicSummary: "多年往來友宮，進香與會香活動互動穩定。",
       internalNote: "重要節慶前建議提前確認接待人數與停車安排。"
@@ -31,6 +32,7 @@ window.webAdminMockData = {
       phone: "03-xxx-xxxx",
       relationStatus: "近期互動",
       latestVisitDate: "2026-06-02",
+      latestInteraction: "參訪",
       enabled: true,
       publicSummary: "地方福德信仰友宮，近期有參訪與請帖紀錄。",
       internalNote: "聯絡窗口回覆快速，適合以電話先確認。"
@@ -44,6 +46,7 @@ window.webAdminMockData = {
       phone: "03-xxx-xxxx",
       relationStatus: "請帖往來",
       latestVisitDate: "2026-05-27",
+      latestInteraction: "祝壽請帖",
       enabled: true,
       publicSummary: "定期互寄請帖與祝壽資訊。",
       internalNote: "請帖資料需保留紙本照片，未來可加附件功能。"
@@ -57,6 +60,7 @@ window.webAdminMockData = {
       phone: "03-xxx-xxxx",
       relationStatus: "待補資料",
       latestVisitDate: "",
+      latestInteraction: "待補互動紀錄",
       enabled: true,
       publicSummary: "需補齊近年互動紀錄。",
       internalNote: "目前缺主要聯絡人職稱，需廟方確認。"
@@ -70,6 +74,7 @@ window.webAdminMockData = {
       phone: "03-xxx-xxxx",
       relationStatus: "資料待確認",
       latestVisitDate: "2026-04-13",
+      latestInteraction: "聯誼邀請",
       enabled: false,
       publicSummary: "資料先作為測試樣本，尚未確認是否啟用。",
       internalNote: "停用狀態用來確認列表篩選與標示。"
@@ -287,12 +292,12 @@ window.webAdminMockData = {
     { id: "missing-003", sourceQuery: "活動公告", type: "公告內容確認", status: "待確認", suggestion: "確認是否需要建立公開公告。" }
   ],
   recentRecords: [
-    { id: "record-001", dateLabel: "06/16", title: "白沙屯拱天宮", type: "來訪 / 請帖", targetView: "visits" },
+    { id: "record-001", dateLabel: "06/16", title: "白沙屯拱天宮來訪", type: "來訪 / 請帖", targetView: "visits" },
     { id: "record-002", dateLabel: "06/15", title: "端午活動公告", type: "公告草稿", targetView: "announcements" },
     { id: "record-003", dateLabel: "06/14", title: "端午節參拜服務", type: "活動更新", targetView: "events" },
-    { id: "record-004", dateLabel: "06/13", title: "南崁五福宮", type: "友宮資料更新", targetView: "temples" },
-    { id: "record-005", dateLabel: "06/12", title: "活動用品支出示範", type: "帳務流水", targetView: "financeRecords" },
-    { id: "record-006", dateLabel: "06/10", title: "王○明", type: "善信紀錄", targetView: "devotees" },
+    { id: "record-004", dateLabel: "06/13", title: "南崁五福宮祝壽邀請", type: "來訪 / 請帖", targetView: "visits" },
+    { id: "record-005", dateLabel: "06/12", title: "發財金登記提醒", type: "善信服務", targetView: "devotees" },
+    { id: "record-006", dateLabel: "06/10", title: "團隊值勤提醒", type: "團隊值勤", targetView: "dutyRosters" },
     { id: "record-007", dateLabel: "06/19", title: "端午值勤", type: "團隊值勤", targetView: "dutyRosters" }
   ],
   devotees: [

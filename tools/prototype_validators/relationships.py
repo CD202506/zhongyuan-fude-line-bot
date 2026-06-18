@@ -9,6 +9,10 @@ class RelationshipValidationError(ValueError):
     """Raised when prototype relationship data is inconsistent."""
 
 
+EVENT_DESCRIPTION_TERMS = {"參訪", "祝壽", "請帖", "會香", "來訪", "邀請"}
+SYSTEM_LOG_TYPES = {"友宮資料更新", "帳務流水", "善信紀錄", "查無資料", "補資料建議", "LINE 查詢紀錄", "mock/dev data"}
+
+
 def require_existing_id(record_id: str, existing_ids: set[str], label: str) -> None:
     if not record_id or record_id not in existing_ids:
         raise RelationshipValidationError(f"Unknown {label}: {record_id!r}")
@@ -17,6 +21,23 @@ def require_existing_id(record_id: str, existing_ids: set[str], label: str) -> N
 def validate_temple(record: dict) -> None:
     if not record.get("temple_id"):
         raise RelationshipValidationError("Temple record requires temple_id")
+
+
+def validate_temple_name_is_master_record(name: str) -> None:
+    if not name or not name.strip():
+        raise RelationshipValidationError("Temple name is required")
+    matched_terms = [term for term in EVENT_DESCRIPTION_TERMS if term in name]
+    if matched_terms:
+        raise RelationshipValidationError(f"Temple name must not include event terms: {', '.join(matched_terms)}")
+
+
+def validate_dashboard_recent_record(record: dict) -> None:
+    record_type = record.get("type", "")
+    title = record.get("title", "")
+    if record_type in SYSTEM_LOG_TYPES:
+        raise RelationshipValidationError(f"Dashboard recent record must not use system log type: {record_type}")
+    if any(term in title for term in {"查無資料", "補資料", "LINE 查詢", "mock/dev data", "資料更新", "帳務流水", "善信紀錄"}):
+        raise RelationshipValidationError("Dashboard recent record title must be a human-readable temple affair event")
 
 
 def build_visit_from_temple(temple_id: str, temple_ids: set[str]) -> dict:
@@ -35,6 +56,14 @@ def build_announcement_from_visit(visit_id: str, visits: dict[str, dict]) -> dic
     visit = visits[visit_id]
     require_existing_id(visit.get("temple_id"), {visit["temple_id"]}, "temple_id")
     return {"related_visit_id": visit_id, "related_temple_id": visit["temple_id"]}
+
+
+def validate_announcement_relation(announcement: dict, visits: dict[str, dict]) -> None:
+    related_visit_id = announcement.get("related_visit_id") or announcement.get("relatedVisitId")
+    if related_visit_id:
+        build_announcement_from_visit(related_visit_id, visits)
+    if announcement.get("record_type") == "visit":
+        raise RelationshipValidationError("Announcement must not replace the visit master record")
 
 
 def validate_devotee_record(record: dict) -> None:
@@ -61,4 +90,3 @@ def duty_candidates_from_rosters(rosters: list[dict], team_member_ids: set[str])
         validate_duty_roster(roster, team_member_ids)
         candidates.add(roster["team_member_id"])
     return candidates
-

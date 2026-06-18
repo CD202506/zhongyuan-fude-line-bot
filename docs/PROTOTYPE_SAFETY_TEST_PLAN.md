@@ -15,6 +15,7 @@ The harness checks prototype data rules before any future adapter or formal data
 - Duty roster rules.
 - Local mock data safety.
 - Label / master-data classification.
+- Information architecture boundaries for temple master records, dashboard temple-affair activity, visit events, announcements, and system operation records.
 
 ## Safety Boundary
 

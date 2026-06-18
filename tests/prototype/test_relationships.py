@@ -5,8 +5,11 @@ from tools.prototype_validators.relationships import (
     build_announcement_from_temple,
     build_announcement_from_visit,
     build_visit_from_temple,
+    validate_announcement_relation,
+    validate_dashboard_recent_record,
     validate_devotee_relationship,
     validate_temple,
+    validate_temple_name_is_master_record,
 )
 
 
@@ -21,6 +24,13 @@ class RelationshipTests(unittest.TestCase):
         validate_temple({"temple_id": "temple-001"})
         with self.assertRaises(RelationshipValidationError):
             validate_temple({"name": "白沙屯拱天宮"})
+
+    def test_temple_name_must_not_contain_event_description(self):
+        validate_temple_name_is_master_record("白沙屯拱天宮")
+        validate_temple_name_is_master_record("集慶福德廟")
+        for invalid_name in ["集慶福德廟參訪", "大有福德宮祝壽請帖", "白沙屯拱天宮會香"]:
+            with self.assertRaises(RelationshipValidationError):
+                validate_temple_name_is_master_record(invalid_name)
 
     def test_visit_from_temple_carries_temple_id(self):
         self.assertEqual(build_visit_from_temple("temple-001", self.temple_ids), {"temple_id": "temple-001"})
@@ -37,6 +47,25 @@ class RelationshipTests(unittest.TestCase):
             {"related_visit_id": "visit-001", "related_temple_id": "temple-001"},
         )
 
+    def test_announcement_can_link_visit_but_not_replace_visit(self):
+        validate_announcement_relation({"announcement_id": "ann-001", "related_visit_id": "visit-001"}, self.visits)
+        with self.assertRaises(RelationshipValidationError):
+            validate_announcement_relation({"announcement_id": "ann-002", "related_visit_id": "visit-missing"}, self.visits)
+        with self.assertRaises(RelationshipValidationError):
+            validate_announcement_relation({"announcement_id": "ann-003", "record_type": "visit"}, self.visits)
+
+    def test_dashboard_recent_records_are_not_system_logs(self):
+        validate_dashboard_recent_record({"title": "白沙屯拱天宮來訪", "type": "來訪 / 請帖"})
+        validate_dashboard_recent_record({"title": "團隊值勤提醒", "type": "團隊值勤"})
+        for record in [
+            {"title": "友宮資料更新", "type": "友宮資料更新"},
+            {"title": "活動用品支出示範", "type": "帳務流水"},
+            {"title": "LINE 查詢紀錄", "type": "LINE 查詢紀錄"},
+            {"title": "查無資料", "type": "查無資料"},
+        ]:
+            with self.assertRaises(RelationshipValidationError):
+                validate_dashboard_recent_record(record)
+
     def test_unknown_relationship_id_is_blocked(self):
         with self.assertRaises(RelationshipValidationError):
             build_visit_from_temple("temple-missing", self.temple_ids)
@@ -51,4 +80,3 @@ class RelationshipTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

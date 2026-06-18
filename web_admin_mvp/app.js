@@ -178,7 +178,7 @@
 
   const viewLabels = {
     dashboard: "主控台",
-    recentRecords: "近期紀錄",
+    recentRecords: "近期廟務動態",
     devoteeModule: "善信管理",
     devotees: "善信資料",
     devoteeDetail: "善信詳情",
@@ -219,7 +219,7 @@
     adminModule: "管理者設定",
     adminBasics: "基礎設定",
     adminPermissions: "權限與角色",
-    adminLineOps: "LINE / 查詢維運",
+    adminLineOps: "系統操作紀錄",
     adminDataSources: "系統與資料來源"
   };
 
@@ -322,7 +322,7 @@
         </div>`
       )}
       ${layoutSection(
-        "近期紀錄",
+        "近期廟務動態",
         "",
         `<button class="button secondary" type="button" data-view="recentRecords">查看全部</button>`,
         `<div class="activity-list">
@@ -340,7 +340,7 @@
         "",
         `${isAdmin() ? `<button class="button secondary" type="button" data-view="adminModule">進入管理者設定</button>` : `<span class="tag disabled">需管理者權限</span>`}`,
         `<div class="compact-alerts ${isAdmin() ? "" : "locked-panel"}">
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminLineOps" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>LINE / 查詢維運</strong><span>${isAdmin() ? "查看" : "鎖定"}</span></button>
+          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminLineOps" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>系統操作紀錄</strong><span>${isAdmin() ? "查看" : "鎖定"}</span></button>
           <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminDataSources" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>系統與資料來源</strong><span>${isAdmin() ? "查看" : "鎖定"}</span></button>
         </div>`
       )}
@@ -349,8 +349,8 @@
 
   function renderRecentRecords() {
     return layoutSection(
-      "近期紀錄",
-      "彙整各模組近期異動，方便回到對應紀錄檢視詳情。",
+      "近期廟務動態",
+      "彙整最近來訪、公告、活動、善信服務與團隊值勤等廟務事件。",
       `<button class="button secondary" type="button" data-view="dashboard">返回主控台</button>`,
       `<div class="activity-list">
         ${data.recentRecords.map((activity) => `
@@ -506,6 +506,7 @@
         temple.mainGod,
         temple.address,
         temple.relationStatus,
+        temple.latestInteraction,
         temple.enabled ? "啟用" : "停用",
         temple.latestVisitDate
       ].join(" ").includes(state.templeSearch);
@@ -519,7 +520,7 @@
       <div class="filters">
         <div class="field wide">
           <label for="templeSearch">搜尋友宮</label>
-          <input id="templeSearch" type="search" value="${state.templeSearch}" placeholder="輸入宮廟名稱、主神、地址、關係狀態或啟用狀態">
+          <input id="templeSearch" type="search" value="${state.templeSearch}" placeholder="輸入宮廟名稱、主神、地址、關係狀態或最近互動">
         </div>
       </div>
       <div class="table-wrap">
@@ -530,7 +531,7 @@
               <th>主神</th>
               <th>地址</th>
               <th>關係狀態</th>
-              <th>最近來訪</th>
+              <th>最近互動</th>
               <th>是否啟用</th>
               <th>操作</th>
             </tr>
@@ -542,7 +543,7 @@
                 <td>${temple.mainGod}</td>
                 <td>${temple.address}</td>
                 <td><span class="pill">${temple.relationStatus}</span></td>
-                <td>${temple.latestVisitDate || "尚無紀錄"}</td>
+                <td>${temple.latestInteraction || "尚無紀錄"}${temple.latestVisitDate ? `<br><span class="muted">${temple.latestVisitDate}</span>` : ""}</td>
                 <td>${statusTag(temple.enabled)}</td>
                 <td>
                   <div class="inline-actions">
@@ -1828,7 +1829,7 @@
   function renderAdminLineOps() {
     return `
       ${layoutSection(
-        "LINE / 查詢維運",
+        "系統操作紀錄",
         "這些資料僅供維運與補資料，不是一般使用者主要操作。",
         `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>${adminAccessTag()}`,
         `<div class="mini-card"><strong>不讀寫正式 line_query_logs</strong><p>目前畫面只使用本機測試資料，對應現有 LINE Bot 查詢紀錄與補資料建議概念。</p></div>`
@@ -1877,7 +1878,7 @@
         `<div class="quick-grid">
           <button class="quick-card" type="button" data-view="adminBasics"><strong>標籤 / 主檔管理</strong><span>發布管道、發布狀態、來訪型態、職稱、權限、帳務分類。</span></button>
           <button class="quick-card" type="button" data-view="adminPermissions"><strong>權限與角色</strong><span>系統權限、管理者清單與權限規則。</span></button>
-          <button class="quick-card" type="button" data-view="adminLineOps"><strong>LINE / 查詢維運</strong><span>查詢紀錄、查無資料與補資料建議。</span></button>
+          <button class="quick-card" type="button" data-view="adminLineOps"><strong>系統操作紀錄</strong><span>查詢紀錄、查無資料與補資料建議。</span></button>
           <button class="quick-card" type="button" data-view="adminDataSources"><strong>系統與資料來源</strong><span>正式主檔保護、AppSheet 備援與資料來源。</span></button>
         </div>`
       )}
