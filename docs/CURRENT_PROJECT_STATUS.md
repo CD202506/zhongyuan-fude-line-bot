@@ -18,7 +18,8 @@
 - `0.7.6` Render 正式切換到 V1
 - `0.7.6A` 回覆文字與指令別名小修完成
 - `0.8.0A` Web 後台 MVP 與資料模型 V2 規劃文件完成並 commit：`7131b65`
-- `0.8.0A-1` Controlled Web Admin MVP Prototype 進行中，`web_admin_mvp/` 已建立為本機可視化 prototype，尚未 commit、尚未部署。
+- `0.8.0A-1` Controlled Web Admin MVP Prototype 已完成第一版並推送：`e31e81e prototype: add controlled web admin MVP`。
+- `0.8.0A-1` 後續批次 UX 重整進行中：全站主頁列表優先、設定 / 維運集中管理者設定、關聯資料摘要化。本輪尚未 commit、尚未部署。
 
 ## Current data source roles
 
@@ -64,8 +65,9 @@
 - `announcements` 尚未加入 AppSheet 管理畫面；目前 LINE Bot 可直接讀 Google Sheets 公告資料。
 - `V2 暫存表` 字樣已從 runtime LINE 回覆移除，改為 `廟方資料表`。
 - Web 後台 MVP 目前只使用 mock/dev data，不接正式 Google Sheets，不修改正式 LINE Bot runtime，不修改 Render 設定，不修改 LINE Developers Webhook。
-- Web 後台 UX 最新決策記錄於 `docs/WEB_ADMIN_UX_REVIEW_NOTES.md`。在使用者通知繼續前，不要繼續改畫面、不要 commit、不要部署。
+- Web 後台 UX 最新決策記錄於 `docs/WEB_ADMIN_UX_REVIEW_NOTES.md`。本輪批次 UX 重整完成後需先由使用者 review，不要自行 commit、不要部署。
 - Web 後台全站資料管理流程已定為：先瀏覽 / 搜尋 → 查看詳情 → 詳情頁內編輯 / 管理關聯資料。列表頁以查看詳情為主，新增 CTA 僅保留在明確少數位置。
+- Web 後台一般模組主頁應以列表、搜尋、篩選、查看詳情為主；設定類、權限類、LINE 維運類、資料來源類集中於管理者設定。
 
 ## Next optional steps
 

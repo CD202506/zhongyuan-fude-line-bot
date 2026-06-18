@@ -121,7 +121,50 @@
     return data.currentUserPermission === "admin";
   }
 
+  function adminAccessTag() {
+    return `<span class="tag ${isAdmin() ? "" : "disabled"}">${isAdmin() ? "管理者可操作" : "需管理者權限"}</span>`;
+  }
+
+  const viewLabels = {
+    dashboard: "主控台",
+    templeModule: "友宮管理",
+    temples: "友宮管理",
+    templeDetail: "友宮資料詳情",
+    templeForm: "新增 / 編輯友宮",
+    contacts: "友宮聯絡人",
+    contactForm: "友宮聯絡人新增 / 編輯",
+    visitModule: "來訪 / 請帖",
+    visits: "來訪 / 請帖",
+    visitDetail: "來訪 / 請帖詳情",
+    visitForm: "新增 / 編輯來訪紀錄",
+    announcementModule: "公告 / 活動",
+    announcements: "公告列表",
+    announcementDetail: "公告詳情",
+    announcementForm: "新增 / 編輯公告",
+    events: "活動列表",
+    eventDetail: "活動詳情",
+    eventForm: "新增 / 編輯活動",
+    memberModule: "成員 / 職務",
+    members: "成員名單",
+    memberDetail: "成員詳情",
+    memberForm: "成員新增 / 編輯",
+    roleAssignments: "職務任期檢視",
+    financeModule: "財務管理",
+    financeRecords: "財務紀錄",
+    financeDetail: "財務詳情",
+    financeForm: "新增 / 編輯財務",
+    adminModule: "管理者設定",
+    adminBasics: "基礎設定",
+    adminPermissions: "權限與角色",
+    adminLineOps: "LINE / 查詢維運",
+    adminDataSources: "系統與資料來源"
+  };
+
   function setView(view, options = {}) {
+    if (moduleByView[view] === "adminModule" && !isAdmin()) {
+      showToast("此區需管理者權限；目前只做預覽模式權限提示。");
+      return;
+    }
     state.view = view;
     if (options.templeId) state.selectedTempleId = options.templeId;
     if (options.visitId) state.selectedVisitId = options.visitId;
@@ -187,18 +230,15 @@
   }
 
   function renderDashboard() {
-    const pendingTemples = data.temples.filter((temple) => temple.relationStatus.includes("待") || temple.internalNote.includes("需")).length;
     const recentVisits = data.visits.filter((visit) => visit.date >= "2026-05-01").length;
     const openAnnouncements = data.announcements.filter((announcement) => announcement.status !== "已封存").length;
-    const needsReply = data.visits.filter((visit) => visit.needsReply).length;
-    const notFoundCount = data.lineQueryLogs.filter((log) => log.result === "查無資料").length;
 
     return `
       <div class="metric-grid">
-        <div class="metric-card"><span>友宮數</span><strong>${data.temples.length}</strong></div>
-        <div class="metric-card"><span>近期來訪</span><strong>${recentVisits}</strong></div>
-        <div class="metric-card"><span>公告數</span><strong>${openAnnouncements}</strong></div>
-        <div class="metric-card"><span>活動數</span><strong>${data.events.length}</strong></div>
+        <button class="metric-card" type="button" data-view="templeModule"><span>友宮數</span><strong>${data.temples.length}</strong></button>
+        <button class="metric-card" type="button" data-view="visitModule"><span>近期來訪</span><strong>${recentVisits}</strong></button>
+        <button class="metric-card" type="button" data-view="announcementModule"><span>公告數</span><strong>${openAnnouncements}</strong></button>
+        <button class="metric-card" type="button" data-view="events"><span>活動數</span><strong>${data.events.length}</strong></button>
       </div>
       ${layoutSection(
         "常用入口",
@@ -206,9 +246,8 @@
         "",
         `<div class="quick-grid">
           <button class="quick-card" type="button" data-view="templeForm"><strong>新增友宮</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="visitForm"><strong>新增來訪紀錄</strong><span>記錄參訪、請帖、邀請或會香。</span></button>
-          <button class="quick-card" type="button" data-view="announcementForm"><strong>新增公告</strong><span>整理公告草稿，不正式發送。</span></button>
-          <button class="quick-card" type="button" data-view="temples"><strong>查看友宮資料</strong><span>查看友宮資料。</span></button>
+          <button class="quick-card" type="button" data-view="visitForm"><strong>新增來訪紀錄</strong><span></span></button>
+          <button class="quick-card" type="button" data-view="announcementForm"><strong>新增公告</strong><span></span></button>
         </div>`
       )}
       ${layoutSection(
@@ -228,19 +267,16 @@
       ${layoutSection(
         "管理者資訊",
         "",
-        `${isAdmin() ? `<button class="button secondary" type="button" data-view="adminLineOps">查看維運</button>` : `<span class="tag disabled">需管理者權限</span>`}`,
+        `${isAdmin() ? `<button class="button secondary" type="button" data-view="adminModule">進入管理者設定</button>` : `<span class="tag disabled">需管理者權限</span>`}`,
         `<div class="compact-alerts ${isAdmin() ? "" : "locked-panel"}">
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminLineOps" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>待補資料</strong><span>${isAdmin() ? pendingTemples + needsReply : "鎖定"}</span></button>
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminLineOps" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>查無資料</strong><span>${isAdmin() ? notFoundCount : "鎖定"}</span></button>
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="memberModule" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>成員測試資料</strong><span>${isAdmin() ? data.members.length : "鎖定"}</span></button>
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="financeModule" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>財務草稿</strong><span>${isAdmin() ? data.financeRecords.length : "鎖定"}</span></button>
-          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminDataSources" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>mock/dev data</strong><span>${isAdmin() ? "開發預覽" : "鎖定"}</span></button>
+          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminLineOps" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>LINE / 查詢維運</strong><span>${isAdmin() ? "查看" : "鎖定"}</span></button>
+          <button class="alert-row ${isAdmin() ? "" : "locked"}" type="button" data-view="adminDataSources" ${isAdmin() ? "" : "data-locked-admin=\"true\" aria-disabled=\"true\""}><strong>系統與資料來源</strong><span>${isAdmin() ? "查看" : "鎖定"}</span></button>
         </div>`
       )}
     `;
   }
 
-  function renderTemples() {
+  function renderTemples(showPrimaryAction = true) {
     const filtered = data.temples.filter((temple) => {
       const matchesText = [temple.name, temple.alias, temple.mainGod, temple.address].join(" ").includes(state.templeSearch);
       const matchesFilter = state.templeFilter === "全部" || temple.relationStatus === state.templeFilter || (state.templeFilter === "啟用" && temple.enabled) || (state.templeFilter === "停用" && !temple.enabled);
@@ -249,8 +285,8 @@
 
     return layoutSection(
       "友宮資料列表",
-      "畫面用語使用友宮；內部 prototype 資料模型使用 temple。",
-      `<button class="button" type="button" data-view="templeForm">新增友宮</button>`,
+      "畫面用語使用友宮；內部資料模型使用 temple。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="templeForm">新增友宮</button>` : "",
       `
       <div class="filters">
         <div class="field">
@@ -262,10 +298,6 @@
           <select id="templeFilter">
             ${["全部", "長期往來", "近期互動", "請帖往來", "待補資料", "資料待確認", "啟用", "停用"].map((option) => `<option ${state.templeFilter === option ? "selected" : ""}>${option}</option>`).join("")}
           </select>
-        </div>
-        <div class="field">
-          <label>資料來源</label>
-          <input value="mock/dev data" readonly>
         </div>
       </div>
       <div class="table-wrap">
@@ -304,20 +336,7 @@
   }
 
   function renderTempleModule() {
-    return `
-      ${layoutSection(
-        "友宮管理",
-        "",
-        `<button class="button" type="button" data-view="templeForm">新增友宮</button>`,
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="temples"><strong>友宮資料</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="contacts"><strong>管理聯絡人</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="visits"><strong>查看來訪紀錄</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="visitForm"><strong>新增來訪紀錄</strong><span></span></button>
-        </div>`
-      )}
-      ${renderTemples()}
-    `;
+    return renderTemples(true);
   }
 
   function renderTempleDetail() {
@@ -357,33 +376,43 @@
       )}
       ${layoutSection(
         "聯絡人",
-        "職稱未來對應 role_types 下拉選單。",
+        "關聯資料摘要，不在此區直接編輯。",
         `<button class="button secondary" type="button" data-view="contacts">管理聯絡人</button>`,
-        `<div class="stack">${contacts.map((contact) => `
+        `<div class="summary-strip">
+          <div class="info-item"><span>聯絡人數</span><strong>${contacts.length}</strong></div>
+          <div class="info-item"><span>最近聯絡人</span><strong>${contacts[0]?.name || "尚無"}</strong></div>
+        </div>
+        <div class="stack">${contacts.slice(0, 1).map((contact) => `
           <div class="mini-card">
             <strong>${contact.name}｜${contact.role}</strong>
             <span class="muted">${contact.phone}｜${contact.enabled ? "啟用" : "停用"}</span>
-            <p>${contact.note}</p>
           </div>
         `).join("") || `<p class="muted">尚無聯絡人。</p>`}</div>`
       )}
       ${layoutSection(
         "來訪 / 請帖紀錄",
-        "這裡是互動紀錄，不是公告本身。",
+        "關聯紀錄摘要，完整內容請進入來訪詳情。",
         `<button class="button secondary" type="button" data-view="visits">查看來訪紀錄</button>`,
-        `<div class="stack">${visits.map((visit) => `
+        `<div class="summary-strip">
+          <div class="info-item"><span>紀錄數</span><strong>${visits.length}</strong></div>
+          <div class="info-item"><span>最近紀錄</span><strong>${visits[0]?.date || "尚無"}</strong></div>
+        </div>
+        <div class="stack">${visits.slice(0, 1).map((visit) => `
           <div class="mini-card">
             <strong>${visit.date}｜${visit.title}</strong>
             <span class="muted">${visit.types.join("、")}｜${visit.peopleCount} 人｜${visit.needsReply ? "需要回覆" : "不需回覆"}</span>
-            <p>${visit.note}</p>
           </div>
         `).join("") || `<p class="muted">尚無紀錄。</p>`}</div>`
       )}
       ${layoutSection(
         "相關公告",
-        "公告可關聯來訪紀錄，但第一版不做正式發送。",
+        "關聯資料摘要，不在此區正式發送。",
         `<button class="button secondary" type="button" data-view="announcements">查看公告</button>`,
-        `<div class="stack">${announcements.map((announcement) => `
+        `<div class="summary-strip">
+          <div class="info-item"><span>公告數</span><strong>${announcements.length}</strong></div>
+          <div class="info-item"><span>最近公告</span><strong>${announcements[0]?.title || "尚無"}</strong></div>
+        </div>
+        <div class="stack">${announcements.slice(0, 1).map((announcement) => `
           <div class="mini-card">
             <strong>${announcement.title}</strong>
             <span class="muted">${announcement.status}｜${announcement.date}｜${channelTags(announcement.channels)}</span>
@@ -468,18 +497,22 @@
     );
   }
 
-  function renderVisits() {
+  function renderVisits(showPrimaryAction = true) {
     const filtered = data.visits.filter((visit) => state.visitFilter === "全部" || visit.types.includes(state.visitFilter));
     return layoutSection(
       "來訪 / 請帖紀錄列表",
       "記錄某間友宮在某一天的一次互動；來訪次數未來由紀錄自動計算。",
-      `<button class="button" type="button" data-view="visitForm">新增來訪紀錄</button>`,
+      showPrimaryAction ? `<button class="button" type="button" data-view="visitForm">新增來訪紀錄</button>` : "",
       `<div class="filters">
         <div class="field">
           <label for="visitFilter">依型態篩選</label>
           <select id="visitFilter">
             ${["全部", ...visitTypes].map((type) => `<option ${state.visitFilter === type ? "selected" : ""}>${type}</option>`).join("")}
           </select>
+        </div>
+        <div class="field">
+          <label>友宮搜尋</label>
+          <input value="" placeholder="輸入友宮名稱">
         </div>
         <div class="field">
           <label>資料說明</label>
@@ -547,6 +580,7 @@
 
   function renderVisitDetail() {
     const visit = selectedVisit();
+    const linkedAnnouncements = data.announcements.filter((announcement) => announcement.relatedVisitId === visit.id);
     return `
       ${layoutSection(
         "來訪 / 請帖詳情",
@@ -567,23 +601,21 @@
         </div>
         <div class="mini-card"><strong>備註</strong><p>${visit.note}</p></div>`
       )}
+      ${layoutSection(
+        "關聯公告 / 活動",
+        "關聯資料只顯示摘要，需進入對應詳情後再編輯。",
+        `<button class="button secondary" type="button" data-view="announcements">查看公告列表</button>`,
+        `<div class="summary-strip">
+          <div class="info-item"><span>相關公告</span><strong>${linkedAnnouncements.length}</strong></div>
+          <div class="info-item"><span>最近公告</span><strong>${linkedAnnouncements[0]?.title || "尚無"}</strong></div>
+        </div>`
+      )}
     `;
   }
 
   function renderVisitModule() {
     return `
-      ${layoutSection(
-        "來訪 / 請帖",
-        "",
-        `<button class="button" type="button" data-view="visitForm">新增來訪紀錄</button>`,
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="temples"><strong>選擇友宮</strong><span>先確認友宮主資料與聯絡人。</span></button>
-          <button class="quick-card" type="button" data-view="visits"><strong>來訪紀錄</strong><span>查看來訪與請帖紀錄。</span></button>
-          <button class="quick-card" type="button" data-view="adminBasics"><strong>查看型態設定</strong><span>需管理者權限的設定項目。</span></button>
-          <button class="quick-card" type="button" data-view="adminLineOps"><strong>查看待補資料</strong><span>查無資料後的維運清單。</span></button>
-        </div>`
-      )}
-      ${renderVisits()}
+      ${renderVisits(true)}
       ${layoutSection(
         "來訪型態顯示",
         "",
@@ -608,12 +640,12 @@
     );
   }
 
-  function renderAnnouncements() {
+  function renderAnnouncements(showPrimaryAction = true) {
     const filtered = data.announcements.filter((announcement) => state.announcementFilter === "全部" || announcement.status === state.announcementFilter);
     return layoutSection(
       "公告列表",
       "公告可整理 LINE / FB / VOOM 文字，但第一版不做正式發送。",
-      `<button class="button" type="button" data-view="announcementForm">新增公告</button>`,
+      showPrimaryAction ? `<button class="button" type="button" data-view="announcementForm">新增公告</button>` : "",
       `<div class="filters">
         <div class="field">
           <label for="announcementFilter">依狀態篩選</label>
@@ -624,10 +656,6 @@
         <div class="field">
           <label>發送狀態</label>
           <input value="不做正式發送" readonly>
-        </div>
-        <div class="field">
-          <label>資料來源</label>
-          <input value="mock/dev data" readonly>
         </div>
       </div>
       <div class="table-wrap">
@@ -685,6 +713,7 @@
   function renderAnnouncementDetail() {
     const announcement = selectedAnnouncement();
     const linkedVisit = data.visits.find((visit) => visit.id === announcement.relatedVisitId);
+    const linkedEvents = data.events.filter((eventItem) => eventItem.linkedAnnouncementId === announcement.id);
     return `
       ${layoutSection(
         "公告詳情",
@@ -705,32 +734,31 @@
         <div class="mini-card"><strong>公告內容</strong><p>${announcement.body}</p></div>
         <div class="mini-card"><strong>LINE 文字</strong><p>${announcement.lineText}</p></div>`
       )}
+      ${layoutSection(
+        "關聯來訪 / 活動",
+        "關聯資料只顯示摘要，需進入對應詳情後再編輯。",
+        `<button class="button secondary" type="button" data-view="visits">查看來訪紀錄</button>
+         <button class="button secondary" type="button" data-view="events">查看活動列表</button>`,
+        `<div class="summary-strip">
+          <div class="info-item"><span>關聯來訪</span><strong>${linkedVisit ? linkedVisit.title : "未關聯"}</strong></div>
+          <div class="info-item"><span>關聯活動</span><strong>${linkedEvents.length}</strong></div>
+        </div>`
+      )}
     `;
   }
 
   function renderAnnouncementModule() {
     return `
-      ${layoutSection(
-        "公告 / 活動",
-        "",
-        "",
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="announcementForm"><strong>新增公告</strong><span>整理公告、LINE 文字與公開狀態。</span></button>
-          <button class="quick-card" type="button" data-view="eventForm"><strong>新增活動</strong><span>建立活動草稿並關聯公告。</span></button>
-          <button class="quick-card" type="button" data-view="visits"><strong>關聯來訪紀錄</strong><span>把公告和來訪 / 請帖連起來。</span></button>
-          <button class="quick-card" type="button" data-view="adminBasics"><strong>發布管道設定</strong><span>需管理者權限，不放一般操作。</span></button>
-        </div>`
-      )}
-      ${renderAnnouncements()}
-      ${renderEvents()}
+      ${renderAnnouncements(true)}
+      ${renderEvents(true)}
     `;
   }
 
-  function renderEvents() {
+  function renderEvents(showPrimaryAction = true) {
     return layoutSection(
       "活動列表",
-      "活動資料使用 mock/dev data，可與公告或來訪紀錄建立關聯雛形。",
-      `<button class="button" type="button" data-view="eventForm">新增活動</button>`,
+      "活動資料使用本機測試資料，可與公告或來訪紀錄建立關聯雛形。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="eventForm">新增活動</button>` : "",
       `<div class="table-wrap">
         <table>
           <thead>
@@ -770,7 +798,7 @@
     const eventItem = data.events[0];
     return renderFormPanel(
       "新增 / 編輯活動",
-      "活動先作為 mock/dev data，不代表正式活動排程。",
+      "活動先作為本機測試資料，不代表正式活動排程。",
       `<div class="form-grid">
         ${field("活動名稱", "text", eventItem.name, "wide")}
         ${field("活動日期", "date", eventItem.date)}
@@ -794,7 +822,8 @@
         `<button class="button secondary" type="button" data-view="events">返回列表</button>
          <button class="button" type="button" data-view="eventForm">編輯活動</button>
          <button class="button secondary" type="button" data-view="adminBasics">設定 LINE / FB / VOOM 欄位</button>
-         <button class="button secondary" type="button" data-view="announcementForm">關聯來訪 / 活動</button>
+         <button class="button secondary" type="button" data-view="announcementForm">關聯公告</button>
+         <button class="button secondary" type="button" data-view="templeModule">關聯友宮</button>
          <button class="button quiet" type="button" data-draft>草稿 / 停用狀態</button>`,
         `<div class="info-grid">
           <div class="info-item"><span>活動名稱</span><strong>${eventItem.name}</strong></div>
@@ -806,6 +835,15 @@
           <div class="info-item"><span>關聯公告</span><strong>${announcement ? announcement.title : "未關聯"}</strong></div>
         </div>
         <div class="mini-card"><strong>備註</strong><p>${eventItem.note}</p></div>`
+      )}
+      ${layoutSection(
+        "關聯資料",
+        "關聯資料只顯示摘要，需進入對應詳情後再編輯。",
+        `<button class="button secondary" type="button" data-view="announcements">查看公告列表</button>`,
+        `<div class="summary-strip">
+          <div class="info-item"><span>關聯公告</span><strong>${announcement ? announcement.title : "未關聯"}</strong></div>
+          <div class="info-item"><span>關聯友宮</span><strong>待建立欄位</strong></div>
+        </div>`
       )}
     `;
   }
@@ -842,13 +880,18 @@
     );
   }
 
-  function renderMembers() {
+  function renderMembers(showPrimaryAction = false) {
     return `
       ${layoutSection(
-        "成員 / 職務 / 權限檢視",
+        "成員名單",
         `廟務職務是人在廟裡的職稱；系統權限是能使用後台哪些功能。${data.mockNotice}。`,
-        "",
-        `<div class="table-wrap">
+        showPrimaryAction ? `<button class="button" type="button" data-view="memberForm">新增成員</button>` : "",
+        `<div class="filters">
+          <div class="field"><label>職務篩選</label><select><option>全部</option><option>主任委員</option><option>總幹事</option><option>委員</option><option>監事</option></select></div>
+          <div class="field"><label>狀態篩選</label><select><option>全部</option><option>啟用</option><option>停用</option></select></div>
+          <div class="field"><label>名冊狀態</label><input value="待校對 / 不代表正式名冊" readonly></div>
+        </div>
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
@@ -857,7 +900,6 @@
                 <th>廟務職務</th>
                 <th>系統權限</th>
                 <th>任期</th>
-                <th>資料來源</th>
                 <th>是否啟用</th>
                 <th>備註</th>
                 <th>操作</th>
@@ -871,7 +913,6 @@
                   <td>${member.templeRole}</td>
                   <td><span class="pill">${member.systemPermission}</span></td>
                   <td>${member.term}</td>
-                  <td>${member.source || data.mockNotice}</td>
                   <td>${statusTag(member.enabled)}</td>
                   <td>${member.note}</td>
                   <td><button class="small-button primary" type="button" data-member-detail="${member.id}">查看詳情</button></td>
@@ -882,90 +923,19 @@
         </div>`
       )}
       ${layoutSection(
-        "admin 權限說明",
-        "使用者本人目前可作為範例：廟務職稱是總幹事，系統權限是 admin。",
+        "職務任期檢視",
+        "只顯示摘要；任期設定集中在管理者設定 > 權限與角色。",
         "",
         `<div class="stack">
-          <div class="mini-card">
-            <strong>admin 不綁定單一個人</strong>
-            <p>未來可依廟方交接需要轉移、增加、減少或停用。總幹事是廟務職務，admin 是系統權限，兩者需分開管理。</p>
-          </div>
-          <div class="mini-card">
-            <strong>值年職務需保留任期</strong>
-            <p>值年爐主、值年副爐主一年一選，未來 member_role_assignments 需保存歷史任期。</p>
-          </div>
-        </div>`
-      )}
-      ${layoutSection(
-        "一人多職與任期雛形",
-        "member_role_assignments 需支援一人多職、任期起訖，值年爐主 / 值年副爐主一年一選。",
-        "",
-        `<div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>成員</th>
-                <th>職務 / 權限</th>
-                <th>起日</th>
-                <th>迄日</th>
-                <th>是否啟用</th>
-                <th>備註</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.memberRoleAssignments.map((assignment) => `
-                <tr>
-                  <td>${memberName(assignment.memberId)}</td>
-                  <td><span class="pill">${roleName(assignment.roleTypeId)}</span></td>
-                  <td>${assignment.startDate}</td>
-                  <td>${assignment.endDate || "未設定"}</td>
-                  <td>${statusTag(assignment.active)}</td>
-                  <td>${assignment.note}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>`
-      )}
-      ${layoutSection(
-        "V2 資料模型落點",
-        "這些資料只在 mock/dev data 中示範，不代表正式 Google Sheets 已改表。",
-        "",
-        `<div class="stack">
-          <div class="mini-card"><strong>members</strong><p>成員主檔清楚分開廟務職務與系統權限。</p></div>
-          <div class="mini-card"><strong>role_types</strong><p>廟務職務、友宮聯絡人職稱、系統權限都可由選單維護。</p></div>
-          <div class="mini-card"><strong>member_role_assignments</strong><p>支援一人多職、任期起訖與年度職務。</p></div>
-          <div class="mini-card"><strong>temples / temple_contacts / temple_visits</strong><p>友宮主資料、聯絡人、來訪紀錄拆開管理；畫面仍以「友宮」稱呼。</p></div>
-          <div class="mini-card"><strong>announcement_links</strong><p>公告未來可關聯 temple_visits 或 events；目前只示範關聯，不正式發送。</p></div>
+          <div class="mini-card"><strong>任期資料</strong><p>${data.memberRoleAssignments.length} 筆測試任期資料。</p></div>
+          <div class="mini-card"><strong>年度職務</strong><p>值年爐主、值年副爐主一年一選，需保留歷史任期。</p></div>
         </div>`
       )}
     `;
   }
 
   function renderMemberModule() {
-    return `
-      ${layoutSection(
-        "成員 / 職務",
-        "",
-        `<button class="button" type="button" data-view="memberForm">新增成員</button>`,
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="members"><strong>成員名單</strong><span>查看成員資料。</span></button>
-          <button class="quick-card" type="button" data-view="roleAssignments"><strong>職務任期檢視</strong><span>查看一人多職與年度任期。</span></button>
-          <button class="quick-card" type="button" data-view="adminPermissions"><strong>系統權限說明</strong><span>admin、staff、viewer 集中在管理者設定。</span></button>
-          <button class="quick-card" type="button" data-view="adminBasics"><strong>職稱主檔</strong><span>需管理者權限的基礎設定。</span></button>
-        </div>`
-      )}
-      ${layoutSection(
-        "廟務職務與系統權限",
-        "",
-        "",
-        `<div class="stack">
-          <div class="mini-card"><strong>廟務職務 ≠ 系統權限</strong><p>主任委員、總幹事、值年爐主、委員、監事是廟務職務。</p></div>
-          <div class="mini-card"><strong>admin 是系統權限</strong><p>可由不同人擔任，未來可依交接轉移、增加、減少或停用。</p></div>
-        </div>`
-      )}
-      ${renderMembers()}
-    `;
+    return renderMembers(true);
   }
 
   function renderMemberDetail() {
@@ -989,8 +959,9 @@
           <div class="info-item"><span>是否啟用</span><strong>${member.enabled ? "啟用" : "停用"}</strong></div>
         </div>
         <div class="stack">
-          <div class="mini-card"><strong>開發測試資料 / 不代表正式名冊</strong><p>${member.source || data.mockNotice}</p></div>
+          <div class="mini-card"><strong>待校對 / 不代表正式名冊</strong><p>${member.source || "照片轉錄，待校對"}</p></div>
           <div class="mini-card"><strong>廟務職務 ≠ 系統權限</strong><p>總幹事是廟務職務；admin 是系統權限，未來可轉移、增減、停用。</p></div>
+          <div class="mini-card"><strong>任期 / 權限摘要</strong><p>此成員的職務與權限關聯需進入管理者設定或任期檢視後管理。</p></div>
           <div class="mini-card"><strong>備註</strong><p>${member.note}</p></div>
         </div>`
       )}
@@ -1001,7 +972,7 @@
     const member = data.members.find((item) => item.systemPermission === "admin") || data.members[0];
     return renderFormPanel(
       "成員新增 / 編輯",
-      "成員資料只供 mock/dev 測試；照片轉錄名冊仍需使用者校對。",
+      "成員資料只供畫面測試；照片轉錄名冊仍需使用者校對。",
       `<div class="form-grid">
         ${field("成員姓名", "text", member.name)}
         ${field("電話", "text", member.phone)}
@@ -1089,12 +1060,12 @@
     );
   }
 
-  function renderFinanceRecords() {
+  function renderFinanceRecords(showPrimaryAction = true) {
     const filtered = data.financeRecords.filter((record) => state.financeFilter === "全部" || record.direction === state.financeFilter);
     return layoutSection(
       "財務紀錄",
-      "財務目前只做可視 prototype，不做正式帳務功能，不放帳戶、銀行、真實收據號碼。",
-      `<button class="button" type="button" data-view="financeForm">新增財務草稿</button>`,
+      "財務目前只做畫面預覽，不做正式帳務功能，不放帳戶、銀行、真實收據號碼。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="financeForm">新增財務紀錄</button>` : "",
       `<div class="filters">
         <div class="field">
           <label for="financeFilter">收支篩選</label>
@@ -1102,8 +1073,8 @@
             ${["全部", "收入", "支出"].map((item) => `<option ${state.financeFilter === item ? "selected" : ""}>${item}</option>`).join("")}
           </select>
         </div>
-        <div class="field"><label>資料狀態</label><input value="mock/dev data" readonly></div>
         <div class="field"><label>敏感資訊</label><input value="未包含帳戶或真實收據" readonly></div>
+        <div class="field"><label>草稿篩選</label><select><option>全部</option><option>草稿</option><option>待確認</option></select></div>
       </div>
       <div class="table-wrap">
         <table>
@@ -1139,20 +1110,7 @@
   }
 
   function renderFinanceModule() {
-    return `
-      ${layoutSection(
-        "財務管理",
-        "",
-        `<button class="button" type="button" data-view="financeForm">新增財務紀錄</button>`,
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="financeRecords"><strong>財務紀錄</strong><span>查看財務紀錄。</span></button>
-          <button class="quick-card" type="button" data-view="financeRecords"><strong>查看草稿</strong><span>查看草稿與待確認紀錄。</span></button>
-          <button class="quick-card" type="button" data-view="adminBasics"><strong>收支分類</strong><span>分類設定集中在管理者設定。</span></button>
-          <button class="quick-card" type="button" data-view="adminDataSources"><strong>資料保護提醒</strong><span>確認不寫入正式資料。</span></button>
-        </div>`
-      )}
-      ${renderFinanceRecords()}
-    `;
+    return renderFinanceRecords(true);
   }
 
   function renderFinanceDetail() {
@@ -1177,6 +1135,7 @@
           <div class="info-item"><span>經手人</span><strong>測試人員</strong></div>
         </div>
         <div class="mini-card"><strong>備註</strong><p>${record.note}</p></div>
+        <div class="mini-card"><strong>類別 / 草稿 / 作廢狀態</strong><p>類別由管理者設定維護；草稿與作廢狀態在財務詳情中處理。</p></div>
         <div class="mini-card"><strong>安全提醒</strong><p>mock data 不包含銀行帳號、真實收據號碼、帳戶、個資或敏感資訊。</p></div>`
       )}
     `;
@@ -1202,7 +1161,7 @@
   function renderFinanceCategories() {
     return layoutSection(
       "收支分類",
-      "分類只供 prototype 畫面使用，不代表正式會計科目。",
+      "分類只供畫面預覽使用，不代表正式會計科目。",
       "",
       `<div class="table-wrap">
         <table>
@@ -1232,7 +1191,7 @@
   function renderLineLogs() {
     return layoutSection(
       "最近查詢紀錄",
-      "對應 LINE Bot 查詢紀錄概念，但只使用 mock/dev data，不讀寫正式 line_query_logs。",
+      "對應 LINE Bot 查詢紀錄概念，但只使用本機測試資料，不讀寫正式 line_query_logs。",
       "",
       `<div class="table-wrap">
         <table>
@@ -1283,7 +1242,7 @@
   function renderMissingData() {
     return layoutSection(
       "補資料建議 / 待補清單",
-      "對應現有 LINE Bot 補資料建議概念；只作 mock/dev data 視覺化。",
+      "對應現有 LINE Bot 補資料建議概念；只作本機測試資料視覺化。",
       "",
       `<div class="table-wrap">
         <table>
@@ -1313,21 +1272,21 @@
   function renderSystemStatus() {
     return `
       ${layoutSection(
-        "開發資料來源說明",
-        "Web 後台目前是開發預覽，不影響正式 LINE Bot。",
+        "資料來源說明",
+        "Web 後台目前是預覽模式，不影響正式 LINE Bot。",
         "",
         `<div class="stack">
           <div class="mini-card"><strong>正式主檔保護</strong><p>不修改正式 Google Sheets 主檔「中原福德宮_AppSheet_0612」。</p></div>
-          <div class="mini-card"><strong>開發資料來源規劃</strong><p>後續如需串資料，只能指向「中原福德宮_AppSheet_0612_正式啟用前備份_20260616」或 mock/dev data。</p></div>
-          <div class="mini-card"><strong>目前資料來源</strong><p>本 prototype 只讀取 web_admin_mvp/mockData.js。</p></div>
+          <div class="mini-card"><strong>後續資料來源規劃</strong><p>後續如需串資料，只能指向「中原福德宮_AppSheet_0612_正式啟用前備份_20260616」或本機測試資料。</p></div>
+          <div class="mini-card"><strong>目前資料</strong><p>目前只使用本機測試資料，不寫入正式資料。</p></div>
         </div>`
       )}
       ${layoutSection(
         "LINE Bot 狀態說明",
-        "正式 LINE Bot V1 維持現有 runtime，本 prototype 不改 webhook、不改查詢、不改 log 寫入。",
+        "正式 LINE Bot V1 維持現有 runtime，本預覽頁不改 webhook、不改查詢、不改 log 寫入。",
         "",
         `<div class="stack">
-          <div class="mini-card"><strong>不接正式 LINE Bot</strong><p>畫面中的 LINE / 查詢紀錄都是 mock/dev data。</p></div>
+          <div class="mini-card"><strong>不接正式 LINE Bot</strong><p>畫面中的 LINE / 查詢紀錄都是本機測試資料。</p></div>
           <div class="mini-card"><strong>不讀寫正式 line_query_logs</strong><p>查詢紀錄畫面只對應概念，不連正式 Google Sheets。</p></div>
         </div>`
       )}
@@ -1345,7 +1304,7 @@
       ${layoutSection(
         "基礎設定",
         "這些設定會影響下拉選單與資料分類，未來應限管理者維護。",
-        `<span class="tag disabled">需管理者權限</span>`,
+        adminAccessTag(),
         `<div class="stack">
           <div class="mini-card">
             <strong>來訪型態</strong>
@@ -1354,7 +1313,7 @@
           </div>
           <div class="mini-card">
             <strong>發布管道</strong>
-            <p>保留 LINE / FB / VOOM 欄位，但 prototype 不做正式發送。</p>
+            <p>保留 LINE / FB / VOOM 欄位，但預覽頁不做正式發送。</p>
             <div class="checkbox-row">${data.publishChannels.map((channel) => `<span class="pill">${channel.name}｜${channel.officialSendEnabled ? "正式發送" : "不正式發送"}</span>`).join("")}</div>
           </div>
           <div class="mini-card">
@@ -1364,7 +1323,7 @@
           </div>
           <div class="mini-card">
             <strong>收支分類</strong>
-            <p>只供財務 prototype 顯示，不代表正式會計科目。</p>
+            <p>只供財務畫面預覽顯示，不代表正式會計科目。</p>
             <div class="checkbox-row">${data.financeCategories.map((category) => `<span class="pill">${category.name}｜${category.direction}</span>`).join("")}</div>
           </div>
         </div>`
@@ -1378,7 +1337,7 @@
       ${layoutSection(
         "系統權限管理",
         "系統權限和廟務職務分開管理；admin 不綁定單一個人。",
-        `<span class="tag disabled">需管理者權限</span>`,
+        adminAccessTag(),
         `<div class="stack">
           <div class="mini-card"><strong>admin</strong><p>系統權限，可管理設定；未來可轉移、增減、停用。</p></div>
           <div class="mini-card"><strong>staff</strong><p>系統權限，可協助維護日常資料。</p></div>
@@ -1388,7 +1347,7 @@
       )}
       ${layoutSection(
         "管理者清單",
-        "目前只用 mock/dev data 顯示，正式權限未啟用。",
+      "目前只用本機測試資料顯示，正式權限未啟用。",
         "",
         `<div class="table-wrap">
           <table>
@@ -1454,18 +1413,18 @@
       ${layoutSection(
         "LINE / 查詢維運",
         "這些資料僅供維運與補資料，不是一般使用者主要操作。",
-        `<span class="tag disabled">需管理者權限</span>`,
-        `<div class="mini-card"><strong>不讀寫正式 line_query_logs</strong><p>目前畫面只使用 mock/dev data，對應現有 LINE Bot 查詢紀錄與補資料建議概念。</p></div>`
+        adminAccessTag(),
+        `<div class="mini-card"><strong>不讀寫正式 line_query_logs</strong><p>目前畫面只使用本機測試資料，對應現有 LINE Bot 查詢紀錄與補資料建議概念。</p></div>`
       )}
       ${renderLineLogs()}
       ${renderNotFoundLogs()}
       ${renderMissingData()}
       ${layoutSection(
         "LINE Bot 狀態說明",
-        "正式 LINE Bot V1 runtime 不受 Web 後台 prototype 影響。",
+        "正式 LINE Bot V1 runtime 不受 Web 後台預覽頁影響。",
         "",
         `<div class="stack">
-          <div class="mini-card"><strong>不修改 Webhook</strong><p>本 prototype 不改 LINE Developers Webhook。</p></div>
+          <div class="mini-card"><strong>不修改 Webhook</strong><p>本預覽頁不改 LINE Developers Webhook。</p></div>
           <div class="mini-card"><strong>不改查詢流程</strong><p>不影響友宮查詢、來訪查詢、公告查詢、查紀錄與補資料建議。</p></div>
         </div>`
       )}
@@ -1477,13 +1436,16 @@
       ${layoutSection(
         "系統與資料來源",
         "正式主檔、Render、LINE Bot runtime 都保持不動。",
-        `<span class="tag disabled">需管理者權限</span>`,
+        adminAccessTag(),
         `<div class="stack">
           <div class="mini-card"><strong>正式主檔保護提醒</strong><p>正式主檔「中原福德宮_AppSheet_0612」不得修改 tab、欄位、表頭或資料結構。</p></div>
-          <div class="mini-card"><strong>Web 後台目前資料</strong><p>目前只使用 mock/dev data：web_admin_mvp/mockData.js。</p></div>
-          <div class="mini-card"><strong>開發資料來源規劃</strong><p>後續如需資料來源，只能使用「中原福德宮_AppSheet_0612_正式啟用前備份_20260616」或 mock/dev data。</p></div>
+          <div class="mini-card"><strong>Web 後台目前資料</strong><p>目前只使用本機測試資料。</p></div>
+          <div class="mini-card"><strong>後續資料來源規劃</strong><p>後續如需資料來源，只能使用「中原福德宮_AppSheet_0612_正式啟用前備份_20260616」或本機測試資料。</p></div>
           <div class="mini-card"><strong>AppSheet 備援說明</strong><p>AppSheet 保留備援，但不再作為正式前端方向。</p></div>
           <div class="mini-card"><strong>LINE Bot 正式 runtime</strong><p>正式 LINE Bot 不受影響，不修改 Render GOOGLE_SHEET_ID，也不修改 LINE Developers Webhook。</p></div>
+          <div class="mini-card"><strong>V2 temples / V1 shrines</strong><p>Web 後台與 V2 模型使用 temples；短期正式 V1 runtime 仍保留 shrines。</p></div>
+          <div class="mini-card"><strong>V2 temple_visits / V1 shrine_visits</strong><p>Web 後台與 V2 模型使用 temple_visits；短期正式 V1 runtime 仍保留 shrine_visits。</p></div>
+          <div class="mini-card"><strong>資料保護提醒</strong><p>不放真實 LINE UID、token、secret、銀行資料、帳戶、真實收據號碼或敏感個資。</p></div>
         </div>`
       )}
     `;
@@ -1494,12 +1456,12 @@
       ${layoutSection(
         "管理者設定",
         "",
-        `<span class="tag disabled">需管理者權限</span>`,
+        adminAccessTag(),
         `<div class="quick-grid">
           <button class="quick-card" type="button" data-view="adminBasics"><strong>基礎設定</strong><span>來訪型態、發布管道、職稱主檔、收支分類。</span></button>
           <button class="quick-card" type="button" data-view="adminPermissions"><strong>權限與角色</strong><span>系統權限、管理者清單、職務任期設定。</span></button>
           <button class="quick-card" type="button" data-view="adminLineOps"><strong>LINE / 查詢維運</strong><span>查詢紀錄、查無資料與補資料建議。</span></button>
-          <button class="quick-card" type="button" data-view="adminDataSources"><strong>系統與資料來源</strong><span>正式主檔保護、AppSheet 備援與開發資料來源。</span></button>
+          <button class="quick-card" type="button" data-view="adminDataSources"><strong>系統與資料來源</strong><span>正式主檔保護、AppSheet 備援與資料來源。</span></button>
         </div>`
       )}
       ${renderAdminBasics()}
@@ -1563,7 +1525,7 @@
   function render() {
     renderNav();
     const current = allNavItems().find((item) => item.id === state.view);
-    pageTitle.textContent = current?.label || "主控台";
+    pageTitle.textContent = viewLabels[state.view] || current?.label || "主控台";
 
     const views = {
       dashboard: renderDashboard,
@@ -1615,7 +1577,7 @@
   document.addEventListener("click", (event) => {
     if (event.target.closest("[data-locked-admin]")) {
       event.preventDefault();
-      showToast("此區需管理者權限；目前只做 prototype 權限提示。");
+      showToast("此區需管理者權限；目前只做預覽模式權限提示。");
       return;
     }
 
