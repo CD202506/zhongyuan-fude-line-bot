@@ -14,6 +14,7 @@ The harness checks prototype data rules before any future adapter or formal data
 - Counter receipt flow.
 - Duty roster rules.
 - Local mock data safety.
+- Label / master-data classification.
 
 ## Safety Boundary
 
@@ -46,4 +47,3 @@ node --check web_admin_mvp\mockData.js
 The repository does not currently include pytest as a project dependency, so this harness uses Python standard library `unittest`.
 
 The safety scanner may encounter words such as `.env`, `GOOGLE_SHEET_ID`, `line_uid`, `token`, or `secret` in documentation or placeholder text. Those are allowed only when they are clearly safety reminders, placeholder names, or field names, not actual values.
-

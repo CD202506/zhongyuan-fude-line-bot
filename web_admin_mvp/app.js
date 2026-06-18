@@ -6,15 +6,15 @@
 
   const state = {
     view: "dashboard",
+    previousView: "dashboard",
     selectedTempleId: data.temples[0].id,
     selectedDevoteeId: data.devotees?.[0]?.id,
     selectedTeamMemberId: data.teamMembers?.[0]?.id,
     templeSearch: "",
     devoteeSearch: "",
-    templeFilter: "全部",
-    visitFilter: "全部",
-    announcementFilter: "全部",
-    financeFilter: "全部",
+    visitSearch: "",
+    announcementSearch: "",
+    financeSearch: "",
     formSource: null
   };
 
@@ -228,7 +228,9 @@
       showToast("此區需管理者權限；目前只做預覽模式權限提示。");
       return;
     }
+    const previousView = state.view;
     state.view = view;
+    state.previousView = previousView;
     if (options.templeId) state.selectedTempleId = options.templeId;
     if (options.devoteeId) state.selectedDevoteeId = options.devoteeId;
     if (options.teamMemberId) state.selectedTeamMemberId = options.teamMemberId;
@@ -477,7 +479,7 @@
         ${selectField("是否啟用", ["啟用", "停用"], devotee.enabled ? "啟用" : "停用")}
         ${textareaField("備註", devotee.note, "wide")}
       </div>`
-    );
+    , { backView: "devotees" });
   }
 
   function renderCounterDesk() {
@@ -493,14 +495,20 @@
         ${selectField("關聯帳務", ["建立帳務流水草稿", "暫不建立"], "建立帳務流水草稿")}
         ${textareaField("備註", "金額輸入未來會清洗全形數字、逗號與單位。", "wide")}
       </div>`
-    );
+    , { backView: "devotees" });
   }
 
   function renderTemples(showPrimaryAction = true) {
     const filtered = data.temples.filter((temple) => {
-      const matchesText = [temple.name, temple.alias, temple.mainGod, temple.address].join(" ").includes(state.templeSearch);
-      const matchesFilter = state.templeFilter === "全部" || temple.relationStatus === state.templeFilter || (state.templeFilter === "啟用" && temple.enabled) || (state.templeFilter === "停用" && !temple.enabled);
-      return matchesText && matchesFilter;
+      return [
+        temple.name,
+        temple.alias,
+        temple.mainGod,
+        temple.address,
+        temple.relationStatus,
+        temple.enabled ? "啟用" : "停用",
+        temple.latestVisitDate
+      ].join(" ").includes(state.templeSearch);
     });
 
     return layoutSection(
@@ -509,15 +517,9 @@
       showPrimaryAction ? `<button class="button" type="button" data-view="templeForm">新增友宮</button>` : "",
       `
       <div class="filters">
-        <div class="field">
+        <div class="field wide">
           <label for="templeSearch">搜尋友宮</label>
-          <input id="templeSearch" type="search" value="${state.templeSearch}" placeholder="輸入宮廟名稱、主神或地址">
-        </div>
-        <div class="field">
-          <label for="templeFilter">關係狀態</label>
-          <select id="templeFilter">
-            ${["全部", "長期往來", "近期互動", "請帖往來", "待補資料", "資料待確認", "啟用", "停用"].map((option) => `<option ${state.templeFilter === option ? "selected" : ""}>${option}</option>`).join("")}
-          </select>
+          <input id="templeSearch" type="search" value="${state.templeSearch}" placeholder="輸入宮廟名稱、主神、地址、關係狀態或啟用狀態">
         </div>
       </div>
       <div class="table-wrap">
@@ -669,14 +671,15 @@
           <button class="button secondary" type="button" data-view="announcementForm" data-temple="${temple.id}" data-source="announcement">新增相關公告</button>
         </div>
       </div>`
-    );
+    , { backView: "temples", sourceView: state.formSource?.templeId ? "templeDetail" : "" });
   }
 
   function renderContacts() {
     return layoutSection(
       "友宮聯絡人管理",
       "聯絡人職稱示範對應未來 role_types，電話皆為遮罩或假資料。",
-      `<button class="button" type="button" data-view="contactForm">聯絡人新增 / 編輯</button>`,
+      `<button class="button secondary" type="button" data-view="templeDetail">返回來源資料</button>
+       <button class="button" type="button" data-view="contactForm">聯絡人新增 / 編輯</button>`,
       `<div class="table-wrap">
         <table>
           <thead>
@@ -724,33 +727,29 @@
         ${selectField("是否啟用", ["啟用", "停用"], contact.enabled ? "啟用" : "停用")}
         ${textareaField("備註", contact.note, "wide")}
       </div>`
-    );
+    , { backView: "contacts" });
   }
 
   function renderVisits(showPrimaryAction = true) {
-    const filtered = data.visits.filter((visit) => state.visitFilter === "全部" || visit.types.includes(state.visitFilter));
+    const filtered = data.visits.filter((visit) => {
+      return [
+        templeName(visit.templeId),
+        visit.date,
+        visit.title,
+        visit.types.join(" "),
+        `${visit.peopleCount}人`,
+        visit.needsReply ? "需要回覆" : "不需回覆",
+        visit.note
+      ].join(" ").includes(state.visitSearch);
+    });
     return layoutSection(
       "來訪 / 請帖紀錄列表",
       "記錄某間友宮在某一天的一次互動；來訪次數未來由紀錄自動計算。",
       showPrimaryAction ? `<button class="button" type="button" data-view="visitForm">新增來訪紀錄</button>` : "",
       `<div class="filters">
-        <div class="field">
-          <label for="visitFilter">依型態篩選</label>
-          <select id="visitFilter">
-            ${["全部", ...visitTypes].map((type) => `<option ${state.visitFilter === type ? "selected" : ""}>${type}</option>`).join("")}
-          </select>
-        </div>
-        <div class="field">
-          <label>友宮搜尋</label>
-          <input value="" placeholder="輸入友宮名稱">
-        </div>
-        <div class="field">
-          <label>資料說明</label>
-          <input value="來訪 / 請帖 / 邀請紀錄，不是公告" readonly>
-        </div>
-        <div class="field">
-          <label>寫入狀態</label>
-          <input value="不寫入正式資料" readonly>
+        <div class="field wide">
+          <label for="visitSearch">搜尋來訪 / 請帖</label>
+          <input id="visitSearch" type="search" value="${state.visitSearch}" placeholder="輸入友宮、日期、型態、回覆狀態或備註">
         </div>
       </div>
       <div class="table-wrap">
@@ -806,7 +805,7 @@
         </div>
         ${textareaField("備註", visit.note, "wide")}
       </div>`
-    );
+    , { backView: "visits", sourceView: state.formSource?.templeId ? "templeDetail" : "" });
   }
 
   function renderVisitDetail() {
@@ -860,7 +859,7 @@
     return layoutSection(
       "來訪型態設定",
       "目前先固定為 V2 討論中的型態清單；未來可改為可維護選單。",
-      "",
+      `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>`,
       `<div class="checkbox-row">
         ${visitTypes.map((type) => `<span class="pill">${type}</span>`).join("")}
       </div>
@@ -872,21 +871,27 @@
   }
 
   function renderAnnouncements(showPrimaryAction = true) {
-    const filtered = data.announcements.filter((announcement) => state.announcementFilter === "全部" || announcement.status === state.announcementFilter);
+    const filtered = data.announcements.filter((announcement) => {
+      const relatedVisit = data.visits.find((visit) => visit.id === announcement.relatedVisitId);
+      return [
+        announcement.title,
+        announcement.status,
+        announcement.date,
+        announcement.channels.join(" "),
+        relatedVisit?.title,
+        relatedVisit ? templeName(relatedVisit.templeId) : "",
+        announcement.lineText,
+        announcement.content
+      ].join(" ").includes(state.announcementSearch);
+    });
     return layoutSection(
       "公告列表",
       "公告可整理 LINE / FB / VOOM 文字，但第一版不做正式發送。",
       showPrimaryAction ? `<button class="button" type="button" data-view="announcementForm">新增公告</button>` : "",
       `<div class="filters">
-        <div class="field">
-          <label for="announcementFilter">依狀態篩選</label>
-          <select id="announcementFilter">
-            ${["全部", "草稿", "待確認", "可發布"].map((status) => `<option ${state.announcementFilter === status ? "selected" : ""}>${status}</option>`).join("")}
-          </select>
-        </div>
-        <div class="field">
-          <label>發送狀態</label>
-          <input value="不做正式發送" readonly>
+        <div class="field wide">
+          <label for="announcementSearch">搜尋公告</label>
+          <input id="announcementSearch" type="search" value="${state.announcementSearch}" placeholder="輸入標題、狀態、日期、發布管道或關聯友宮">
         </div>
       </div>
       <div class="table-wrap">
@@ -939,7 +944,7 @@
         </div>
         ${selectField("相關來訪 / 活動關聯", ["未關聯", ...data.visits.map((visit) => visit.title)], data.visits.find((visit) => visit.id === announcement.relatedVisitId)?.title || "未關聯", "wide")}
       </div>`
-    );
+    , { backView: "announcements", sourceView: state.formSource?.visitId ? "visitDetail" : state.formSource?.templeId ? "templeDetail" : "" });
   }
 
   function renderAnnouncementDetail() {
@@ -1041,7 +1046,7 @@
         ${selectField("狀態", ["草稿", "內部確認", "可公開", "封存"], eventItem.status)}
         ${textareaField("備註", eventItem.note, "wide")}
       </div>`
-    );
+    , { backView: "events" });
   }
 
   function renderEventDetail() {
@@ -1217,14 +1222,15 @@
         ${selectField("是否啟用", ["啟用", "停用"], member.enabled ? "啟用" : "停用")}
         ${textareaField("備註", member.note, "wide")}
       </div>`
-    );
+    , { backView: "teamMembers" });
   }
 
   function renderDutyRosters() {
     return layoutSection(
       "值勤班表",
       "值勤班表不等於職務任期；可作為現場表單的經手人 / 現場值班預設。",
-      `<button class="button secondary" type="button" data-view="teamMemberForm">新增值勤人員</button>`,
+      `<button class="button secondary" type="button" data-view="teamModule">返回團隊管理</button>
+       <button class="button secondary" type="button" data-view="teamMemberForm">新增值勤人員</button>`,
       `<div class="table-wrap">
         <table>
           <thead>
@@ -1298,7 +1304,7 @@
       )}
       ${layoutSection(
         "職務任期檢視",
-        "只顯示摘要；任期設定集中在管理者設定 > 權限與角色。",
+        "只顯示摘要；具體人員任期資料屬於團隊管理，不放在管理者設定。",
         "",
         `<div class="stack">
           <div class="mini-card"><strong>任期資料</strong><p>${data.memberRoleAssignments.length} 筆測試任期資料。</p></div>
@@ -1356,14 +1362,15 @@
         ${selectField("是否啟用", ["啟用", "停用"], member.enabled ? "啟用" : "停用")}
         ${textareaField("備註", member.note, "wide")}
       </div>`
-    );
+    , { backView: "members" });
   }
 
   function renderRoleAssignments() {
     return layoutSection(
       "職務任期",
       "示範 member_role_assignments：一人多職、任期起訖、年度職務都應保留。",
-      `<button class="button" type="button" data-view="memberForm">新增成員</button>`,
+      `<button class="button secondary" type="button" data-view="teamModule">返回團隊管理</button>
+       <button class="button" type="button" data-view="memberForm">新增職務 / 權限資料</button>`,
       `<div class="table-wrap">
         <table>
           <thead>
@@ -1397,7 +1404,7 @@
     return layoutSection(
       "職稱主檔",
       "廟務職務、友宮聯絡人職稱、系統權限分開管理，未來可作下拉選單來源。",
-      "",
+      `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>`,
       `<div class="table-wrap">
         <table>
           <thead>
@@ -1425,7 +1432,7 @@
     return layoutSection(
       "系統權限檢視",
       "admin、staff、viewer 是系統操作權限，不等同廟務職務。",
-      "",
+      `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>`,
       `<div class="stack">
         <div class="mini-card"><strong>admin</strong><p>可管理後台設定；不綁定單一個人，未來可轉移、增減、停用。</p></div>
         <div class="mini-card"><strong>staff</strong><p>可協助維護友宮、來訪、公告與活動資料。</p></div>
@@ -1435,20 +1442,28 @@
   }
 
   function renderFinanceRecords(showPrimaryAction = true) {
-    const filtered = data.financeRecords.filter((record) => state.financeFilter === "全部" || record.direction === state.financeFilter);
+    const filtered = data.financeRecords.filter((record) => {
+      return [
+        record.date,
+        record.direction,
+        record.category,
+        record.item,
+        record.amountLabel,
+        record.relatedLabel,
+        teamMemberName(record.handledBy),
+        record.status,
+        record.note
+      ].join(" ").includes(state.financeSearch);
+    });
     return layoutSection(
       "帳務流水紀錄",
       "廟務流水帳、收支摘要與月報公告草稿；不做正式會計、報稅、審計或銀行帳務。",
       showPrimaryAction ? `<button class="button" type="button" data-view="financeForm">新增帳務流水</button>` : "",
       `<div class="filters">
-        <div class="field">
-          <label for="financeFilter">收支篩選</label>
-          <select id="financeFilter">
-            ${["全部", "收入", "支出"].map((item) => `<option ${state.financeFilter === item ? "selected" : ""}>${item}</option>`).join("")}
-          </select>
+        <div class="field wide">
+          <label for="financeSearch">搜尋帳務流水</label>
+          <input id="financeSearch" type="search" value="${state.financeSearch}" placeholder="輸入日期、收支、分類、項目、關聯來源、經手人或狀態">
         </div>
-        <div class="field"><label>敏感資訊</label><input value="未包含帳戶或真實收據" readonly></div>
-        <div class="field"><label>草稿篩選</label><select><option>全部</option><option>草稿</option><option>待確認</option></select></div>
       </div>
       <div class="table-wrap">
         <table>
@@ -1545,14 +1560,14 @@
         ${selectField("狀態", ["草稿", "待確認", "已確認", "作廢"], record.status)}
         ${textareaField("備註", record.note, "wide")}
       </div>`
-    );
+    , { backView: "financeRecords" });
   }
 
   function renderMonthlyFinanceReports() {
     return layoutSection(
       "月報公告草稿",
       "依月份彙整帳務流水，產生可貼到 LINE 群組的公告草稿；本階段不正式推播。",
-      "",
+      `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>`,
       `<div class="table-wrap">
         <table>
           <thead>
@@ -1723,31 +1738,35 @@
   }
 
   function renderAdminBasics() {
+    const publishChannels = ["LINE", "Facebook", "VOOM", "宮廟公告欄"];
+    const publishStatuses = ["草稿", "預覽", "不正式發送", "已發布"];
+    const templeRoles = data.roleTypes.filter((role) => role.category === "廟務職務").map((role) => role.name);
+    const contactRoles = data.roleTypes.filter((role) => role.category === "友宮聯絡人").map((role) => role.name);
+    const systemPermissions = data.roleTypes.filter((role) => role.category === "系統權限").map((role) => role.name);
+    const accountingCategories = ["香油錢", "發財金還金", "平安龜還願", "餐費", "供品", "其他"];
+    const tagGroup = (title, items) => `
+      <div class="mini-card">
+        <strong>${title}</strong>
+        <div class="checkbox-row">${items.map((item) => `<span class="pill">${item}</span>`).join("")}</div>
+      </div>
+    `;
+
     return `
       ${layoutSection(
-        "基礎設定",
-        "這些設定會影響下拉選單與資料分類，未來應限管理者維護。",
-        adminAccessTag(),
+        "標籤 / 主檔管理",
+        "分類只維護選單與規則，不放具體人員任期資料。",
+        `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>${adminAccessTag()}`,
         `<div class="stack">
+          ${tagGroup("發布管道", publishChannels)}
+          ${tagGroup("發布狀態", publishStatuses)}
+          ${tagGroup("來訪型態", visitTypes)}
+          ${tagGroup("廟務職務", templeRoles)}
+          ${tagGroup("友宮聯絡人職稱", contactRoles)}
+          ${tagGroup("系統權限", systemPermissions)}
+          ${tagGroup("帳務分類", accountingCategories)}
           <div class="mini-card">
-            <strong>來訪型態</strong>
-            <p>支援同一筆互動多選，來訪次數不手動填。</p>
-            <div class="checkbox-row">${visitTypes.map((type) => `<span class="pill">${type}</span>`).join("")}</div>
-          </div>
-          <div class="mini-card">
-            <strong>發布管道</strong>
-            <p>保留 LINE / FB / VOOM 欄位，但預覽頁不做正式發送。</p>
-            <div class="checkbox-row">${data.publishChannels.map((channel) => `<span class="pill">${channel.name}｜${channel.officialSendEnabled ? "正式發送" : "不正式發送"}</span>`).join("")}</div>
-          </div>
-          <div class="mini-card">
-            <strong>職稱主檔</strong>
-            <p>廟務職務、友宮聯絡人職稱、系統權限分開，避免自由輸入混亂。</p>
-            <div class="checkbox-row">${data.roleTypes.map((role) => `<span class="pill">${role.name}｜${role.category}</span>`).join("")}</div>
-          </div>
-          <div class="mini-card">
-            <strong>收支分類</strong>
-            <p>只供帳務流水畫面顯示，不代表正式會計科目。</p>
-            <div class="checkbox-row">${data.financeCategories.map((category) => `<span class="pill">${category.name}｜${category.direction}</span>`).join("")}</div>
+            <strong>分類原則</strong>
+            <p>LINE / Facebook / VOOM 是發布管道；預覽 / 不正式發送是發布狀態。admin / staff / viewer 是系統權限，不是廟務職務。</p>
           </div>
         </div>`
       )}
@@ -1760,7 +1779,7 @@
       ${layoutSection(
         "系統權限管理",
         "系統權限和廟務職務分開管理；admin 不綁定單一個人。",
-        adminAccessTag(),
+        `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>${adminAccessTag()}`,
         `<div class="stack">
           <div class="mini-card"><strong>admin</strong><p>系統權限，可管理設定；未來可轉移、增減、停用。</p></div>
           <div class="mini-card"><strong>staff</strong><p>系統權限，可協助維護日常資料。</p></div>
@@ -1770,8 +1789,8 @@
       )}
       ${layoutSection(
         "管理者清單",
-      "目前只用本機測試資料顯示，正式權限未啟用。",
-        "",
+        "只顯示管理者權限摘要；具體人員任期資料請回到團隊管理。",
+        `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>`,
         `<div class="table-wrap">
           <table>
             <thead>
@@ -1798,35 +1817,10 @@
         </div>`
       )}
       ${layoutSection(
-        "職務任期設定",
-        "示範 member_role_assignments：一人多職、任期起訖、年度職務都應保留。",
-        "",
-        `<div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>成員</th>
-                <th>職務 / 權限</th>
-                <th>起日</th>
-                <th>迄日</th>
-                <th>是否啟用</th>
-                <th>備註</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.memberRoleAssignments.map((assignment) => `
-                <tr>
-                  <td>${memberName(assignment.memberId)}</td>
-                  <td><span class="pill">${roleName(assignment.roleTypeId)}</span></td>
-                  <td>${assignment.startDate || "照片未載明"}</td>
-                  <td>${assignment.endDate || "照片未載明"}</td>
-                  <td>${statusTag(assignment.active)}</td>
-                  <td>${assignment.note}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>`
+        "職務任期入口",
+        "職務任期屬於團隊管理，不作為管理者設定主內容。",
+        `<button class="button secondary" type="button" data-view="teamModule">返回團隊管理</button>`,
+        `<div class="mini-card"><strong>分類原則</strong><p>管理者設定只保留權限規則與系統參數；具體人員任期請在團隊管理中檢視與維護。</p></div>`
       )}
     `;
   }
@@ -1836,7 +1830,7 @@
       ${layoutSection(
         "LINE / 查詢維運",
         "這些資料僅供維運與補資料，不是一般使用者主要操作。",
-        adminAccessTag(),
+        `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>${adminAccessTag()}`,
         `<div class="mini-card"><strong>不讀寫正式 line_query_logs</strong><p>目前畫面只使用本機測試資料，對應現有 LINE Bot 查詢紀錄與補資料建議概念。</p></div>`
       )}
       ${renderLineLogs()}
@@ -1859,7 +1853,7 @@
       ${layoutSection(
         "系統與資料來源",
         "正式主檔、Render、LINE Bot runtime 都保持不動。",
-        adminAccessTag(),
+        `<button class="button secondary" type="button" data-view="adminModule">返回管理者設定</button>${adminAccessTag()}`,
         `<div class="stack">
           <div class="mini-card"><strong>正式主檔保護提醒</strong><p>正式主檔「中原福德宮_AppSheet_0612」不得修改 tab、欄位、表頭或資料結構。</p></div>
           <div class="mini-card"><strong>Web 後台目前資料</strong><p>目前只使用本機測試資料。</p></div>
@@ -1881,20 +1875,18 @@
         "",
         adminAccessTag(),
         `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="adminBasics"><strong>基礎設定</strong><span>來訪型態、發布管道、職稱主檔、收支分類。</span></button>
-          <button class="quick-card" type="button" data-view="adminPermissions"><strong>權限與角色</strong><span>系統權限、管理者清單、職務任期設定。</span></button>
+          <button class="quick-card" type="button" data-view="adminBasics"><strong>標籤 / 主檔管理</strong><span>發布管道、發布狀態、來訪型態、職稱、權限、帳務分類。</span></button>
+          <button class="quick-card" type="button" data-view="adminPermissions"><strong>權限與角色</strong><span>系統權限、管理者清單與權限規則。</span></button>
           <button class="quick-card" type="button" data-view="adminLineOps"><strong>LINE / 查詢維運</strong><span>查詢紀錄、查無資料與補資料建議。</span></button>
           <button class="quick-card" type="button" data-view="adminDataSources"><strong>系統與資料來源</strong><span>正式主檔保護、AppSheet 備援與資料來源。</span></button>
         </div>`
       )}
-      ${renderAdminBasics()}
-      ${renderAdminPermissions()}
-      ${renderAdminLineOps()}
-      ${renderAdminDataSources()}
     `;
   }
 
-  function renderFormPanel(title, description, fieldsHtml) {
+  function renderFormPanel(title, description, fieldsHtml, options = {}) {
+    const backView = options.backView || state.previousView || "dashboard";
+    const sourceView = options.sourceView;
     return `
       <form class="form-panel" id="prototypeForm">
         <div class="section-header">
@@ -1903,10 +1895,14 @@
             <p>${description}</p>
             <p class="form-help">預覽，不會寫入正式資料。</p>
           </div>
+          <div class="actions">
+            <button class="button secondary" type="button" data-view="${backView}">返回上一頁</button>
+            ${sourceView ? `<button class="button secondary" type="button" data-view="${sourceView}">返回來源資料</button>` : ""}
+          </div>
         </div>
         ${fieldsHtml}
         <div class="form-footer">
-          <button class="button quiet" type="button" data-view="dashboard">取消</button>
+          <button class="button quiet" type="button" data-view="${backView}">取消</button>
           <div class="actions">
             <button class="button secondary" type="button" data-draft>儲存草稿</button>
             <button class="button" type="submit">儲存</button>
@@ -2078,23 +2074,16 @@
       state.devoteeSearch = event.target.value.trim();
       render();
     }
-  });
-
-  document.addEventListener("change", (event) => {
-    if (event.target.id === "templeFilter") {
-      state.templeFilter = event.target.value;
+    if (event.target.id === "visitSearch") {
+      state.visitSearch = event.target.value.trim();
       render();
     }
-    if (event.target.id === "visitFilter") {
-      state.visitFilter = event.target.value;
+    if (event.target.id === "announcementSearch") {
+      state.announcementSearch = event.target.value.trim();
       render();
     }
-    if (event.target.id === "announcementFilter") {
-      state.announcementFilter = event.target.value;
-      render();
-    }
-    if (event.target.id === "financeFilter") {
-      state.financeFilter = event.target.value;
+    if (event.target.id === "financeSearch") {
+      state.financeSearch = event.target.value.trim();
       render();
     }
   });
