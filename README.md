@@ -1,6 +1,6 @@
 # zhongyuan-fude-line-bot
 
-中原福德宮 LINE 官方帳號的友宮資料查詢 MVP。目前 runtime 版本為 `0.6.0`，依
+桃園中原福德宮 LINE 官方帳號的友宮資料查詢 MVP。目前 runtime 版本為 `0.6.0`，依
 Google Sheets 的友宮、會員、來訪、公告與查詢紀錄資料，回覆公開版或內部版資訊。
 
 ## 目前正式狀態

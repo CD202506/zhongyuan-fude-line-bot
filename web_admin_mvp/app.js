@@ -7,26 +7,37 @@
   const state = {
     view: "dashboard",
     selectedTempleId: data.temples[0].id,
+    selectedDevoteeId: data.devotees?.[0]?.id,
+    selectedTeamMemberId: data.teamMembers?.[0]?.id,
     templeSearch: "",
+    devoteeSearch: "",
     templeFilter: "全部",
     visitFilter: "全部",
     announcementFilter: "全部",
-    financeFilter: "全部"
+    financeFilter: "全部",
+    formSource: null
   };
 
   const visitTypes = ["參訪", "用餐", "進香", "邀請", "請帖", "祝壽", "遶境", "會香", "聯誼", "其他"];
 
   const navGroups = [
     { title: "主控台", items: [{ id: "dashboard", label: "主控台" }] },
+    { title: "善信管理", items: [{ id: "devoteeModule", label: "善信管理" }] },
     { title: "友宮管理", items: [{ id: "templeModule", label: "友宮管理" }] },
     { title: "來訪 / 請帖", items: [{ id: "visitModule", label: "來訪 / 請帖" }] },
     { title: "公告 / 活動", items: [{ id: "announcementModule", label: "公告 / 活動" }] },
-    { title: "成員 / 職務", items: [{ id: "memberModule", label: "成員 / 職務" }] },
-    { title: "財務管理", items: [{ id: "financeModule", label: "財務管理" }] },
+    { title: "團隊管理", items: [{ id: "teamModule", label: "團隊管理" }] },
+    { title: "帳務管理", items: [{ id: "financeModule", label: "帳務管理" }] },
     { title: "管理者設定", admin: true, items: [{ id: "adminModule", label: "管理者設定", adminOnly: true }] }
   ];
 
   const moduleByView = {
+    recentRecords: "dashboard",
+    devoteeModule: "devoteeModule",
+    devotees: "devoteeModule",
+    devoteeDetail: "devoteeModule",
+    devoteeForm: "devoteeModule",
+    counterDesk: "devoteeModule",
     templeModule: "templeModule",
     temples: "templeModule",
     templeDetail: "templeModule",
@@ -46,17 +57,23 @@
     eventDetail: "announcementModule",
     eventForm: "announcementModule",
     channelSettings: "adminModule",
-    memberModule: "memberModule",
-    members: "memberModule",
-    memberDetail: "memberModule",
-    memberForm: "memberModule",
-    roleAssignments: "memberModule",
+    teamModule: "teamModule",
+    teamMembers: "teamModule",
+    teamMemberDetail: "teamModule",
+    teamMemberForm: "teamModule",
+    dutyRosters: "teamModule",
+    memberModule: "teamModule",
+    members: "teamModule",
+    memberDetail: "teamModule",
+    memberForm: "teamModule",
+    roleAssignments: "teamModule",
     roleTypes: "adminModule",
     permissions: "adminModule",
     financeModule: "financeModule",
     financeRecords: "financeModule",
     financeDetail: "financeModule",
     financeForm: "financeModule",
+    monthlyFinanceReports: "financeModule",
     financeCategories: "adminModule",
     lineLogs: "adminModule",
     notFoundLogs: "adminModule",
@@ -77,6 +94,14 @@
     return data.temples.find((temple) => temple.id === state.selectedTempleId) || data.temples[0];
   }
 
+  function selectedDevotee() {
+    return data.devotees.find((devotee) => devotee.id === state.selectedDevoteeId) || data.devotees[0];
+  }
+
+  function selectedTeamMember() {
+    return data.teamMembers.find((member) => member.id === state.selectedTeamMemberId) || data.teamMembers[0];
+  }
+
   function selectedVisit() {
     return data.visits.find((visit) => visit.id === state.selectedVisitId) || data.visits[0];
   }
@@ -95,6 +120,32 @@
 
   function selectedFinanceRecord() {
     return data.financeRecords.find((record) => record.id === state.selectedFinanceId) || data.financeRecords[0];
+  }
+
+  function formSourceSummary(kind) {
+    const source = state.formSource;
+    if (!source || source.kind !== kind) return "";
+    const temple = selectedTemple();
+    const visit = selectedVisit();
+    if (kind === "temple") {
+      return `<div class="mini-card source-card wide"><strong>關聯來源</strong><p>${temple.name}｜${temple.relationStatus}</p></div>`;
+    }
+    if (kind === "visit") {
+      return `<div class="mini-card source-card wide"><strong>關聯來源</strong><p>${visit.title}｜${templeName(visit.templeId)}｜${visit.date}</p></div>`;
+    }
+    if (kind === "announcement") {
+      const sourceLabel = source.visitId ? `${visit.title}｜${templeName(visit.templeId)}` : `${temple.name}`;
+      return `<div class="mini-card source-card wide"><strong>關聯來源</strong><p>${sourceLabel}</p></div>`;
+    }
+    return "";
+  }
+
+  function devoteeName(id) {
+    return data.devotees.find((devotee) => devotee.id === id)?.name || "未指定善信";
+  }
+
+  function teamMemberName(id) {
+    return data.teamMembers.find((member) => member.id === id)?.name || memberName(id);
   }
 
   function templeContacts(id) {
@@ -127,6 +178,12 @@
 
   const viewLabels = {
     dashboard: "主控台",
+    recentRecords: "近期紀錄",
+    devoteeModule: "善信管理",
+    devotees: "善信資料",
+    devoteeDetail: "善信詳情",
+    devoteeForm: "善信新增 / 編輯",
+    counterDesk: "櫃檯接待窗口",
     templeModule: "友宮管理",
     temples: "友宮管理",
     templeDetail: "友宮資料詳情",
@@ -144,15 +201,21 @@
     events: "活動列表",
     eventDetail: "活動詳情",
     eventForm: "新增 / 編輯活動",
-    memberModule: "成員 / 職務",
-    members: "成員名單",
-    memberDetail: "成員詳情",
-    memberForm: "成員新增 / 編輯",
+    teamModule: "團隊管理",
+    teamMembers: "團隊成員",
+    teamMemberDetail: "團隊成員詳情",
+    teamMemberForm: "團隊成員新增 / 編輯",
+    dutyRosters: "值勤班表",
+    memberModule: "職務 / 權限",
+    members: "職務 / 權限名單",
+    memberDetail: "職務 / 權限詳情",
+    memberForm: "職務 / 權限新增 / 編輯",
     roleAssignments: "職務任期檢視",
-    financeModule: "財務管理",
-    financeRecords: "財務紀錄",
-    financeDetail: "財務詳情",
-    financeForm: "新增 / 編輯財務",
+    financeModule: "帳務管理",
+    financeRecords: "帳務流水紀錄",
+    financeDetail: "帳務詳情",
+    financeForm: "新增 / 編輯帳務流水",
+    monthlyFinanceReports: "月報公告草稿",
     adminModule: "管理者設定",
     adminBasics: "基礎設定",
     adminPermissions: "權限與角色",
@@ -167,11 +230,14 @@
     }
     state.view = view;
     if (options.templeId) state.selectedTempleId = options.templeId;
+    if (options.devoteeId) state.selectedDevoteeId = options.devoteeId;
+    if (options.teamMemberId) state.selectedTeamMemberId = options.teamMemberId;
     if (options.visitId) state.selectedVisitId = options.visitId;
     if (options.announcementId) state.selectedAnnouncementId = options.announcementId;
     if (options.eventId) state.selectedEventId = options.eventId;
     if (options.memberId) state.selectedMemberId = options.memberId;
     if (options.financeId) state.selectedFinanceId = options.financeId;
+    state.formSource = options.sourceType ? { kind: options.sourceType, templeId: options.templeId, visitId: options.visitId } : null;
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -245,17 +311,20 @@
         "",
         "",
         `<div class="quick-grid">
+          <button class="quick-card" type="button" data-view="counterDesk"><strong>櫃檯接待</strong><span></span></button>
+          <button class="quick-card" type="button" data-view="devoteeForm"><strong>新增善信</strong><span></span></button>
           <button class="quick-card" type="button" data-view="templeForm"><strong>新增友宮</strong><span></span></button>
           <button class="quick-card" type="button" data-view="visitForm"><strong>新增來訪紀錄</strong><span></span></button>
           <button class="quick-card" type="button" data-view="announcementForm"><strong>新增公告</strong><span></span></button>
+          <button class="quick-card" type="button" data-view="financeForm"><strong>新增帳務流水</strong><span></span></button>
         </div>`
       )}
       ${layoutSection(
-        "近期活動",
+        "近期紀錄",
         "",
-        "",
+        `<button class="button secondary" type="button" data-view="recentRecords">查看全部</button>`,
         `<div class="activity-list">
-          ${data.recentActivities.map((activity) => `
+          ${data.recentRecords.slice(0, 6).map((activity) => `
             <button class="activity-row" type="button" data-view="${activity.targetView}">
               <span>${activity.dateLabel}</span>
               <strong>${activity.title}</strong>
@@ -274,6 +343,157 @@
         </div>`
       )}
     `;
+  }
+
+  function renderRecentRecords() {
+    return layoutSection(
+      "近期紀錄",
+      "彙整各模組近期異動，方便回到對應紀錄檢視詳情。",
+      `<button class="button secondary" type="button" data-view="dashboard">返回主控台</button>`,
+      `<div class="activity-list">
+        ${data.recentRecords.map((activity) => `
+          <button class="activity-row" type="button" data-view="${activity.targetView}">
+            <span>${activity.dateLabel}</span>
+            <strong>${activity.title}</strong>
+            <em>${activity.type}</em>
+          </button>
+        `).join("")}
+      </div>`
+    );
+  }
+
+  function renderDevotees(showPrimaryAction = true) {
+    const keyword = state.devoteeSearch;
+    const filtered = data.devotees.filter((devotee) => {
+      return [devotee.name, devotee.phone, devotee.lineStatus, devotee.note].join(" ").includes(keyword);
+    });
+
+    return layoutSection(
+      "善信資料列表",
+      "先搜尋善信，再進入詳情處理發財金、平安龜、還金 / 還願與授權查詢。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="devoteeForm">新增善信</button>` : "",
+      `<div class="filters">
+        <div class="field wide">
+          <label for="devoteeSearch">搜尋善信</label>
+          <input id="devoteeSearch" type="search" value="${state.devoteeSearch}" placeholder="輸入姓名、電話或備註">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>電話</th>
+              <th>LINE 狀態</th>
+              <th>發財金</th>
+              <th>平安龜</th>
+              <th>最近紀錄</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((devotee) => `
+              <tr>
+                <td><strong>${devotee.name}</strong></td>
+                <td>${devotee.phone}</td>
+                <td><span class="pill">${devotee.lineStatus}</span></td>
+                <td>${devotee.fortuneMoneyStatus}</td>
+                <td>${devotee.peaceTurtleStatus}</td>
+                <td>${devotee.latestRecord}</td>
+                <td><button class="small-button primary" type="button" data-devotee-detail="${devotee.id}">查看詳情</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`
+    );
+  }
+
+  function renderDevoteeModule() {
+    return renderDevotees(true);
+  }
+
+  function renderDevoteeDetail() {
+    const devotee = selectedDevotee();
+    const fortuneRecords = data.fortuneMoneyRecords.filter((record) => record.devoteeId === devotee.id);
+    const turtleRecords = data.peaceTurtleRecords.filter((record) => record.devoteeId === devotee.id);
+    const repayments = data.repaymentRecords.filter((record) => record.devoteeId === devotee.id);
+    const queryLogs = data.devoteeQueryLogs.filter((log) => log.devoteeId === devotee.id);
+
+    return `
+      ${layoutSection(
+        "善信詳情",
+        "",
+        `<button class="button secondary" type="button" data-view="devotees">返回列表</button>
+         <button class="button" type="button" data-view="devoteeForm">編輯善信</button>
+         <button class="button secondary" type="button" data-view="counterDesk">櫃檯接待</button>
+         <button class="button secondary" type="button" data-view="financeForm">新增帳務流水</button>
+         <button class="button quiet" type="button" data-draft>停用善信</button>`,
+        `<div class="info-grid">
+          <div class="info-item"><span>姓名</span><strong>${devotee.name}</strong></div>
+          <div class="info-item"><span>電話</span><strong>${devotee.phone}</strong></div>
+          <div class="info-item"><span>LINE 狀態</span><strong>${devotee.lineStatus}</strong></div>
+          <div class="info-item"><span>授權查詢</span><strong>${devotee.authorizedLookup ? "可查本人紀錄" : "未授權"}</strong></div>
+          <div class="info-item"><span>最近紀錄</span><strong>${devotee.latestRecord}</strong></div>
+          <div class="info-item"><span>是否啟用</span><strong>${devotee.enabled ? "啟用" : "停用"}</strong></div>
+        </div>
+        <div class="mini-card"><strong>備註</strong><p>${devotee.note}</p></div>
+        <div class="mini-card"><strong>查詢權限</strong><p>善信本人只能查詢與自己相關的授權紀錄，不可查看內部帳務流水。</p></div>`
+      )}
+      ${layoutSection(
+        "年度紀錄",
+        "",
+        "",
+        `<div class="summary-strip">
+          <div class="info-item"><span>發財金</span><strong>${fortuneRecords.length}</strong></div>
+          <div class="info-item"><span>平安龜</span><strong>${turtleRecords.length}</strong></div>
+          <div class="info-item"><span>還金 / 還願</span><strong>${repayments.length}</strong></div>
+          <div class="info-item"><span>本人查詢</span><strong>${queryLogs.length}</strong></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>類型</th><th>年度 / 日期</th><th>狀態</th><th>關聯帳務</th><th>備註</th></tr></thead>
+            <tbody>
+              ${fortuneRecords.map((record) => `<tr><td>發財金</td><td>${record.year}</td><td>${record.status}</td><td>${record.relatedFinanceId || "未關聯"}</td><td>${record.note}</td></tr>`).join("")}
+              ${turtleRecords.map((record) => `<tr><td>平安龜</td><td>${record.year}</td><td>${record.status}</td><td>${record.relatedFinanceId || "未關聯"}</td><td>${record.note}</td></tr>`).join("")}
+              ${repayments.map((record) => `<tr><td>${record.type}</td><td>${record.date}</td><td>${record.status}</td><td>${record.relatedFinanceId || "未關聯"}</td><td>${record.note}</td></tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`
+      )}
+    `;
+  }
+
+  function renderDevoteeForm() {
+    const devotee = selectedDevotee();
+    return renderFormPanel(
+      "善信新增 / 編輯",
+      "只作畫面雛形；電話請使用遮罩或由正式授權流程處理。",
+      `<div class="form-grid">
+        ${field("姓名", "text", devotee.name)}
+        ${field("電話", "text", devotee.phone)}
+        ${selectField("LINE 狀態", ["已加入", "未加入", "現場登記"], devotee.lineStatus)}
+        ${selectField("本人授權查詢", ["可查本人紀錄", "未授權"], devotee.authorizedLookup ? "可查本人紀錄" : "未授權")}
+        ${selectField("是否啟用", ["啟用", "停用"], devotee.enabled ? "啟用" : "停用")}
+        ${textareaField("備註", devotee.note, "wide")}
+      </div>`
+    );
+  }
+
+  function renderCounterDesk() {
+    const devotee = selectedDevotee();
+    return renderFormPanel(
+      "櫃檯接待窗口",
+      "現場搜尋善信後，處理還金、平安龜、香油錢與備註；本階段不寫入正式資料。",
+      `<div class="form-grid">
+        ${selectField("善信", data.devotees.map((item) => item.name), devotee.name)}
+        ${selectField("處理事項", ["還發財金", "還平安龜", "添香油錢", "補備註"], "還發財金")}
+        ${field("金額", "text", "1,000")}
+        ${selectField("經手人 / 現場值班", data.teamMembers.map((member) => member.name), data.teamMembers[0]?.name)}
+        ${selectField("關聯帳務", ["建立帳務流水草稿", "暫不建立"], "建立帳務流水草稿")}
+        ${textareaField("備註", "金額輸入未來會清洗全形數字、逗號與單位。", "wide")}
+      </div>`
+    );
   }
 
   function renderTemples(showPrimaryAction = true) {
@@ -352,8 +572,8 @@
         `<button class="button secondary" type="button" data-view="temples">返回列表</button>
          <button class="button" type="button" data-view="templeForm" data-temple="${temple.id}">編輯友宮</button>
          <button class="button secondary" type="button" data-view="contacts">管理聯絡人</button>
-         <button class="button" type="button" data-view="visitForm" data-temple="${temple.id}">新增來訪紀錄</button>
-         <button class="button" type="button" data-view="announcementForm">新增相關公告</button>
+         <button class="button" type="button" data-view="visitForm" data-temple="${temple.id}" data-source="temple">新增來訪紀錄</button>
+         <button class="button" type="button" data-view="announcementForm" data-temple="${temple.id}" data-source="announcement">新增相關公告</button>
          <button class="button quiet" type="button" data-draft>停用友宮</button>`,
         `<div class="detail-grid">
           <div class="stack">
@@ -429,6 +649,7 @@
       "表單只示範流程，儲存後不會寫入正式資料。",
       `
       <div class="form-grid">
+        ${formSourceSummary("temple")}
         ${field("宮廟名稱", "text", temple.name)}
         ${field("別名", "text", temple.alias)}
         ${field("主神", "text", temple.mainGod)}
@@ -438,6 +659,15 @@
         ${selectField("是否啟用", ["啟用", "停用"], temple.enabled ? "啟用" : "停用")}
         ${textareaField("公開摘要", temple.publicSummary, "wide")}
         ${textareaField("內部備註", temple.internalNote, "wide")}
+      </div>
+      <div class="mini-card source-card">
+        <strong>儲存後下一步</strong>
+        <p>完成友宮資料後，可接著管理聯絡人、新增來訪紀錄或新增相關公告。</p>
+        <div class="actions">
+          <button class="button secondary" type="button" data-view="contacts">管理聯絡人</button>
+          <button class="button secondary" type="button" data-view="visitForm" data-temple="${temple.id}" data-source="temple">新增來訪紀錄</button>
+          <button class="button secondary" type="button" data-view="announcementForm" data-temple="${temple.id}" data-source="announcement">新增相關公告</button>
+        </div>
       </div>`
     );
   }
@@ -561,6 +791,7 @@
       "這是來訪 / 請帖 / 邀請紀錄，不是公告本身；來訪次數不用手動填。",
       `
       <div class="form-grid">
+        ${formSourceSummary("temple")}
         ${selectField("友宮", data.temples.map((temple) => temple.name), templeName(state.selectedTempleId))}
         ${field("日期", "date", visit.date)}
         ${field("來訪人數", "number", visit.peopleCount)}
@@ -588,7 +819,7 @@
         `<button class="button secondary" type="button" data-view="visits">返回列表</button>
          <button class="button" type="button" data-view="visitForm" data-temple="${visit.templeId}">編輯來訪紀錄</button>
          <button class="button secondary" type="button" data-detail="${visit.templeId}">關聯友宮</button>
-         <button class="button" type="button" data-view="announcementForm">新增相關公告</button>
+         <button class="button" type="button" data-view="announcementForm" data-temple="${visit.templeId}" data-visit="${visit.id}" data-source="announcement">新增相關公告</button>
          <button class="button secondary" type="button" data-draft>標記已回覆</button>
          <button class="button quiet" type="button" data-draft>作廢紀錄</button>`,
         `<div class="info-grid">
@@ -694,6 +925,7 @@
       "此表單只整理公告內容，不會正式發送 LINE、FB 或 VOOM。",
       `
       <div class="form-grid">
+        ${formSourceSummary("announcement")}
         ${field("公告標題", "text", announcement.title, "wide")}
         ${textareaField("公告內容", announcement.body, "wide")}
         ${textareaField("LINE 文字", announcement.lineText, "wide")}
@@ -880,12 +1112,154 @@
     );
   }
 
+  function renderTeamMembers(showPrimaryAction = true) {
+    return layoutSection(
+      "團隊成員列表",
+      "團隊成員可為志工、現場協助者或值勤人員，不一定是系統登入使用者。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="teamMemberForm">新增團隊成員</button>` : "",
+      `<div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>電話</th>
+              <th>角色</th>
+              <th>是否系統使用者</th>
+              <th>近期值勤</th>
+              <th>是否啟用</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.teamMembers.map((member) => `
+              <tr>
+                <td><strong>${member.name}</strong></td>
+                <td>${member.phone}</td>
+                <td>${member.teamRole}</td>
+                <td>${member.systemUser ? "是" : "否"}</td>
+                <td>${member.latestDuty}</td>
+                <td>${statusTag(member.enabled)}</td>
+                <td><button class="small-button primary" type="button" data-team-member-detail="${member.id}">查看詳情</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`
+    );
+  }
+
+  function renderTeamModule() {
+    return `
+      ${renderTeamMembers(true)}
+      ${renderDutyRosters()}
+      ${layoutSection(
+        "廟務職務 / 系統權限",
+        "這是團隊管理的下一層資料，不放在左側選單。團隊成員、廟務職務與系統權限需分開。",
+        "",
+        `<div class="quick-grid">
+          <button class="quick-card" type="button" data-view="members"><strong>查看職務 / 權限</strong><span></span></button>
+          <button class="quick-card" type="button" data-view="roleAssignments"><strong>查看職務任期</strong><span></span></button>
+          <button class="quick-card" type="button" data-view="adminPermissions"><strong>系統權限設定</strong><span></span></button>
+        </div>`
+      )}
+    `;
+  }
+
+  function renderTeamMemberDetail() {
+    const member = selectedTeamMember();
+    const rosters = data.dutyRosters.filter((roster) => roster.teamMemberId === member.id);
+    return `
+      ${layoutSection(
+        "團隊成員詳情",
+        "",
+        `<button class="button secondary" type="button" data-view="teamMembers">返回列表</button>
+         <button class="button" type="button" data-view="teamMemberForm">編輯團隊成員</button>
+         <button class="button secondary" type="button" data-view="dutyRosters">管理值勤班表</button>
+         <button class="button secondary" type="button" data-view="counterDesk">設為現場值班</button>
+         <button class="button quiet" type="button" data-draft>停用團隊成員</button>`,
+        `<div class="info-grid">
+          <div class="info-item"><span>姓名</span><strong>${member.name}</strong></div>
+          <div class="info-item"><span>電話</span><strong>${member.phone}</strong></div>
+          <div class="info-item"><span>團隊角色</span><strong>${member.teamRole}</strong></div>
+          <div class="info-item"><span>系統使用者</span><strong>${member.systemUser ? "是" : "否"}</strong></div>
+          <div class="info-item"><span>值勤筆數</span><strong>${rosters.length}</strong></div>
+          <div class="info-item"><span>是否啟用</span><strong>${member.enabled ? "啟用" : "停用"}</strong></div>
+        </div>
+        <div class="mini-card"><strong>權限邊界</strong><p>團隊成員不一定是系統使用者，也不一定有帳務管理權限。</p></div>
+        <div class="mini-card"><strong>備註</strong><p>${member.note}</p></div>`
+      )}
+      ${layoutSection(
+        "值勤紀錄",
+        "",
+        `<button class="button secondary" type="button" data-view="dutyRosters">查看值勤班表</button>`,
+        `<div class="table-wrap">
+          <table>
+            <thead><tr><th>日期</th><th>農曆 / 節日</th><th>備註</th><th>是否啟用</th></tr></thead>
+            <tbody>
+              ${rosters.map((roster) => `<tr><td>${roster.dutyStartDate} ~ ${roster.dutyEndDate}</td><td>${roster.lunarNote || roster.festivalNote || "一般值勤"}</td><td>${roster.note}</td><td>${statusTag(roster.active)}</td></tr>`).join("") || `<tr><td colspan="4">尚無值勤紀錄</td></tr>`}
+            </tbody>
+          </table>
+        </div>`
+      )}
+    `;
+  }
+
+  function renderTeamMemberForm() {
+    const member = selectedTeamMember();
+    return renderFormPanel(
+      "團隊成員新增 / 編輯",
+      "團隊成員可作為值勤提醒、活動支援與現場經手人候選。",
+      `<div class="form-grid">
+        ${field("姓名", "text", member.name)}
+        ${field("電話", "text", member.phone)}
+        ${selectField("團隊角色", ["志工", "現場協助", "值勤人員", "活動支援"], member.teamRole)}
+        ${selectField("是否系統使用者", ["否", "是"], member.systemUser ? "是" : "否")}
+        ${selectField("是否啟用", ["啟用", "停用"], member.enabled ? "啟用" : "停用")}
+        ${textareaField("備註", member.note, "wide")}
+      </div>`
+    );
+  }
+
+  function renderDutyRosters() {
+    return layoutSection(
+      "值勤班表",
+      "值勤班表不等於職務任期；可作為現場表單的經手人 / 現場值班預設。",
+      `<button class="button secondary" type="button" data-view="teamMemberForm">新增值勤人員</button>`,
+      `<div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>值勤人員</th>
+              <th>輪值日期</th>
+              <th>農曆備註</th>
+              <th>節日備註</th>
+              <th>備註</th>
+              <th>是否啟用</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.dutyRosters.map((roster) => `
+              <tr>
+                <td><strong>${teamMemberName(roster.teamMemberId)}</strong></td>
+                <td>${roster.dutyStartDate} ~ ${roster.dutyEndDate}</td>
+                <td>${roster.lunarNote || "無"}</td>
+                <td>${roster.festivalNote || "無"}</td>
+                <td>${roster.note}</td>
+                <td>${statusTag(roster.active)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`
+    );
+  }
+
   function renderMembers(showPrimaryAction = false) {
     return `
       ${layoutSection(
-        "成員名單",
-        `廟務職務是人在廟裡的職稱；系統權限是能使用後台哪些功能。${data.mockNotice}。`,
-        showPrimaryAction ? `<button class="button" type="button" data-view="memberForm">新增成員</button>` : "",
+        "廟務職務 / 系統權限名單",
+        `此區是團隊管理的下一層內容；廟務職務是人在廟裡的職稱，系統權限是能使用後台哪些功能。${data.mockNotice}。`,
+        showPrimaryAction ? `<button class="button" type="button" data-view="memberForm">新增職務 / 權限資料</button>` : "",
         `<div class="filters">
           <div class="field"><label>職務篩選</label><select><option>全部</option><option>主任委員</option><option>總幹事</option><option>委員</option><option>監事</option></select></div>
           <div class="field"><label>狀態篩選</label><select><option>全部</option><option>啟用</option><option>停用</option></select></div>
@@ -942,10 +1316,10 @@
     const member = selectedMember();
     return `
       ${layoutSection(
-        "成員詳情",
+        "廟務職務 / 系統權限詳情",
         "",
         `<button class="button secondary" type="button" data-view="members">返回列表</button>
-         <button class="button" type="button" data-view="memberForm">編輯成員</button>
+         <button class="button" type="button" data-view="memberForm">編輯職務 / 權限資料</button>
          <button class="button secondary" type="button" data-view="roleAssignments">管理廟務職務</button>
          <button class="button secondary" type="button" data-view="adminPermissions">管理系統權限</button>
          <button class="button secondary" type="button" data-view="roleAssignments">管理任期</button>
@@ -971,8 +1345,8 @@
   function renderMemberForm() {
     const member = data.members.find((item) => item.systemPermission === "admin") || data.members[0];
     return renderFormPanel(
-      "成員新增 / 編輯",
-      "成員資料只供畫面測試；照片轉錄名冊仍需使用者校對。",
+      "職務 / 權限新增 / 編輯",
+      "職務與權限資料只供畫面測試；照片轉錄名冊仍需使用者校對。",
       `<div class="form-grid">
         ${field("成員姓名", "text", member.name)}
         ${field("電話", "text", member.phone)}
@@ -1038,7 +1412,7 @@
               <tr>
                 <td><strong>${role.name}</strong></td>
                 <td><span class="pill">${role.category}</span></td>
-                <td>${role.category === "友宮聯絡人" ? "友宮聯絡人表單" : role.category === "系統權限" ? "後台權限檢視" : "成員 / 職務管理"}</td>
+                <td>${role.category === "友宮聯絡人" ? "友宮聯絡人表單" : role.category === "系統權限" ? "後台權限檢視" : "團隊管理下一層"}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -1063,9 +1437,9 @@
   function renderFinanceRecords(showPrimaryAction = true) {
     const filtered = data.financeRecords.filter((record) => state.financeFilter === "全部" || record.direction === state.financeFilter);
     return layoutSection(
-      "財務紀錄",
-      "財務目前只做畫面預覽，不做正式帳務功能，不放帳戶、銀行、真實收據號碼。",
-      showPrimaryAction ? `<button class="button" type="button" data-view="financeForm">新增財務紀錄</button>` : "",
+      "帳務流水紀錄",
+      "廟務流水帳、收支摘要與月報公告草稿；不做正式會計、報稅、審計或銀行帳務。",
+      showPrimaryAction ? `<button class="button" type="button" data-view="financeForm">新增帳務流水</button>` : "",
       `<div class="filters">
         <div class="field">
           <label for="financeFilter">收支篩選</label>
@@ -1085,6 +1459,8 @@
               <th>分類</th>
               <th>項目</th>
               <th>金額</th>
+              <th>關聯來源</th>
+              <th>經手人</th>
               <th>狀態</th>
               <th>備註</th>
               <th>操作</th>
@@ -1098,6 +1474,8 @@
                 <td>${record.category}</td>
                 <td><strong>${record.item}</strong></td>
                 <td>${record.amountLabel}</td>
+                <td>${record.relatedLabel}</td>
+                <td>${teamMemberName(record.handledBy)}</td>
                 <td>${record.status}</td>
                 <td>${record.note}</td>
                 <td><button class="small-button primary" type="button" data-finance-detail="${record.id}">查看詳情</button></td>
@@ -1110,33 +1488,40 @@
   }
 
   function renderFinanceModule() {
-    return renderFinanceRecords(true);
+    return `
+      ${renderFinanceRecords(true)}
+      ${renderMonthlyFinanceReports()}
+    `;
   }
 
   function renderFinanceDetail() {
     const record = selectedFinanceRecord();
     return `
       ${layoutSection(
-        "財務詳情",
+        "帳務詳情",
         "",
         `<button class="button secondary" type="button" data-view="financeRecords">返回列表</button>
-         <button class="button" type="button" data-view="financeForm">編輯財務紀錄</button>
+         <button class="button" type="button" data-view="financeForm">編輯帳務流水</button>
          <button class="button secondary" type="button" data-draft>儲存草稿</button>
          <button class="button quiet" type="button" data-draft>標記作廢</button>
          <button class="button secondary" type="button" data-view="financeForm">補備註</button>
-         <button class="button secondary" type="button" data-view="adminBasics">類別檢視</button>`,
+         <button class="button secondary" type="button" data-view="adminBasics">類別檢視</button>
+         <button class="button secondary" type="button" data-view="monthlyFinanceReports">月報公告草稿</button>`,
         `<div class="info-grid">
           <div class="info-item"><span>日期</span><strong>${record.date}</strong></div>
           <div class="info-item"><span>收支</span><strong>${record.direction}</strong></div>
           <div class="info-item"><span>類別</span><strong>${record.category}</strong></div>
           <div class="info-item"><span>項目</span><strong>${record.item}</strong></div>
           <div class="info-item"><span>金額</span><strong>${record.amountLabel}</strong></div>
+          <div class="info-item"><span>關聯來源</span><strong>${record.relatedLabel}</strong></div>
+          <div class="info-item"><span>月報期間</span><strong>${record.monthlyReportPeriod}</strong></div>
+          <div class="info-item"><span>公告對象</span><strong>${record.announcementTargetGroup}</strong></div>
           <div class="info-item"><span>狀態</span><strong>${record.status}</strong></div>
-          <div class="info-item"><span>經手人</span><strong>測試人員</strong></div>
+          <div class="info-item"><span>經手人 / 現場值班</span><strong>${teamMemberName(record.handledBy)}</strong></div>
         </div>
         <div class="mini-card"><strong>備註</strong><p>${record.note}</p></div>
-        <div class="mini-card"><strong>類別 / 草稿 / 作廢狀態</strong><p>類別由管理者設定維護；草稿與作廢狀態在財務詳情中處理。</p></div>
-        <div class="mini-card"><strong>安全提醒</strong><p>mock data 不包含銀行帳號、真實收據號碼、帳戶、個資或敏感資訊。</p></div>`
+        <div class="mini-card"><strong>作廢 / 沖銷</strong><p>原始流水不可直接刪除；作廢需保留原紀錄，必要時另建沖銷紀錄。</p></div>
+        <div class="mini-card"><strong>安全提醒</strong><p>測試資料不包含銀行帳號、真實收據號碼、帳戶、個資或敏感資訊。</p></div>`
       )}
     `;
   }
@@ -1144,24 +1529,62 @@
   function renderFinanceForm() {
     const record = data.financeRecords[0];
     return renderFormPanel(
-      "新增 / 編輯財務",
-      "只作畫面雛形，不處理正式帳務、帳戶、銀行或真實收據。",
+      "新增 / 編輯帳務流水",
+      "只作畫面雛形，不處理正式會計、帳戶、銀行或真實收據。",
       `<div class="form-grid">
         ${field("日期", "date", record.date)}
         ${selectField("收支", ["收入", "支出"], record.direction)}
         ${selectField("收支分類", data.financeCategories.map((category) => category.name), record.category)}
         ${field("項目名稱", "text", record.item)}
         ${field("金額", "text", record.amountLabel)}
-        ${selectField("狀態", ["草稿", "待確認", "已封存"], record.status)}
+        ${selectField("關聯來源", ["手動", "善信", "發財金", "平安龜", "還金 / 還願", "友宮來訪", "活動", "公告"], record.relatedTypeLabel)}
+        ${selectField("經手人 / 現場值班", data.teamMembers.map((member) => member.name), teamMemberName(record.handledBy))}
+        ${selectField("是否納入月報", ["納入", "不納入"], record.announcementVisibility ? "納入" : "不納入")}
+        ${selectField("公告對象", ["團隊成員", "管理委員會成員", "系統管理者"], record.announcementTargetGroup)}
+        ${field("月報期間", "text", record.monthlyReportPeriod)}
+        ${selectField("狀態", ["草稿", "待確認", "已確認", "作廢"], record.status)}
         ${textareaField("備註", record.note, "wide")}
       </div>`
+    );
+  }
+
+  function renderMonthlyFinanceReports() {
+    return layoutSection(
+      "月報公告草稿",
+      "依月份彙整帳務流水，產生可貼到 LINE 群組的公告草稿；本階段不正式推播。",
+      "",
+      `<div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>期間</th>
+              <th>標題</th>
+              <th>公告對象</th>
+              <th>狀態</th>
+              <th>內容摘要</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.monthlyFinanceReports.map((report) => `
+              <tr>
+                <td>${report.period}</td>
+                <td><strong>${report.title}</strong></td>
+                <td>${report.targetGroup}</td>
+                <td><span class="pill">${report.status}</span></td>
+                <td>${report.summaryText}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      <div class="mini-card"><strong>揭露原則</strong><p>公開摘要與內部完整版本分開；善信本人只能查詢與自己相關的授權紀錄。</p></div>`
     );
   }
 
   function renderFinanceCategories() {
     return layoutSection(
       "收支分類",
-      "分類只供畫面預覽使用，不代表正式會計科目。",
+      "分類只供帳務流水畫面使用，不代表正式會計科目。",
       "",
       `<div class="table-wrap">
         <table>
@@ -1323,7 +1746,7 @@
           </div>
           <div class="mini-card">
             <strong>收支分類</strong>
-            <p>只供財務畫面預覽顯示，不代表正式會計科目。</p>
+            <p>只供帳務流水畫面顯示，不代表正式會計科目。</p>
             <div class="checkbox-row">${data.financeCategories.map((category) => `<span class="pill">${category.name}｜${category.direction}</span>`).join("")}</div>
           </div>
         </div>`
@@ -1529,6 +1952,12 @@
 
     const views = {
       dashboard: renderDashboard,
+      recentRecords: renderRecentRecords,
+      devoteeModule: renderDevoteeModule,
+      devotees: renderDevotees,
+      devoteeDetail: renderDevoteeDetail,
+      devoteeForm: renderDevoteeForm,
+      counterDesk: renderCounterDesk,
       templeModule: renderTempleModule,
       temples: renderTemples,
       templeDetail: renderTempleDetail,
@@ -1548,6 +1977,11 @@
       eventDetail: renderEventDetail,
       eventForm: renderEventForm,
       channelSettings: renderChannelSettings,
+      teamModule: renderTeamModule,
+      teamMembers: renderTeamMembers,
+      teamMemberDetail: renderTeamMemberDetail,
+      teamMemberForm: renderTeamMemberForm,
+      dutyRosters: renderDutyRosters,
       memberModule: renderMemberModule,
       members: renderMembers,
       memberDetail: renderMemberDetail,
@@ -1559,6 +1993,7 @@
       financeRecords: renderFinanceRecords,
       financeDetail: renderFinanceDetail,
       financeForm: renderFinanceForm,
+      monthlyFinanceReports: renderMonthlyFinanceReports,
       financeCategories: renderFinanceCategories,
       lineLogs: renderLineLogs,
       notFoundLogs: renderNotFoundLogs,
@@ -1584,12 +2019,19 @@
     const viewTarget = event.target.closest("[data-view]");
     if (viewTarget) {
       const templeId = viewTarget.getAttribute("data-temple");
-      setView(viewTarget.getAttribute("data-view"), { templeId });
+      const visitId = viewTarget.getAttribute("data-visit");
+      const sourceType = viewTarget.getAttribute("data-source");
+      setView(viewTarget.getAttribute("data-view"), { templeId, visitId, sourceType });
     }
 
     const detailTarget = event.target.closest("[data-detail]");
     if (detailTarget) {
       setView("templeDetail", { templeId: detailTarget.getAttribute("data-detail") });
+    }
+
+    const devoteeDetailTarget = event.target.closest("[data-devotee-detail]");
+    if (devoteeDetailTarget) {
+      setView("devoteeDetail", { devoteeId: devoteeDetailTarget.getAttribute("data-devotee-detail") });
     }
 
     const visitDetailTarget = event.target.closest("[data-visit-detail]");
@@ -1612,6 +2054,11 @@
       setView("memberDetail", { memberId: memberDetailTarget.getAttribute("data-member-detail") });
     }
 
+    const teamMemberDetailTarget = event.target.closest("[data-team-member-detail]");
+    if (teamMemberDetailTarget) {
+      setView("teamMemberDetail", { teamMemberId: teamMemberDetailTarget.getAttribute("data-team-member-detail") });
+    }
+
     const financeDetailTarget = event.target.closest("[data-finance-detail]");
     if (financeDetailTarget) {
       setView("financeDetail", { financeId: financeDetailTarget.getAttribute("data-finance-detail") });
@@ -1625,6 +2072,10 @@
   document.addEventListener("input", (event) => {
     if (event.target.id === "templeSearch") {
       state.templeSearch = event.target.value.trim();
+      render();
+    }
+    if (event.target.id === "devoteeSearch") {
+      state.devoteeSearch = event.target.value.trim();
       render();
     }
   });

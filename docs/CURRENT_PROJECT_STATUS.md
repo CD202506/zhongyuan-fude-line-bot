@@ -1,4 +1,4 @@
-# 中原福德宮 LINE Bot 目前狀態
+# 桃園中原福德宮 LINE Bot 目前狀態
 
 ## Current status
 
@@ -20,6 +20,8 @@
 - `0.8.0A` Web 後台 MVP 與資料模型 V2 規劃文件完成並 commit：`7131b65`
 - `0.8.0A-1` Controlled Web Admin MVP Prototype 已完成第一版並推送：`e31e81e prototype: add controlled web admin MVP`。
 - `0.8.0A-1` 後續批次 UX 重整進行中：全站主頁列表優先、設定 / 維運集中管理者設定、關聯資料摘要化。本輪尚未 commit、尚未部署。
+- `0.8.0A-1` Web 後台 V2 架構文件補強進行中：補充人員層級、善信管理、團隊管理、值勤班表與帳務關聯模型。本輪只修改文件，不修改 prototype 畫面、runtime、資料源或部署設定。
+- `0.8.0A-1` 帳務管理定位補強進行中：未來正式模組命名建議使用「帳務管理」，短期定位為廟務流水帳紀錄、收支摘要、月度收支公告草稿與 LINE 群組公告內容輔助，不做完整會計、報稅、審計或銀行帳務功能。
 
 ## Current data source roles
 
@@ -64,10 +66,16 @@
 - `line_query_logs` 在 AppSheet 顯示欄位數可能與 Google Sheets 不完全一致，但目前 Preview 無錯誤，主畫面可開，暫不處理。
 - `announcements` 尚未加入 AppSheet 管理畫面；目前 LINE Bot 可直接讀 Google Sheets 公告資料。
 - `V2 暫存表` 字樣已從 runtime LINE 回覆移除，改為 `廟方資料表`。
-- Web 後台 MVP 目前只使用 mock/dev data，不接正式 Google Sheets，不修改正式 LINE Bot runtime，不修改 Render 設定，不修改 LINE Developers Webhook。
+- Web 後台 MVP 目前只使用本機測試資料，不接正式 Google Sheets，不修改正式 LINE Bot runtime，不修改 Render 設定，不修改 LINE Developers Webhook。
 - Web 後台 UX 最新決策記錄於 `docs/WEB_ADMIN_UX_REVIEW_NOTES.md`。本輪批次 UX 重整完成後需先由使用者 review，不要自行 commit、不要部署。
 - Web 後台全站資料管理流程已定為：先瀏覽 / 搜尋 → 查看詳情 → 詳情頁內編輯 / 管理關聯資料。列表頁以查看詳情為主，新增 CTA 僅保留在明確少數位置。
 - Web 後台一般模組主頁應以列表、搜尋、篩選、查看詳情為主；設定類、權限類、LINE 維運類、資料來源類集中於管理者設定。
+- Web 後台 V2 需區分任何人、善信、團隊成員、系統使用者、系統管理者。廟務職務、團隊值勤、系統權限必須分開。
+- 後續模組可討論新增善信管理與團隊管理，但目前只做文件規劃，不修改 `web_admin_mvp/` 畫面。
+- 每月 LINE 群組公告是帳務管理必要需求；公告對象至少包含團隊成員、管理委員會成員與系統管理者。本階段只規劃月報公告草稿，不做正式推播。
+- 最新架構補強需記錄：櫃檯接待窗口、現場表單顯性經手人 / 現場值班欄位、金額輸入清洗、作廢 / 沖銷原則，以及資料來源健康燈號方向。本階段只做文件，不改 prototype、runtime 或正式資料。
+- 依 V2 架構文件開始將新模組落到 `web_admin_mvp/` prototype：新增善信管理、團隊管理、帳務管理與月報公告草稿可視畫面，並維持本機測試資料、不接正式 Google Sheets、不修改 runtime、不部署。
+- 未獲正式明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`，不接 Google Sheets、FastAPI runtime 或 Render。
 
 ## Next optional steps
 
