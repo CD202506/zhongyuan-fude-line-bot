@@ -16,6 +16,7 @@ The harness checks prototype data rules before any future adapter or formal data
 - Local mock data safety.
 - Label / master-data classification.
 - Information architecture boundaries for temple master records, dashboard temple-affair activity, visit events, announcements, and system operation records.
+- Preview UI residue boundaries: visit row temple names and subjects stay separate, visit type master data stays in admin settings, and team management main page contains only team member list and duty roster.
 
 ## Safety Boundary
 

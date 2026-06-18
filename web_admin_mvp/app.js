@@ -760,6 +760,7 @@
               <th>友宮名稱</th>
               <th>日期</th>
               <th>型態</th>
+              <th>主題</th>
               <th>來訪人數</th>
               <th>是否需要回覆</th>
               <th>備註</th>
@@ -769,9 +770,10 @@
           <tbody>
             ${filtered.map((visit) => `
               <tr>
-                <td><strong>${templeName(visit.templeId)}</strong><br><span class="muted">${visit.title}</span></td>
+                <td><strong>${templeName(visit.templeId)}</strong></td>
                 <td>${visit.date}</td>
                 <td>${visit.types.map((type) => `<span class="pill">${type}</span>`).join(" ")}</td>
+                <td>${visit.title}</td>
                 <td>${visit.peopleCount} 人</td>
                 <td>${visit.needsReply ? "需要回覆" : "不需回覆"}</td>
                 <td>${visit.note}</td>
@@ -845,15 +847,7 @@
   }
 
   function renderVisitModule() {
-    return `
-      ${renderVisits(true)}
-      ${layoutSection(
-        "來訪型態顯示",
-        "",
-        "",
-        `<div class="checkbox-row">${visitTypes.map((type) => `<span class="pill">${type}</span>`).join("")}</div>`
-      )}
-    `;
+    return renderVisits(true);
   }
 
   function renderVisitTypeSettings() {
@@ -1158,16 +1152,6 @@
     return `
       ${renderTeamMembers(true)}
       ${renderDutyRosters()}
-      ${layoutSection(
-        "廟務職務 / 系統權限",
-        "這是團隊管理的下一層資料，不放在左側選單。團隊成員、廟務職務與系統權限需分開。",
-        "",
-        `<div class="quick-grid">
-          <button class="quick-card" type="button" data-view="members"><strong>查看職務 / 權限</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="roleAssignments"><strong>查看職務任期</strong><span></span></button>
-          <button class="quick-card" type="button" data-view="adminPermissions"><strong>系統權限設定</strong><span></span></button>
-        </div>`
-      )}
     `;
   }
 
@@ -1181,6 +1165,8 @@
         `<button class="button secondary" type="button" data-view="teamMembers">返回列表</button>
          <button class="button" type="button" data-view="teamMemberForm">編輯團隊成員</button>
          <button class="button secondary" type="button" data-view="dutyRosters">管理值勤班表</button>
+         <button class="button secondary" type="button" data-view="members">查看廟務職務 / 系統權限</button>
+         <button class="button secondary" type="button" data-view="roleAssignments">查看職務任期</button>
          <button class="button secondary" type="button" data-view="counterDesk">設為現場值班</button>
          <button class="button quiet" type="button" data-draft>停用團隊成員</button>`,
         `<div class="info-grid">

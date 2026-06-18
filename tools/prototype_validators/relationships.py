@@ -11,6 +11,8 @@ class RelationshipValidationError(ValueError):
 
 EVENT_DESCRIPTION_TERMS = {"參訪", "祝壽", "請帖", "會香", "來訪", "邀請"}
 SYSTEM_LOG_TYPES = {"友宮資料更新", "帳務流水", "善信紀錄", "查無資料", "補資料建議", "LINE 查詢紀錄", "mock/dev data"}
+TEAM_MODULE_ALLOWED_SECTIONS = {"團隊成員列表", "值勤班表"}
+TEAM_MODULE_FORBIDDEN_SECTIONS = {"廟務職務 / 系統權限", "系統權限設定", "查看職務 / 權限", "查看職務任期"}
 
 
 def require_existing_id(record_id: str, existing_ids: set[str], label: str) -> None:
@@ -31,6 +33,13 @@ def validate_temple_name_is_master_record(name: str) -> None:
         raise RelationshipValidationError(f"Temple name must not include event terms: {', '.join(matched_terms)}")
 
 
+def validate_visit_row_semantics(row: dict) -> None:
+    validate_temple_name_is_master_record(row.get("temple_name", ""))
+    subject = row.get("subject", "")
+    if not subject:
+        raise RelationshipValidationError("Visit row requires subject in a separate field")
+
+
 def validate_dashboard_recent_record(record: dict) -> None:
     record_type = record.get("type", "")
     title = record.get("title", "")
@@ -38,6 +47,20 @@ def validate_dashboard_recent_record(record: dict) -> None:
         raise RelationshipValidationError(f"Dashboard recent record must not use system log type: {record_type}")
     if any(term in title for term in {"查無資料", "補資料", "LINE 查詢", "mock/dev data", "資料更新", "帳務流水", "善信紀錄"}):
         raise RelationshipValidationError("Dashboard recent record title must be a human-readable temple affair event")
+
+
+def validate_visit_type_master_location(section_name: str, has_master_type_list: bool) -> None:
+    if section_name == "來訪 / 請帖紀錄列表" and has_master_type_list:
+        raise RelationshipValidationError("Visit type master list belongs in admin settings, not the general visit list")
+
+
+def validate_team_module_sections(sections: list[str]) -> None:
+    section_set = set(sections)
+    forbidden = section_set.intersection(TEAM_MODULE_FORBIDDEN_SECTIONS)
+    if forbidden:
+        raise RelationshipValidationError(f"Team module contains forbidden quick-card sections: {', '.join(sorted(forbidden))}")
+    if not TEAM_MODULE_ALLOWED_SECTIONS.issubset(section_set):
+        raise RelationshipValidationError("Team module must include team member list and duty roster")
 
 
 def build_visit_from_temple(temple_id: str, temple_ids: set[str]) -> dict:

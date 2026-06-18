@@ -8,8 +8,11 @@ from tools.prototype_validators.relationships import (
     validate_announcement_relation,
     validate_dashboard_recent_record,
     validate_devotee_relationship,
+    validate_team_module_sections,
     validate_temple,
     validate_temple_name_is_master_record,
+    validate_visit_row_semantics,
+    validate_visit_type_master_location,
 )
 
 
@@ -34,6 +37,20 @@ class RelationshipTests(unittest.TestCase):
 
     def test_visit_from_temple_carries_temple_id(self):
         self.assertEqual(build_visit_from_temple("temple-001", self.temple_ids), {"temple_id": "temple-001"})
+
+    def test_visit_row_keeps_subject_separate_from_temple_name(self):
+        validate_visit_row_semantics({"temple_name": "集慶福德廟", "subject": "集慶福德廟參訪"})
+        validate_visit_row_semantics({"temple_name": "白沙屯拱天宮", "subject": "白沙屯拱天宮會香"})
+        with self.assertRaises(RelationshipValidationError):
+            validate_visit_row_semantics({"temple_name": "集慶福德廟參訪", "subject": "參訪"})
+        with self.assertRaises(RelationshipValidationError):
+            validate_visit_row_semantics({"temple_name": "集慶福德廟", "subject": ""})
+
+    def test_visit_type_master_list_is_not_general_visit_page_content(self):
+        validate_visit_type_master_location("管理者設定 / 標籤主檔", True)
+        validate_visit_type_master_location("來訪 / 請帖紀錄列表", False)
+        with self.assertRaises(RelationshipValidationError):
+            validate_visit_type_master_location("來訪 / 請帖紀錄列表", True)
 
     def test_announcement_from_temple_carries_temple_id(self):
         self.assertEqual(
@@ -65,6 +82,13 @@ class RelationshipTests(unittest.TestCase):
         ]:
             with self.assertRaises(RelationshipValidationError):
                 validate_dashboard_recent_record(record)
+
+    def test_team_module_main_page_only_contains_members_and_duty_roster(self):
+        validate_team_module_sections(["團隊成員列表", "值勤班表"])
+        with self.assertRaises(RelationshipValidationError):
+            validate_team_module_sections(["團隊成員列表", "值勤班表", "廟務職務 / 系統權限"])
+        with self.assertRaises(RelationshipValidationError):
+            validate_team_module_sections(["團隊成員列表"])
 
     def test_unknown_relationship_id_is_blocked(self):
         with self.assertRaises(RelationshipValidationError):

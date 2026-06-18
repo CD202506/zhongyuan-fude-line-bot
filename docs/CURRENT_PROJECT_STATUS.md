@@ -24,6 +24,7 @@
 - `0.8.0A-1` 帳務管理定位補強進行中：未來正式模組命名建議使用「帳務管理」，短期定位為廟務流水帳紀錄、收支摘要、月度收支公告草稿與 LINE 群組公告內容輔助，不做完整會計、報稅、審計或銀行帳務功能。
 - `0.8.0A-4` Internal UX Cleanup Before Third-party Preview 進行中：整理返回 CTA、管理者設定分類、標籤 / 主檔分組與職務任期歸屬，再交給第三方驗證。
 - `0.8.0A-6` Information Architecture Cleanup Before Third-party Preview 已完成並推送：`8334e3e prototype: clarify web admin information architecture`。
+- `0.8.0A-7` Preview UI Residue Cleanup 進行中：修正預覽前殘留的友宮名稱欄、來訪型態主檔顯示與團隊管理快速卡片混淆。
 
 ## Current data source roles
 
@@ -80,6 +81,7 @@
 - 未獲正式明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`，不接 Google Sheets、FastAPI runtime 或 Render。
 - 第三方驗證前 UX cleanup 原則：次頁、詳情頁、表單頁不可只依賴瀏覽器返回；管理者設定只放系統參數、規則與維運說明，不放具體人員任期資料；標籤 / 主檔管理需分清發布管道、發布狀態、廟務職務、友宮聯絡人職稱、系統權限與帳務分類。
 - 第三方驗證前資訊架構 cleanup 原則：主控台顯示近期廟務動態，不顯示系統 log；系統操作紀錄歸管理者設定；友宮名稱不得混入來訪主題；來訪 / 請帖是互動事件，公告 / 活動是發布或活動內容。
+- 第三方預覽前 UI residue cleanup 原則：友宮名稱欄只顯示宮廟主檔名稱；來訪 / 請帖主題需獨立欄位；一般來訪列表不顯示來訪型態主檔；團隊管理主頁只保留團隊成員列表與值勤班表。
 
 ## Next optional steps
 
