@@ -70,6 +70,61 @@ Web 後台 V2 需區分不同人員層級：
 - `admin` 是系統權限，不是廟務職務。
 - 廟務職務、團隊值勤、系統權限必須分開。
 
+## 廟務管理、善信管理與帳務管理邊界
+
+`0.8.0A-8` 補充以下資料模型語意。本段只作 V2 討論，不是正式 migration。
+
+- 善信管理 = 管人。`devotees` 應聚焦善信基本資料，例如會員編碼、手機、電話、地址、出生日期、推播同意、key in 人員代號與 key in 日期時間。
+- 廟務管理 = 管事。未來可管理添油香、光明燈、太歲、發財金、平安龜、還金 / 還願、採購、公文 / 通知、廟務維持等日常事項。
+- 帳務管理 = 管錢。`finance_logs` 或後續帳務流水表負責收入、支出、帳務科目、金額、關聯來源、經手人與月報公告草稿。
+
+帳務科目 / 費用科目 / 收支科目應視為同一套帳務科目主檔，由帳務管理統一維護。善信、廟務管理、友宮、來訪、活動與採購紀錄只能選用既有科目，不應自由輸入。每筆紀錄仍可保留備註欄。
+
+## 採購與公文 / 通知
+
+採購是廟務管理的子功能。
+
+採購紀錄可包含：
+
+- `procurement_id`
+- `item_name`
+- `quantity`
+- `purpose`
+- `vendor_name`
+- `handled_by`
+- `related_affair_id`
+- `related_event_id`
+- `related_visit_id`
+- `finance_id`
+- `note`
+- `created_at`
+- `updated_at`
+
+採購管理管品項、數量、用途、店家 / 供應商、經手人與關聯事項。若採購產生支出，付款與支出流水由帳務管理處理，並以 `finance_id` 或同等關聯連回帳務流水。
+
+公文 / 通知可先歸廟務管理，未來視規模再評估是否拆成獨立模組。
+
+公文 / 通知紀錄可包含：
+
+- `document_id`
+- `document_type`
+- `direction`
+- `source_name`
+- `target_name`
+- `subject`
+- `document_date`
+- `related_temple_id`
+- `related_visit_id`
+- `related_event_id`
+- `related_procurement_id`
+- `related_affair_id`
+- `announcement_id`
+- `note`
+- `created_at`
+- `updated_at`
+
+公文 / 通知可包含行政單位來文、發文、友宮來函、友宮回函、內部通知、會議通知與活動協調通知。公文 / 通知是文件紀錄，公告 / 活動是發布內容或活動資料；公文 / 通知可產生公告草稿，但不取代公告 / 活動。
+
 ## 建議核心資料表
 
 ### `members`

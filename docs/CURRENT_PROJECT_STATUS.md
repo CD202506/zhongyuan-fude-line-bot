@@ -25,6 +25,7 @@
 - `0.8.0A-4` Internal UX Cleanup Before Third-party Preview 進行中：整理返回 CTA、管理者設定分類、標籤 / 主檔分組與職務任期歸屬，再交給第三方驗證。
 - `0.8.0A-6` Information Architecture Cleanup Before Third-party Preview 已完成並推送：`8334e3e prototype: clarify web admin information architecture`。
 - `0.8.0A-7` Preview UI Residue Cleanup 已完成並推送：`86eda54 prototype: clean up preview residue before third-party review`。
+- `0.8.0A-8` Temple Affairs / Procurement / Document Architecture Review 進行中：只文件化廟務管理、採購、公文 / 通知與帳務科目邊界，不修改 prototype、runtime 或正式資料。
 
 ## Current data source roles
 
@@ -82,6 +83,16 @@
 - 第三方驗證前 UX cleanup 原則：次頁、詳情頁、表單頁不可只依賴瀏覽器返回；管理者設定只放系統參數、規則與維運說明，不放具體人員任期資料；標籤 / 主檔管理需分清發布管道、發布狀態、廟務職務、友宮聯絡人職稱、系統權限與帳務分類。
 - 第三方驗證前資訊架構 cleanup 原則：主控台顯示近期廟務動態，不顯示系統 log；系統操作紀錄歸管理者設定；友宮名稱不得混入來訪主題；來訪 / 請帖是互動事件，公告 / 活動是發布或活動內容。
 - 第三方預覽前 UI residue cleanup 原則：友宮名稱欄只顯示宮廟主檔名稱；來訪 / 請帖主題需獨立欄位；一般來訪列表不顯示來訪型態主檔；團隊管理主頁只保留團隊成員列表與值勤班表。
+- 廟務管理架構原則：善信管理管人，廟務管理管事，帳務管理管錢；採購歸廟務管理但支出關聯帳務；公文 / 通知先歸廟務管理，且不等於公告 / 活動。
+
+## Pause point
+
+- 目前暫停在 `0.8.0A-7 Preview UI Residue Cleanup` 已完成並推送後。
+- 最新狀態標記 commit：`cc5b867 docs: mark preview residue cleanup complete`。
+- 下一次繼續前，請先確認工作區是否乾淨，再依使用者最新指示決定是否進入第三方 ZIP 預覽包打包 / 檢查。
+- 未獲正式明確指令前，仍限制在 `web_admin_mvp/` 與 `docs/`，不要接 Google Sheets、FastAPI runtime 或 Render。
+- 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
+- 不要部署。
 
 ## Next optional steps
 
