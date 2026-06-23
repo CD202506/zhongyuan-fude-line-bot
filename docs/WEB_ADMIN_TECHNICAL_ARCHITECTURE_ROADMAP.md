@@ -126,6 +126,8 @@ flowchart LR
 
 本輪不建立 `web_admin_app/`。
 
+`0.8.0A-11` 補充：`web_admin_app/` 建立前需先完成 skeleton setup plan，確認資料夾位置、技術選型、初期 routes、權限 placeholder、API 串接節奏與 Vercel 部署邊界。A11 只做文件，不建立正式前端。
+
 ## 7. Render FastAPI 後端未來目錄方向
 
 未來候選方向，非本輪實作：

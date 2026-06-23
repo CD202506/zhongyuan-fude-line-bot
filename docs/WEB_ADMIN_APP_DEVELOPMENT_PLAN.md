@@ -29,6 +29,8 @@
 
 本輪不建立 `web_admin_app/`。
 
+`0.8.0A-11` 補充：正式建立 `web_admin_app/` 前，先以 `docs/WEB_ADMIN_APP_SKELETON_SETUP_PLAN.md` 固定 skeleton 建立範圍。下一階段 A12 若執行，應只建立 Next.js / TypeScript skeleton、基本 layout、dashboard placeholder、模組入口、mock permission 與 README；不串 API、不部署、不碰 V1。
+
 ## 4. 為什麼不要直接把 prototype 改成正式系統
 
 `web_admin_mvp/` 已適合作為流程討論，但不適合作為正式前端基礎，原因：
