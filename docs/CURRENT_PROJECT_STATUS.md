@@ -27,6 +27,7 @@
 - `0.8.0A-7` Preview UI Residue Cleanup 已完成並推送：`86eda54 prototype: clean up preview residue before third-party review`。
 - `0.8.0A-8` Temple Affairs / Procurement / Document Architecture Review 進行中：只文件化廟務管理、採購、公文 / 通知與帳務科目邊界，不修改 prototype、runtime 或正式資料。
 - `0.8.0A-9` V1 Freeze and Web Admin + Future LINE Bot Transition Decision 進行中：V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結；Web 後台 V2 不再以現有 Google Sheets 作為設計前提，正式進入後台架構與開發階段。
+- `0.8.0A-10` Vercel Frontend + Render Backend Web Admin Architecture Roadmap 進行中：只文件化 Vercel + Render + Render PostgreSQL + 未來 LINE Bot 整合方向；本輪未建立正式前端、未修改 prototype、未修改 Render、未部署。
 
 ## Current data source roles
 
@@ -88,6 +89,7 @@
 - V1 freeze 決策：現有 Google Sheets + Render FastAPI + LINE Bot V1 保留作為既有成果、內部測試參考與必要備查；除非既有功能故障，否則不再開發、不再擴充、不再追隨 Web 後台 V2 prototype 變動。
 - V2 後續方向：Web 後台 V2 不再以現有 Google Sheets 作為資料核心或設計限制，正式進入後台架構與開發階段；後續以正確廟務流程、資料模型、權限、安全、API 與未來 LINE Bot 整合為主。
 - LINE Bot 未來定位：LINE Bot 不取消；現有 LINE Bot 暫不調整，未來應在 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。
+- A10 技術架構規劃：正式方向為 Vercel Web 後台前端、Render FastAPI 後端 API、Render PostgreSQL V2 資料核心；`web_admin_mvp/` 只保留為 UX prototype，未來正式前端建議另開 `web_admin_app/`，但本輪未建立。
 
 ## Pause point
 
@@ -95,6 +97,7 @@
 - 最新狀態標記 commit：`cc5b867 docs: mark preview residue cleanup complete`。
 - 下一次繼續前，請先確認工作區是否乾淨，再依使用者最新指示決定是否進入第三方 ZIP 預覽包打包 / 檢查。
 - 未獲正式明確指令前，仍限制在 `web_admin_mvp/` 與 `docs/`，不要接 Google Sheets、FastAPI runtime 或 Render。
+- A10 目前只完成文件規劃；不要誤認為已建立 `web_admin_app/`、已啟用 PostgreSQL、已部署 Vercel 或已改 LINE Bot。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。
 

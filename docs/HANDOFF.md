@@ -73,6 +73,7 @@
 - `0.8.0A-9` 最新決策：V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結；V1 不再新增功能、不再擴充 Google Sheets、不再追隨 Web 後台 V2 prototype 變動。
 - Web 後台 V2 不再以現有 Google Sheets 作為資料核心或設計限制，後續以正確廟務流程、資料模型、權限、安全、API 與未來 LINE Bot 整合為主。
 - LINE Bot 不取消；現有 LINE Bot 暫不調整，未來待 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。
+- `0.8.0A-10` 最新規劃：正式技術方向為 Vercel 前端 + Render FastAPI 後端 + Render PostgreSQL；本輪只新增技術路線圖與開發計畫文件，未建立 `web_admin_app/`，未修改 `web_admin_mvp/`，未修改 Render 或 LINE Bot。
 - 恢復前先確認工作區狀態；未獲明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。

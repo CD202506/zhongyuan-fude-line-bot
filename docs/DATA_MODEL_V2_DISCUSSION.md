@@ -8,6 +8,8 @@
 
 `0.8.0A-9` 補充 V1 freeze 決策：現有 V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結，不再作為 Web 後台 V2 的設計前提。V2 不再以現有 Google Sheets 是否能承擔作為設計限制，正式進入 Web 後台架構與開發階段。未來 LINE Bot 不取消，但應待 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。詳見 `docs/V1_FREEZE_AND_WEB_ADMIN_TRANSITION_DECISION.md`。
 
+`0.8.0A-10` 補充正式技術架構規劃：Web 後台 V2 建議採 Vercel Next.js / React 前端、Render FastAPI 後端 API、Render PostgreSQL 作為未來資料核心。`web_admin_mvp/` 只保留為 UX prototype；未來正式前端建議另開 `web_admin_app/`，但本輪不建立、不部署、不修改 runtime。
+
 ## 命名方向
 
 Web 後台與 V2 模型內部開始使用 `temple` 命名：

@@ -29,6 +29,15 @@
 - `docs/V1_V2_DATA_MAPPING_PLAN.md` 只作為 legacy reference，不作為 V2 設計限制。
 - 詳細決策見 `docs/V1_FREEZE_AND_WEB_ADMIN_TRANSITION_DECISION.md` 與 `docs/DATA_BACKEND_EVOLUTION_STRATEGY.md`。
 
+`0.8.0A-10` 補充正式技術架構規劃：
+
+- 正式 Web 後台前端方向為 Vercel + Next.js / React。
+- 後端 API 與未來 LINE Bot webhook 方向為 Render FastAPI。
+- V2 正式資料核心方向為 Render PostgreSQL。
+- `web_admin_mvp/` 只保留為 UX prototype 與流程參考。
+- 未來正式前端建議另開 `web_admin_app/`，但本輪不建立。
+- 詳細規劃見 `docs/WEB_ADMIN_TECHNICAL_ARCHITECTURE_ROADMAP.md`、`docs/WEB_ADMIN_APP_DEVELOPMENT_PLAN.md`、`docs/RENDER_API_AND_LINEBOT_FUTURE_INTEGRATION_PLAN.md`。
+
 ## 導覽結構
 
 最新 UX 決策：左側選單只保留最上層模組，不列出細項功能。
