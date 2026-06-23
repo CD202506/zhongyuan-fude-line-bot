@@ -26,6 +26,7 @@
 - `0.8.0A-6` Information Architecture Cleanup Before Third-party Preview 已完成並推送：`8334e3e prototype: clarify web admin information architecture`。
 - `0.8.0A-7` Preview UI Residue Cleanup 已完成並推送：`86eda54 prototype: clean up preview residue before third-party review`。
 - `0.8.0A-8` Temple Affairs / Procurement / Document Architecture Review 進行中：只文件化廟務管理、採購、公文 / 通知與帳務科目邊界，不修改 prototype、runtime 或正式資料。
+- `0.8.0A-9` V1 Freeze and Web Admin + Future LINE Bot Transition Decision 進行中：V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結；Web 後台 V2 不再以現有 Google Sheets 作為設計前提，正式進入後台架構與開發階段。
 
 ## Current data source roles
 
@@ -84,6 +85,9 @@
 - 第三方驗證前資訊架構 cleanup 原則：主控台顯示近期廟務動態，不顯示系統 log；系統操作紀錄歸管理者設定；友宮名稱不得混入來訪主題；來訪 / 請帖是互動事件，公告 / 活動是發布或活動內容。
 - 第三方預覽前 UI residue cleanup 原則：友宮名稱欄只顯示宮廟主檔名稱；來訪 / 請帖主題需獨立欄位；一般來訪列表不顯示來訪型態主檔；團隊管理主頁只保留團隊成員列表與值勤班表。
 - 廟務管理架構原則：善信管理管人，廟務管理管事，帳務管理管錢；採購歸廟務管理但支出關聯帳務；公文 / 通知先歸廟務管理，且不等於公告 / 活動。
+- V1 freeze 決策：現有 Google Sheets + Render FastAPI + LINE Bot V1 保留作為既有成果、內部測試參考與必要備查；除非既有功能故障，否則不再開發、不再擴充、不再追隨 Web 後台 V2 prototype 變動。
+- V2 後續方向：Web 後台 V2 不再以現有 Google Sheets 作為資料核心或設計限制，正式進入後台架構與開發階段；後續以正確廟務流程、資料模型、權限、安全、API 與未來 LINE Bot 整合為主。
+- LINE Bot 未來定位：LINE Bot 不取消；現有 LINE Bot 暫不調整，未來應在 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。
 
 ## Pause point
 

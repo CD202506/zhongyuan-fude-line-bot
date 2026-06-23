@@ -6,6 +6,8 @@
 
 第一版 Web 後台 MVP 可先使用 V2 語意規劃畫面與 adapter，但不得修改正式主檔 `中原福德宮_AppSheet_0612`，不得把正式 runtime 的 `shrines` / `shrine_visits` 直接改名為 `temples` / `temple_visits`。
 
+`0.8.0A-9` 補充 V1 freeze 決策：現有 V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結，不再作為 Web 後台 V2 的設計前提。V2 不再以現有 Google Sheets 是否能承擔作為設計限制，正式進入 Web 後台架構與開發階段。未來 LINE Bot 不取消，但應待 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。詳見 `docs/V1_FREEZE_AND_WEB_ADMIN_TRANSITION_DECISION.md`。
+
 ## 命名方向
 
 Web 後台與 V2 模型內部開始使用 `temple` 命名：
@@ -26,6 +28,8 @@ Repository / adapter 層需保留相容說明：
 | `temples` | `shrines` | Web 後台用 `temple` 表達友宮，但正式 runtime 仍讀 `shrines`。 |
 | `temple_visits` | `shrine_visits` | Web 後台用 `temple_visits` 表達來訪 / 請帖 / 廟際互動。 |
 | `temple_contacts` | 可能來自現有友宮欄位或新開發表 | 聯絡人應從友宮主檔拆出。 |
+
+更多 V1 / V2 模組與 tab 對照，詳見 `docs/V1_V2_DATA_MAPPING_PLAN.md`。
 
 ## 成員、廟務職務與系統權限
 

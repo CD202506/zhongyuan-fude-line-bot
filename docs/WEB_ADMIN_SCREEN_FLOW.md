@@ -16,6 +16,19 @@
 
 不得使用正式主檔 `中原福德宮_AppSheet_0612` 作為 Web 後台 MVP 的寫入目標。
 
+## V1 Freeze 與未來 LINE Bot 轉接
+
+`0.8.0A-9` 補充：
+
+- 現有 V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結。
+- V1 不再新增功能、不再擴充 Google Sheets、不再追隨 V2 prototype 變動。
+- 現有 Google Sheets 不再作為 Web 後台 V2 的資料核心或設計限制。
+- V2 正式進入 Web 後台架構與開發階段，不再只是 Google Sheets 的前端。
+- LINE Bot 不取消；現有 LINE Bot 暫不跟隨 V2 變動。
+- 未來 LINE Bot 應待 V2 核心資料模型、權限與 API 邊界穩定後，再轉接 Web 後台 / API / 新資料核心。
+- `docs/V1_V2_DATA_MAPPING_PLAN.md` 只作為 legacy reference，不作為 V2 設計限制。
+- 詳細決策見 `docs/V1_FREEZE_AND_WEB_ADMIN_TRANSITION_DECISION.md` 與 `docs/DATA_BACKEND_EVOLUTION_STRATEGY.md`。
+
 ## 導覽結構
 
 最新 UX 決策：左側選單只保留最上層模組，不列出細項功能。

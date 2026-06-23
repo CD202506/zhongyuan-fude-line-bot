@@ -67,6 +67,16 @@
 
 ## 下一步建議
 
+- 目前先暫停，等待使用者通知再繼續。
+- Web 後台 prototype 已完成至 `0.8.0A-7 Preview UI Residue Cleanup`，並已推送。
+- 最新狀態標記：`cc5b867 docs: mark preview residue cleanup complete`。
+- `0.8.0A-9` 最新決策：V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結；V1 不再新增功能、不再擴充 Google Sheets、不再追隨 Web 後台 V2 prototype 變動。
+- Web 後台 V2 不再以現有 Google Sheets 作為資料核心或設計限制，後續以正確廟務流程、資料模型、權限、安全、API 與未來 LINE Bot 整合為主。
+- LINE Bot 不取消；現有 LINE Bot 暫不調整，未來待 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。
+- 恢復前先確認工作區狀態；未獲明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`。
+- 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
+- 不要部署。
+
 - `0.7.8`：AppSheet 公告管理畫面規劃
 - `0.7.9`：廟方資料維護流程簡化
 - `0.8.0`：LINE 發布公告 / 主動推播規劃

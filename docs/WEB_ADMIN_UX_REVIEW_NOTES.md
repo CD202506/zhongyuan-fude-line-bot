@@ -254,7 +254,19 @@
 - 首頁未來可增加單純主選項頁面；左側選單未來可自動隱藏 / 點選展開。
 - 未來可規劃行事曆呈現來訪、帳務、活動、值勤；友宮詳情未來可規劃地圖呈現。
 
-## 十四、禁止事項仍維持
+## 十四、V1 Freeze 與 Web 後台轉向
+
+`0.8.0A-9 V1 Freeze and Web Admin + Future LINE Bot Transition Decision` 只做文件整理：
+
+- 現有 V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結。
+- V1 不再新增功能、不再擴充 Google Sheets、不再追隨 V2 prototype 變動。
+- 現有 Google Sheets 不再作為 Web 後台 V2 的資料核心或設計限制。
+- V2 正式進入 Web 後台架構與開發階段。
+- LINE Bot 不取消；現有 LINE Bot 暫不跟隨 V2 變動。
+- 未來 LINE Bot 應待 V2 核心資料模型、權限與 API 邊界穩定後，再轉接 Web 後台 / API / 新資料核心。
+- V1 / V2 對照只保留為 legacy reference，不作為 V2 設計限制。
+
+## 十五、禁止事項仍維持
 
 在本輪使用者 review 前：
 
