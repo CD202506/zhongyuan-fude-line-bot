@@ -29,6 +29,8 @@
 - `0.8.0A-9` V1 Freeze and Web Admin + Future LINE Bot Transition Decision 進行中：V1 = Google Sheets + Render FastAPI + LINE Bot 保留但凍結；Web 後台 V2 不再以現有 Google Sheets 作為設計前提，正式進入後台架構與開發階段。
 - `0.8.0A-10` Vercel Frontend + Render Backend Web Admin Architecture Roadmap 進行中：只文件化 Vercel + Render + Render PostgreSQL + 未來 LINE Bot 整合方向；本輪未建立正式前端、未修改 prototype、未修改 Render、未部署。
 - `0.8.0A-11` Web Admin App Skeleton Planning 進行中：只文件化未來 `web_admin_app/` skeleton 建立前計畫；本輪未建立 `web_admin_app/`、未安裝套件、未修改 prototype、未部署。
+- `0.8.0A-12` Create Web Admin App Skeleton 嘗試中止於 build 驗證：Next.js / React / TypeScript skeleton 在 Windows 本機環境下持續遇到 Next.js / webpack / EISDIR readlink 問題，尚未 commit、尚未 push、尚未部署。
+- `0.8.0A-12R` Frontend MVP Architecture Adjustment Decision 進行中：MVP 前端技術方向調整為 Vite + React + TypeScript；Vercel + Render 架構不變，Render FastAPI / PostgreSQL / LINE Bot 未來整合方向不變。
 
 ## Current data source roles
 
@@ -92,6 +94,7 @@
 - LINE Bot 未來定位：LINE Bot 不取消；現有 LINE Bot 暫不調整，未來應在 V2 核心資料模型、權限與 API 邊界穩定後，再規劃轉接 Web 後台 / API / 新資料核心。
 - A10 技術架構規劃：正式方向為 Vercel Web 後台前端、Render FastAPI 後端 API、Render PostgreSQL V2 資料核心；`web_admin_mvp/` 只保留為 UX prototype，未來正式前端建議另開 `web_admin_app/`，但本輪未建立。
 - A11 skeleton 規劃：未來可進入 `0.8.0A-12 Create Web Admin App Skeleton`，最小範圍只建立 `web_admin_app/`、Next.js / TypeScript skeleton、基本 layout、dashboard placeholder、模組入口、mock permission 與 README；不串 API、不部署、不碰 V1。
+- A12 Next.js skeleton 狀態：`web_admin_app/` 曾建立未提交 skeleton，但 build 未通過，不視為可提交前端成果；A12R 決定 MVP 前端改採 Vite + React + TypeScript，A13 才處理 skeleton 替換。
 
 ## Pause point
 
@@ -101,6 +104,7 @@
 - 未獲正式明確指令前，仍限制在 `web_admin_mvp/` 與 `docs/`，不要接 Google Sheets、FastAPI runtime 或 Render。
 - A10 目前只完成文件規劃；不要誤認為已建立 `web_admin_app/`、已啟用 PostgreSQL、已部署 Vercel 或已改 LINE Bot。
 - A11 目前只完成 skeleton setup 文件規劃；不要誤認為已建立 `web_admin_app/` 或已安裝 Next.js package。
+- A13 建議改為 `0.8.0A-13 Replace Next.js Skeleton with Vite React Skeleton`：清理未提交 Next.js skeleton，保留 `web_admin_app/` 作為正式前端資料夾，建立 Vite + React + TypeScript skeleton，並要求 lint / build 通過；不串 API、不部署、不碰 V1。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。
 

@@ -76,6 +76,9 @@
 - `0.8.0A-10` 最新規劃：正式技術方向為 Vercel 前端 + Render FastAPI 後端 + Render PostgreSQL；本輪只新增技術路線圖與開發計畫文件，未建立 `web_admin_app/`，未修改 `web_admin_mvp/`，未修改 Render 或 LINE Bot。
 - `0.8.0A-11` 最新規劃：新增 `docs/WEB_ADMIN_APP_SKELETON_SETUP_PLAN.md`，只規劃未來正式前端 skeleton；A11 未建立 `web_admin_app/`、未建立 Next.js 專案、未安裝 package、未部署。
 - 下一階段可考慮 `0.8.0A-12 Create Web Admin App Skeleton`：只建立正式前端 skeleton、基本 layout、dashboard placeholder、模組入口、mock permission 與 README；不串 API、不部署、不碰 V1。
+- `0.8.0A-12` Next.js skeleton 嘗試未通過 build；在 Windows 本機環境下持續遇到 Next.js / webpack / EISDIR readlink 問題，尚未 commit、尚未 push、尚未部署。
+- `0.8.0A-12R` 最新決策：MVP 前端不再採 Next.js，改採 Vite + React + TypeScript。這是前端 skeleton 技術選型調整，不是整體架構重選；Vercel + Render 架構、Render FastAPI / PostgreSQL / LINE Bot 未來整合方向不變。
+- 下一步建議：`0.8.0A-13 Replace Next.js Skeleton with Vite React Skeleton`，清理未提交 Next.js skeleton，建立 Vite + React + TypeScript skeleton，要求 lint / build 通過；不串 API、不部署、不碰 V1。
 - 恢復前先確認工作區狀態；未獲明確指令前，開發範圍限制在 `web_admin_mvp/` 與 `docs/`。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。
