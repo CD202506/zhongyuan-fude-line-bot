@@ -9,3 +9,11 @@ service-account*.json
 google-service-account*.json
 .DS_Store
 .vscode/
+
+# A13 web admin Vite app required project files
+!web_admin_app/package.json
+!web_admin_app/package-lock.json
+!web_admin_app/tsconfig.json
+!web_admin_app/tsconfig.*.json
+!web_admin_app/vite.config.ts
+!web_admin_app/eslint.config.js

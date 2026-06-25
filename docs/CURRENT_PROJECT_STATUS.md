@@ -31,6 +31,7 @@
 - `0.8.0A-11` Web Admin App Skeleton Planning 進行中：只文件化未來 `web_admin_app/` skeleton 建立前計畫；本輪未建立 `web_admin_app/`、未安裝套件、未修改 prototype、未部署。
 - `0.8.0A-12` Create Web Admin App Skeleton 嘗試中止於 build 驗證：Next.js / React / TypeScript skeleton 在 Windows 本機環境下持續遇到 Next.js / webpack / EISDIR readlink 問題，尚未 commit、尚未 push、尚未部署。
 - `0.8.0A-12R` Frontend MVP Architecture Adjustment Decision 進行中：MVP 前端技術方向調整為 Vite + React + TypeScript；Vercel + Render 架構不變，Render FastAPI / PostgreSQL / LINE Bot 未來整合方向不變。
+- `0.8.0A-13` Build Vite React Web Admin Visual MVP Baseline 進行中：已重新建立 `web_admin_app/` 作為 Vite + React + TypeScript 前端 baseline，包含可視化主控台、主要模組列表 / 詳情頁、管理者設定、mock data 與 mock permission；目前未串 API、未部署、未修改 V1。
 
 ## Current data source roles
 
@@ -105,6 +106,7 @@
 - A10 目前只完成文件規劃；不要誤認為已建立 `web_admin_app/`、已啟用 PostgreSQL、已部署 Vercel 或已改 LINE Bot。
 - A11 目前只完成 skeleton setup 文件規劃；不要誤認為已建立 `web_admin_app/` 或已安裝 Next.js package。
 - A13 建議改為 `0.8.0A-13 Replace Next.js Skeleton with Vite React Skeleton`：清理未提交 Next.js skeleton，保留 `web_admin_app/` 作為正式前端資料夾，建立 Vite + React + TypeScript skeleton，並要求 lint / build 通過；不串 API、不部署、不碰 V1。
+- A13 目前已建立 Vite + React + TypeScript Visual MVP Baseline；`web_admin_mvp/` 仍保留為 UX prototype。下一步建議 `0.8.0A-14 Visual MVP Review and UX Adjustment`，先 review 畫面、UX 與資訊密度，再討論 API contract。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。
 

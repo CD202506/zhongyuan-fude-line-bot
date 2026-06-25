@@ -278,3 +278,10 @@
 - 不要部署。
 - 不要修改 `.env`、`.env.local` 或任何 secret。
 - 不要 commit。
+# A13 UX review baseline
+
+`0.8.0A-13` 已建立 `web_admin_app/` 作為 A14 UX review 的可視化 baseline。此版落實手機優先、高對比、少層級、卡片式資訊呈現、列表 → 詳情 → 詳情內編輯，以及管理者設定集中。
+
+`web_admin_mvp/` 仍保留為 UX prototype，本輪未修改。A13 只使用 mock data / mock permission，未串 Render API、未部署、未修改 LINE Bot / Google Sheets。
+
+下一步建議：`0.8.0A-14 Visual MVP Review and UX Adjustment`，重點檢查手機畫面、年長使用者可讀性、模組命名、資訊密度與 CTA 是否過多。

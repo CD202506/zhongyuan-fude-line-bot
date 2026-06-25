@@ -155,3 +155,10 @@ npm run lint / npm run build 必須通過
 - 不修改 LINE Bot。
 - 不修改 Google Sheets。
 - 不修改 `web_admin_mvp/`。
+# A13 implementation note
+
+`0.8.0A-13` 已依 A12R 決策建立 `web_admin_app/`，技術基礎為 Vite + React + TypeScript。A13 只作 Visual MVP Baseline，包含 mock data、mock permission、主控台、主要模組列表 / 詳情頁與管理者設定。
+
+本階段仍未串 Render API、未部署 Vercel、未建立 PostgreSQL，也未修改 V1 Google Sheets / LINE Bot。`web_admin_mvp/` 繼續保留為 UX prototype。
+
+下一步建議為 `0.8.0A-14 Visual MVP Review and UX Adjustment`。

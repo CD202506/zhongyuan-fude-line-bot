@@ -93,3 +93,10 @@
 - [試營運前檢查清單](PRE_LAUNCH_CHECKLIST.md)
 - [AppSheet 使用者簡易守則](APP_SHEET_USER_GUIDE.md)
 - [回復與維護](ROLLBACK_AND_MAINTENANCE.md)
+# 0.8.0A-13 handoff update
+
+- `web_admin_app/` 已重新建立為 Vite + React + TypeScript Visual MVP Baseline。
+- `web_admin_mvp/` 仍保留為 UX prototype、流程參考與第三方測試參考，本輪未修改。
+- A13 前端目前只使用 mock data / mock permission，未串 Render API，未建立 PostgreSQL，未部署。
+- 本輪未修改 Render、LINE Bot、Google Sheets、AppSheet 或 `.env`。
+- 下一步建議：`0.8.0A-14 Visual MVP Review and UX Adjustment`。
