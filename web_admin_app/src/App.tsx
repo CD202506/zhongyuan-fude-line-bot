@@ -4,6 +4,7 @@ import { modules } from "./data/modules";
 import { DashboardPage } from "./routes/DashboardPage";
 import { ModuleDetailPage } from "./routes/ModuleDetailPage";
 import { ModuleListPage } from "./routes/ModuleListPage";
+import { NewRecordPage } from "./routes/NewRecordPage";
 import { SettingsPage } from "./routes/SettingsPage";
 
 export function App() {
@@ -14,6 +15,9 @@ export function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         {modules.map((moduleItem) => (
           <Route key={moduleItem.key} path={moduleItem.route} element={<ModuleListPage />} />
+        ))}
+        {modules.map((moduleItem) => (
+          <Route key={`${moduleItem.key}-new`} path={`${moduleItem.route}/new`} element={<NewRecordPage />} />
         ))}
         {modules.map((moduleItem) => (
           <Route key={`${moduleItem.key}-detail`} path={`${moduleItem.route}/:id`} element={<ModuleDetailPage />} />

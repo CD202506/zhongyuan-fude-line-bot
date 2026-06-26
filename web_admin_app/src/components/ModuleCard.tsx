@@ -12,7 +12,7 @@ export function ModuleCard({ moduleItem, count }: ModuleCardProps) {
       <span>{moduleItem.shortTitle}</span>
       <strong>{moduleItem.title}</strong>
       <p>{moduleItem.description}</p>
-      <em>{count} 筆測試資料</em>
+      <em>{count} 筆紀錄</em>
     </Link>
   );
 }

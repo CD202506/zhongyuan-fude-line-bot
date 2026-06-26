@@ -8,7 +8,7 @@ type PermissionBadgeProps = {
 export function PermissionBadge({ role }: PermissionBadgeProps) {
   return (
     <span className="permission-badge">
-      目前角色：{role} / {permissionLabel(role)}
+      目前角色：{permissionLabel(role)}
     </span>
   );
 }

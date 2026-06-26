@@ -32,6 +32,15 @@
 - `0.8.0A-12` Create Web Admin App Skeleton 嘗試中止於 build 驗證：Next.js / React / TypeScript skeleton 在 Windows 本機環境下持續遇到 Next.js / webpack / EISDIR readlink 問題，尚未 commit、尚未 push、尚未部署。
 - `0.8.0A-12R` Frontend MVP Architecture Adjustment Decision 進行中：MVP 前端技術方向調整為 Vite + React + TypeScript；Vercel + Render 架構不變，Render FastAPI / PostgreSQL / LINE Bot 未來整合方向不變。
 - `0.8.0A-13` Build Vite React Web Admin Visual MVP Baseline 進行中：已重新建立 `web_admin_app/` 作為 Vite + React + TypeScript 前端 baseline，包含可視化主控台、主要模組列表 / 詳情頁、管理者設定、mock data 與 mock permission；目前未串 API、未部署、未修改 V1。
+- `0.8.0A-14` Visual MVP Review and UX Adjustment 進行中：依 A13R review 修正手機導覽、角色權限展示、詳情頁操作確認、主控台重要待辦與各模組專屬列表 / 詳情欄位；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix1` Role-based UI and CTA Behavior Adjustment 進行中：依人工檢查修正管理者 / 廟方人員 / 檢視者導覽差異、檢視者詳情頁不顯示操作按鈕、CTA 點擊後顯示前端狀態提示；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix2` Permission Notice Placement and CTA Feedback Adjustment 進行中：查看權限提示改為低干擾提示列，CTA 點擊後加入編輯檢視、草稿暫存、送出確認與停用 / 作廢確認流程；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix3` Editable Field Interaction Adjustment 進行中：編輯模式已加入文字、textarea、日期、數字、下拉選單與多選標籤；取消可回復原資料，草稿 / 送出確認保留前端暫存內容；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix4` Add New Record CTA Interaction 進行中：所有模組列表頁新增 CTA 已接上前端新增表單流程，支援草稿、送出確認與取消新增；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix5` List Search Add/Edit Flow and Archive Confirmation Adjustment 進行中：模組主頁已調整為搜尋、狀態篩選與列表；新增流程移至獨立 `/new` 頁面；儲存、送出、停用 / 封存前加入確認小框框；一般前端不提供刪除；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix6` Sidebar Hide Toggle and List Flow Cleanup 進行中：左側選單已可隱藏 / 展開；角色顯示與角色切換統一移至右上方；非管理者大型權限提示改為低干擾提示；列表每筆資料同列顯示「查看詳情」；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix7` Non-admin Settings Guard and Row Detail Button Alignment 進行中：非管理者不可看到或進入管理者設定內容，直接進入 settings 只顯示簡短提示與返回主控台；列表資料列已調整為狀態、主資訊、欄位與「查看詳情」同列呈現；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-14-Fix8` Default Hidden Sidebar and Header Module Summary Consolidation 進行中：左側選單預設隱藏，模組名稱 / 邊界 / 說明 / 新增 CTA 已整合到上方主標題區，原獨立模組標題大卡片已移除；搜尋與列表上移；仍未串 API、未部署、未修改 V1。
 
 ## Current data source roles
 
