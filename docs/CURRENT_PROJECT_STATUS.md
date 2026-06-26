@@ -41,6 +41,7 @@
 - `0.8.0A-14-Fix6` Sidebar Hide Toggle and List Flow Cleanup 進行中：左側選單已可隱藏 / 展開；角色顯示與角色切換統一移至右上方；非管理者大型權限提示改為低干擾提示；列表每筆資料同列顯示「查看詳情」；仍未串 API、未部署、未修改 V1。
 - `0.8.0A-14-Fix7` Non-admin Settings Guard and Row Detail Button Alignment 進行中：非管理者不可看到或進入管理者設定內容，直接進入 settings 只顯示簡短提示與返回主控台；列表資料列已調整為狀態、主資訊、欄位與「查看詳情」同列呈現；仍未串 API、未部署、未修改 V1。
 - `0.8.0A-14-Fix8` Default Hidden Sidebar and Header Module Summary Consolidation 進行中：左側選單預設隱藏，模組名稱 / 邊界 / 說明 / 新增 CTA 已整合到上方主標題區，原獨立模組標題大卡片已移除；搜尋與列表上移；仍未串 API、未部署、未修改 V1。
+- `0.8.0A-15` Record Vercel Preview Deployment 進行中：Vercel 前端測試部署已完成，project 為 `zhongyuan-fude-web-admin-test`，測試網址為 `https://zhongyuan-fude-web-admin-test.vercel.app`，部署 commit 為 `7b37733`。目前可進入第三方 UI / UX 測試；正式 V1 / Render / LINE Bot / Google Sheets / AppSheet 未修改。
 
 ## Current data source roles
 

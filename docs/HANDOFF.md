@@ -177,3 +177,15 @@
 - 角色顯示與角色切換仍位於右上方。
 - 新增、編輯、查看詳情、停用 / 封存確認流程維持不變。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。
+
+# 0.8.0A-15 handoff update
+
+- Vercel 前端測試部署已完成。
+- Vercel project：`zhongyuan-fude-web-admin-test`
+- 測試網址：`https://zhongyuan-fude-web-admin-test.vercel.app`
+- 部署 commit：`7b37733 feat: prepare web admin visual ux for testing`
+- 部署範圍只包含 `web_admin_app/`，Root Directory 為 `web_admin_app`，Framework 為 Vite，Output Directory 為 `dist`。
+- 目前可進入第三方 UI / UX 測試。
+- 正式 V1 / Render / LINE Bot / Google Sheets / AppSheet 未修改。
+- 本階段仍未串 API、未建立 PostgreSQL、未建立正式登入、未寫入正式資料。
+- 部署紀錄見 `docs/WEB_ADMIN_VERCEL_PREVIEW_DEPLOYMENT_RECORD.md`。
