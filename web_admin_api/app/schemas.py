@@ -8,12 +8,17 @@ from pydantic import BaseModel, Field
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "web_admin_api"
+    mode: str = "sqlite"
+    database_status: str = "ready"
 
 
 class ModuleResponse(BaseModel):
     key: str
     title: str
     description: str
+    boundary: str
+    can_create_roles: list[str]
+    can_archive_roles: list[str]
 
 
 class RecordBase(BaseModel):
@@ -56,6 +61,17 @@ class RecordResponse(RecordBase):
     updated_at: datetime
     created_by: str = ""
     updated_by: str = ""
+
+
+class ArchiveRequest(BaseModel):
+    actor_role: str = "admin"
+    actor_name: str = "測試管理者"
+
+
+class RestoreRequest(BaseModel):
+    status: str = "active"
+    actor_role: str = "admin"
+    actor_name: str = "測試管理者"
 
 
 class AuditEventResponse(BaseModel):

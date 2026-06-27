@@ -200,3 +200,12 @@
 - 新增 `web_admin_api/` FastAPI skeleton 與 migration 草案，作為未來 Render Web Admin API service 基礎。
 - 下一步是建立 Web Admin API + Render PostgreSQL staging + 前端 API 串接；測試資料不可使用正式廟方敏感資料。
 - 本輪未部署、未建立實際資料庫、未新增 `.env`、未讀取或輸出 secret。
+
+# 0.8.0A-17 handoff update
+
+- `web_admin_api/` 已進入本機 CRUD baseline。
+- 若未設定 `DATABASE_URL`，API 使用 `web_admin_api/local_dev.sqlite3` 作為 SQLite fallback。
+- 已新增本機初始化腳本與 smoke test。
+- Records endpoint 支援新增、列表查詢、詳情、更新、封存、還原與 audit events。
+- 本輪不修改 `web_admin_app/`，不部署 Render / Vercel。
+- LINE Bot / V1 / Google Sheets / AppSheet 仍不動，前端仍不提供 DELETE。

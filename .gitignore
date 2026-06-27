@@ -4,6 +4,9 @@ __pycache__/
 .env
 .env.*
 !.env.example
+*.sqlite
+*.sqlite3
+web_admin_api/local_dev.sqlite3
 *.json
 service-account*.json
 google-service-account*.json

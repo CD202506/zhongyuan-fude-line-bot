@@ -6,16 +6,23 @@ This service is intentionally separate from the existing LINE Bot runtime. It is
 
 Current status:
 
-- Skeleton only
+- Local CRUD baseline
+- SQLite fallback at `web_admin_api/local_dev.sqlite3` when `DATABASE_URL` is not set
 - No deployment
-- No database connection required for import
 - No `.env` committed
 - No secret values in repo
 - No LINE Bot integration
 - No Google Sheets or AppSheet integration
 
-Planned local run command after dependencies are installed:
+Local setup after dependencies are installed:
 
 ```powershell
-uvicorn app.main:app --reload
+python scripts/init_local_db.py
+python -m uvicorn app.main:app --reload
+```
+
+Smoke test from the repo root while the API is running:
+
+```powershell
+python web_admin_api/scripts/smoke_test.py
 ```
