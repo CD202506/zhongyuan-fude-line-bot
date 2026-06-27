@@ -37,6 +37,7 @@ async function request(path, options = {}) {
 function verifyFrontendPayloadLogic() {
   const serviceSource = readFileSync(resolve(appRoot, "src/services/recordService.ts"), "utf-8");
   const newPageSource = readFileSync(resolve(appRoot, "src/routes/NewRecordPage.tsx"), "utf-8");
+  const detailPageSource = readFileSync(resolve(appRoot, "src/routes/ModuleDetailPage.tsx"), "utf-8");
 
   assert(serviceSource.includes('const systemStatuses = new Set(["active", "pending", "draft", "disabled", "archived"])'), "system status allow-list is missing");
   assert(serviceSource.includes('return systemStatuses.has(status) ? status : "active";'), "non-system status should fall back to active");
@@ -44,6 +45,9 @@ function verifyFrontendPayloadLogic() {
   assert(!serviceSource.includes("values.replyStatus || values.authorization || values.termStatus"), "payload status still mixes flow fields");
   assert(serviceSource.includes("fields_json: values"), "flow fields should remain in fields_json");
   assert(newPageSource.includes("onComplete={() => navigate(moduleItem.route)}"), "create flow should return to module route");
+  assert(detailPageSource.includes("await updateRecord(record.id, record.moduleKey, editValues, role)"), "edit flow should call updateRecord");
+  assert(detailPageSource.includes("navigate(moduleItem.route"), "edit success should return to module route");
+  assert(detailPageSource.includes("資料更新失敗，請稍後再試。"), "edit failure should show an inline error");
 }
 
 async function main() {

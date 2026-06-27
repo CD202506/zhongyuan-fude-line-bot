@@ -20,7 +20,8 @@ export function ModuleDetailPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [record, setRecord] = useState<MockRecord | undefined>();
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [loadErrorMessage, setLoadErrorMessage] = useState("");
+  const [actionErrorMessage, setActionErrorMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const moduleItem = record ? modules.find((item) => item.key === record.moduleKey) : undefined;
   const isEditing = actionMode === "edit";
@@ -34,7 +35,8 @@ export function ModuleDetailPage() {
     }
 
     setIsLoading(true);
-    setErrorMessage("");
+    setLoadErrorMessage("");
+    setActionErrorMessage("");
     getRecord(id)
       .then((nextRecord) => {
         if (!active) return;
@@ -43,7 +45,7 @@ export function ModuleDetailPage() {
       .catch(() => {
         if (!active) return;
         setRecord(undefined);
-        setErrorMessage(apiConnectionErrorMessage);
+        setLoadErrorMessage(apiConnectionErrorMessage);
       })
       .finally(() => {
         if (active) setIsLoading(false);
@@ -101,6 +103,7 @@ export function ModuleDetailPage() {
 
   const startEdit = () => {
     setEditValues(initialEditValues);
+    setActionErrorMessage("");
     setActionMode("edit");
   };
 
@@ -116,7 +119,7 @@ export function ModuleDetailPage() {
     if (!record || !moduleItem) return;
 
     setIsSaving(true);
-    setErrorMessage("");
+    setActionErrorMessage("");
 
     try {
       if ((nextMode === "draft" || nextMode === "submitted") && actionMode === "edit" && pendingAction !== "restore") {
@@ -133,9 +136,18 @@ export function ModuleDetailPage() {
 
       setActionMode(nextMode);
       setPendingAction(null);
-      navigate(moduleItem.route);
+      navigate(moduleItem.route, {
+        state: {
+          notice:
+            nextMode === "draft"
+              ? "草稿已暫存，列表已重新整理。"
+              : nextMode === "riskSubmitted"
+                ? "資料已送出停用 / 封存確認，列表已重新整理。"
+                : "資料已送出確認，列表已重新整理。",
+        },
+      });
     } catch {
-      setErrorMessage(apiConnectionErrorMessage);
+      setActionErrorMessage("資料更新失敗，請稍後再試。");
       setPendingAction(null);
     } finally {
       setIsSaving(false);
@@ -283,11 +295,11 @@ export function ModuleDetailPage() {
     );
   }
 
-  if (errorMessage) {
+  if (loadErrorMessage) {
     return (
       <section className="content-panel">
         <h2>資料暫時無法顯示</h2>
-        <p>{errorMessage}</p>
+        <p>{loadErrorMessage}</p>
         <Link to="/dashboard" className="detail-link">返回主控台</Link>
       </section>
     );
@@ -332,6 +344,12 @@ export function ModuleDetailPage() {
             <div className="process-panel active">
               <strong>處理中</strong>
               <span>請稍候。</span>
+            </div>
+          ) : null}
+          {actionErrorMessage ? (
+            <div className="process-panel warning">
+              <strong>送出未完成</strong>
+              <span>{actionErrorMessage}</span>
             </div>
           ) : null}
           <h3>資料摘要</h3>

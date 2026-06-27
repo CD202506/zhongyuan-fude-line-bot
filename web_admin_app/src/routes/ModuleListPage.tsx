@@ -7,6 +7,10 @@ import type { ModuleKey } from "../data/modules";
 import { apiConnectionErrorMessage, listRecords, type StatusFilter } from "../services/recordService";
 import type { MockRecord } from "../data/mockRecords";
 
+type ListRouteState = {
+  notice?: string;
+};
+
 const searchLabels: Record<ModuleKey, string> = {
   "temple-affairs": "搜尋廟務資料",
   devotees: "搜尋善信資料",
@@ -30,6 +34,7 @@ export function ModuleListPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const moduleItem = modules.find((item) => item.route === location.pathname) ?? modules[0];
   const effectiveStatusFilter = role === "viewer" ? "active" : statusFilter;
+  const routeState = location.state as ListRouteState | null;
 
   useEffect(() => {
     let active = true;
@@ -88,6 +93,12 @@ export function ModuleListPage() {
           )}
         </div>
         <div className="record-list">
+          {routeState?.notice ? (
+            <div className="process-panel success">
+              <strong>處理完成</strong>
+              <span>{routeState.notice}</span>
+            </div>
+          ) : null}
           {errorMessage ? (
             <div className="process-panel warning">
               <strong>資料服務連線失敗</strong>
