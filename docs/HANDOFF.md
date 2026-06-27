@@ -118,6 +118,14 @@
 # 0.8.0A-14-Fix2 handoff update
 
 - 已將檢視者「查看權限」提示改為資料摘要上方的低干擾提示列，不再顯示右側操作卡片。
+
+# 0.8.0A-19 handoff update
+
+- A19 進入 Render Web Admin API 部署前準備。
+- 本輪準備新的 `zhongyuan-fude-web-admin-api` service 草案，不修改既有 LINE Bot service。
+- `web_admin_api/` 保留本機 SQLite fallback，新增 migration runner 草案供未來 PostgreSQL staging 使用。
+- PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env。
+- V1 / Google Sheets / AppSheet / LINE Bot 仍凍結不動。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

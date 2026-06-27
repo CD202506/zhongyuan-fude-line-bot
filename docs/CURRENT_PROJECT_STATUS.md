@@ -44,6 +44,8 @@
 - `0.8.0A-15` Record Vercel Preview Deployment 進行中：Vercel 前端測試部署已完成，project 為 `zhongyuan-fude-web-admin-test`，測試網址為 `https://zhongyuan-fude-web-admin-test.vercel.app`，部署 commit 為 `7b37733`。目前可進入第三方 UI / UX 測試；正式 V1 / Render / LINE Bot / Google Sheets / AppSheet 未修改。
 - `0.8.0A-16` Web Admin Database-backed MVP Transition 進行中：第三方測試回饋指出純前端缺乏實際新增、查詢、編輯、封存的臨場感，因此決策進入 database-backed MVP。A16 先建立 Web Admin API + Render PostgreSQL staging + 前端 API 串接規劃，暫不接 LINE Bot；V1 Google Sheets / LINE Bot / AppSheet 仍凍結不動。
 - `0.8.0A-17` Web Admin API Local CRUD Baseline 進行中：`web_admin_api/` 進入本機 CRUD baseline，支援 SQLite local fallback、records 新增 / 查詢 / 詳情 / 編輯 / 封存 / 還原與 audit events；本輪不修改前端、不部署，LINE Bot / V1 / Google Sheets / AppSheet 仍不動。
+- `0.8.0A-18` Web Admin Frontend Local API Mode 已完成：`web_admin_app/` 保留 demo mode，並新增 API mode 可連本機 `web_admin_api`；本機 API mode 已通過 list / create / detail / update / archive / restore 驗證。未部署、未修改 V1 / Google Sheets / AppSheet / LINE Bot。
+- `0.8.0A-19` Render Web Admin API Deployment Preparation 進行中：準備新的 Web Admin API Render service 草案、PostgreSQL migration runner 與部署前文件；不影響既有 LINE Bot service。PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 
 ## Current data source roles
 

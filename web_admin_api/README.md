@@ -21,6 +21,31 @@ python scripts/init_local_db.py
 python -m uvicorn app.main:app --reload
 ```
 
+Render deployment preparation:
+
+```powershell
+python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Required environment variable names for the future Render service:
+
+- `DATABASE_URL`
+- `WEB_ADMIN_ALLOWED_ORIGINS`
+- `WEB_ADMIN_TEST_MODE`
+- `WEB_ADMIN_TEST_ACCESS_CODE`
+
+Do not commit real environment values or secrets. When `DATABASE_URL` is not set,
+the service keeps using the local SQLite fallback. PostgreSQL migrations can be
+checked with:
+
+```powershell
+python scripts/run_migrations.py
+```
+
+A19 only prepares PostgreSQL deployment readiness and migration execution. The
+runtime CRUD path still uses SQLite locally; PostgreSQL CRUD is planned for a
+later step.
+
 Smoke test from the repo root while the API is running:
 
 ```powershell

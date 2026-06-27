@@ -19,11 +19,21 @@ def get_database_mode() -> str:
     return "postgresql" if get_database_url() else "sqlite"
 
 
+def postgresql_crud_ready() -> bool:
+    return False
+
+
+def ensure_sqlite_runtime() -> None:
+    if get_database_url():
+        raise RuntimeError("PostgreSQL CRUD runtime is planned for A20. Run migrations first, then enable PostgreSQL CRUD in a later step.")
+
+
 def get_local_sqlite_path() -> Path:
     return get_settings().local_sqlite_path
 
 
 def get_sqlite_connection() -> sqlite3.Connection:
+    ensure_sqlite_runtime()
     db_path = get_local_sqlite_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(db_path)
