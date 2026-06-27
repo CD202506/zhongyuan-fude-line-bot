@@ -16,6 +16,8 @@ type ListRecordsOptions = {
   role?: UserRole;
 };
 
+const systemStatuses = new Set(["active", "pending", "draft", "disabled", "archived"]);
+
 function actorForRole(role: UserRole): Pick<ApiRecordPayload, "actor_role" | "actor_name"> {
   const actorName: Record<UserRole, string> = {
     admin: "測試管理者",
@@ -27,6 +29,11 @@ function actorForRole(role: UserRole): Pick<ApiRecordPayload, "actor_role" | "ac
     actor_role: role,
     actor_name: actorName[role],
   };
+}
+
+function resolveSystemStatus(value: unknown) {
+  const status = typeof value === "string" ? value : "";
+  return systemStatuses.has(status) ? status : "active";
 }
 
 function normalizeStatusCategory(record: ApiRecord): MockRecord["statusCategory"] {
@@ -155,7 +162,7 @@ function valuesToPayload(moduleKey: ModuleKey, values: FormValues, role: UserRol
     module_key: moduleKey,
     title,
     summary,
-    status: String(values.status || values.replyStatus || values.authorization || values.termStatus || "pending"),
+    status: resolveSystemStatus(values.status),
     record_date: String(values.date || values.publishDate || values.recordDate || "") || null,
     due_date: String(values.dueDate || "") || null,
     responsible: String(values.handler || values.owner || values.group || values.responsible || ""),
