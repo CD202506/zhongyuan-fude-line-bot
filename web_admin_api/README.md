@@ -45,6 +45,8 @@ python scripts/run_migrations.py
 A20 adds PostgreSQL runtime CRUD code behind `DATABASE_URL` while keeping the
 SQLite fallback for local development. Actual staging PostgreSQL validation is
 planned for A21; do not place real environment values in this repository.
+Local and staging validation use `psycopg[binary]>=3.2,<3.3`, so `psql` or Docker
+are not required just to run the Python API driver check.
 
 Smoke test from the repo root while the API is running:
 
