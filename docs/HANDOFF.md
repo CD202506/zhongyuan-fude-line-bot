@@ -126,6 +126,13 @@
 - `web_admin_api/` 保留本機 SQLite fallback，新增 migration runner 草案供未來 PostgreSQL staging 使用。
 - PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env。
 - V1 / Google Sheets / AppSheet / LINE Bot 仍凍結不動。
+
+# 0.8.0A-20 handoff update
+
+- A20 進入 PostgreSQL runtime CRUD support。
+- `web_admin_api/` 已新增 repository 層，SQLite fallback 保留，PostgreSQL records / audit CRUD runtime code 已加入。
+- PostgreSQL staging 尚未建立，實際 PostgreSQL 連線驗證留到 A21。
+- Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

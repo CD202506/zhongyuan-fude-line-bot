@@ -42,9 +42,9 @@ checked with:
 python scripts/run_migrations.py
 ```
 
-A19 only prepares PostgreSQL deployment readiness and migration execution. The
-runtime CRUD path still uses SQLite locally; PostgreSQL CRUD is planned for a
-later step.
+A20 adds PostgreSQL runtime CRUD code behind `DATABASE_URL` while keeping the
+SQLite fallback for local development. Actual staging PostgreSQL validation is
+planned for A21; do not place real environment values in this repository.
 
 Smoke test from the repo root while the API is running:
 

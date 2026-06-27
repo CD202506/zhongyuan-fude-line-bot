@@ -46,6 +46,7 @@
 - `0.8.0A-17` Web Admin API Local CRUD Baseline 進行中：`web_admin_api/` 進入本機 CRUD baseline，支援 SQLite local fallback、records 新增 / 查詢 / 詳情 / 編輯 / 封存 / 還原與 audit events；本輪不修改前端、不部署，LINE Bot / V1 / Google Sheets / AppSheet 仍不動。
 - `0.8.0A-18` Web Admin Frontend Local API Mode 已完成：`web_admin_app/` 保留 demo mode，並新增 API mode 可連本機 `web_admin_api`；本機 API mode 已通過 list / create / detail / update / archive / restore 驗證。未部署、未修改 V1 / Google Sheets / AppSheet / LINE Bot。
 - `0.8.0A-19` Render Web Admin API Deployment Preparation 進行中：準備新的 Web Admin API Render service 草案、PostgreSQL migration runner 與部署前文件；不影響既有 LINE Bot service。PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
+- `0.8.0A-20` PostgreSQL Runtime CRUD Support 進行中：`web_admin_api/` 新增 repository 層，保留 SQLite fallback，並加入 PostgreSQL records / audit CRUD runtime code。PostgreSQL staging 尚未建立，實際連線驗證留到 A21；Render / Vercel 未部署，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 
 ## Current data source roles
 

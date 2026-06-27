@@ -16,16 +16,39 @@ def database_configured() -> bool:
 
 
 def get_database_mode() -> str:
-    return "postgresql" if get_database_url() else "sqlite"
+    return "postgres" if get_database_url() else "sqlite"
 
 
 def postgresql_crud_ready() -> bool:
-    return False
+    return bool(get_database_url())
+
+
+def get_postgres_connection():
+    from psycopg import connect
+    from psycopg.rows import dict_row
+
+    database_url = get_database_url()
+    if not database_url:
+        raise RuntimeError("PostgreSQL connection requested without DATABASE_URL")
+    return connect(database_url, row_factory=dict_row)
+
+
+def postgres_available() -> bool:
+    if not get_database_url():
+        return False
+    try:
+        with get_postgres_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+        return True
+    except Exception:
+        return False
 
 
 def ensure_sqlite_runtime() -> None:
     if get_database_url():
-        raise RuntimeError("PostgreSQL CRUD runtime is planned for A20. Run migrations first, then enable PostgreSQL CRUD in a later step.")
+        raise RuntimeError("SQLite helper called while PostgreSQL mode is active")
 
 
 def get_local_sqlite_path() -> Path:
