@@ -133,6 +133,14 @@
 - `web_admin_api/` 已新增 repository 層，SQLite fallback 保留，PostgreSQL records / audit CRUD runtime code 已加入。
 - PostgreSQL staging 尚未建立，實際 PostgreSQL 連線驗證留到 A21。
 - Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
+
+# 0.8.0A-22 handoff update
+
+- 新的 Render Web Admin API service 已部署完成：`zhongyuan-fude-web-admin-api`。
+- API URL：`https://zhongyuan-fude-web-admin-api.onrender.com`。
+- `/api/health` 與 `/api/modules` 已測試成功，Render API 已可使用 PostgreSQL staging。
+- Vercel 前端測試站尚未切 API mode；下一步是 A23：將前端測試站指向 Render Web Admin API。
+- 本階段暫停，等待使用者通知後再繼續；既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

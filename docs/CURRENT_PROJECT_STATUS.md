@@ -47,6 +47,7 @@
 - `0.8.0A-18` Web Admin Frontend Local API Mode 已完成：`web_admin_app/` 保留 demo mode，並新增 API mode 可連本機 `web_admin_api`；本機 API mode 已通過 list / create / detail / update / archive / restore 驗證。未部署、未修改 V1 / Google Sheets / AppSheet / LINE Bot。
 - `0.8.0A-19` Render Web Admin API Deployment Preparation 進行中：準備新的 Web Admin API Render service 草案、PostgreSQL migration runner 與部署前文件；不影響既有 LINE Bot service。PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 - `0.8.0A-20` PostgreSQL Runtime CRUD Support 進行中：`web_admin_api/` 新增 repository 層，保留 SQLite fallback，並加入 PostgreSQL records / audit CRUD runtime code。PostgreSQL staging 尚未建立，實際連線驗證留到 A21；Render / Vercel 未部署，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
+- `0.8.0A-22` Render Web Admin API Deployment 已完成：新的 Render Web Service `zhongyuan-fude-web-admin-api` 已部署，API URL 為 `https://zhongyuan-fude-web-admin-api.onrender.com`，`/api/health` 與 `/api/modules` 測試成功，Render API 已可使用 PostgreSQL staging。Vercel 前端測試站尚未切 API mode；下一步為 A23，等待使用者通知後再繼續。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 
 ## Current data source roles
 
