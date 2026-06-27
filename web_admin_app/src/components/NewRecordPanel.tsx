@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { EditField } from "../data/mockRecords";
 import type { ModuleConfig } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
+import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -16,6 +17,20 @@ type NewRecordPanelProps = {
   onComplete: () => void;
   onSubmitRecord?: (values: FormValues) => Promise<unknown> | unknown;
 };
+
+function submitErrorMessage(error: unknown) {
+  if (error instanceof ApiRequestError) {
+    if (error.status === 422) return "API 驗證失敗，請確認必填資料。";
+    if (error.status >= 500) return "API 伺服器暫時無法處理，請稍後再試。";
+    return `API 回應失敗，狀態碼 ${error.status}。`;
+  }
+
+  if (error instanceof TypeError) {
+    return "測試資料服務無法連線，或請求被瀏覽器阻擋。";
+  }
+
+  return "資料送出失敗，請稍後再試。";
+}
 
 export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmitRecord }: NewRecordPanelProps) {
   const fields = newRecordFields[moduleItem.key];
@@ -127,8 +142,13 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
         setState("submitted");
         onComplete();
       } catch (error) {
-        console.error("create record failed", error instanceof Error ? error.message : "unknown error");
-        setErrorMessage("資料送出失敗，請稍後再試。");
+        console.error("create record failed", {
+          name: error instanceof Error ? error.name : "unknown",
+          message: error instanceof Error ? error.message : "unknown error",
+          status: error instanceof ApiRequestError ? error.status : undefined,
+          response: error instanceof ApiRequestError ? error.responseText : undefined,
+        });
+        setErrorMessage(submitErrorMessage(error));
       } finally {
         setIsSubmitting(false);
       }

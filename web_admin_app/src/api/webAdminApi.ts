@@ -66,11 +66,13 @@ type ListRecordsParams = {
 
 export class ApiRequestError extends Error {
   status: number;
+  responseText: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, responseText = "") {
     super(message);
     this.name = "ApiRequestError";
     this.status = status;
+    this.responseText = responseText;
   }
 }
 
@@ -84,7 +86,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiRequestError(response.status, `Request failed: ${response.status}`);
+    const responseText = await response.text().catch(() => "");
+    throw new ApiRequestError(response.status, `Request failed: ${response.status}`, responseText.slice(0, 300));
   }
 
   return response.json() as Promise<T>;
