@@ -48,6 +48,7 @@
 - `0.8.0A-19` Render Web Admin API Deployment Preparation 進行中：準備新的 Web Admin API Render service 草案、PostgreSQL migration runner 與部署前文件；不影響既有 LINE Bot service。PostgreSQL staging 尚未建立，Render 尚未部署，Vercel 尚未改 env，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 - `0.8.0A-20` PostgreSQL Runtime CRUD Support 進行中：`web_admin_api/` 新增 repository 層，保留 SQLite fallback，並加入 PostgreSQL records / audit CRUD runtime code。PostgreSQL staging 尚未建立，實際連線驗證留到 A21；Render / Vercel 未部署，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 - `0.8.0A-22` Render Web Admin API Deployment 已完成：新的 Render Web Service `zhongyuan-fude-web-admin-api` 已部署，API URL 為 `https://zhongyuan-fude-web-admin-api.onrender.com`，`/api/health` 與 `/api/modules` 測試成功，Render API 已可使用 PostgreSQL staging。Vercel 前端測試站尚未切 API mode；下一步為 A23，等待使用者通知後再繼續。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
+- `0.8.0A-23` Vercel API Mode Deployment 已完成：固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已切到 API mode，呼叫 Render Web Admin API `https://zhongyuan-fude-web-admin-api.onrender.com`，並以 PostgreSQL staging 作為 Web Admin 測試資料庫。Render CORS 已放行 Vercel production origin；production browser submit、CRUD、封存與還原實測通過。新增自動 smoke test 腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 
 ## Current data source roles
 
@@ -123,6 +124,7 @@
 - A11 目前只完成 skeleton setup 文件規劃；不要誤認為已建立 `web_admin_app/` 或已安裝 Next.js package。
 - A13 建議改為 `0.8.0A-13 Replace Next.js Skeleton with Vite React Skeleton`：清理未提交 Next.js skeleton，保留 `web_admin_app/` 作為正式前端資料夾，建立 Vite + React + TypeScript skeleton，並要求 lint / build 通過；不串 API、不部署、不碰 V1。
 - A13 目前已建立 Vite + React + TypeScript Visual MVP Baseline；`web_admin_mvp/` 仍保留為 UX prototype。下一步建議 `0.8.0A-14 Visual MVP Review and UX Adjustment`，先 review 畫面、UX 與資訊密度，再討論 API contract。
+- A23 已完成固定 Vercel 測試站 API mode 與 Render Web Admin API / PostgreSQL staging 串接驗證；下一階段建議進入 A24，針對第三方實測與廟方試用前的資料模型、權限與操作流程做整理，不急著接 LINE Bot。
 - 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署。
 

@@ -141,6 +141,17 @@
 - `/api/health` 與 `/api/modules` 已測試成功，Render API 已可使用 PostgreSQL staging。
 - Vercel 前端測試站尚未切 API mode；下一步是 A23：將前端測試站指向 Render Web Admin API。
 - 本階段暫停，等待使用者通知後再繼續；既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
+
+# 0.8.0A-23 handoff update
+
+- A23 Vercel API mode deployment 已完成並經使用者確認 OK。
+- 固定測試網址：`https://zhongyuan-fude-web-admin-test.vercel.app`。
+- 前端已呼叫 Render Web Admin API：`https://zhongyuan-fude-web-admin-api.onrender.com`。
+- PostgreSQL staging 已作為 Web Admin 測試資料庫；production browser submit、CRUD、封存與還原流程均已通過。
+- Render CORS 已放行 Vercel production origin，OPTIONS preflight 已通過。
+- 新增自動 smoke test 腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`。
+- 既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
+- 下一階段建議進入 A24：針對第三方實測與廟方試用前的資料模型、權限與操作流程做整理，不急著接 LINE Bot。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。
