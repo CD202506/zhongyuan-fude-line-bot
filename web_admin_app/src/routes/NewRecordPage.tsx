@@ -3,6 +3,7 @@ import { NewRecordPanel } from "../components/NewRecordPanel";
 import { modules } from "../data/modules";
 import { canEditDailyWork } from "../lib/permissions";
 import { useRole } from "../lib/roleContext";
+import { createRecord, type FormValues } from "../services/recordService";
 
 export function NewRecordPage() {
   const location = useLocation();
@@ -49,6 +50,7 @@ export function NewRecordPage() {
       <NewRecordPanel
         moduleItem={moduleItem}
         role={role}
+        onSubmitRecord={(values: FormValues) => createRecord(moduleItem.key, values, role)}
         onCancel={() => navigate(moduleItem.route)}
         onComplete={() => navigate(moduleItem.route)}
       />

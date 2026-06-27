@@ -20,3 +20,5 @@ google-service-account*.json
 !web_admin_app/tsconfig.*.json
 !web_admin_app/vite.config.ts
 !web_admin_app/eslint.config.js
+
+.codex-tmp-*/

@@ -1,12 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { modules } from "../data/modules";
-import { recordsForModule } from "../data/mockRecords";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import type { ModuleKey } from "../data/modules";
-
-type StatusFilter = "active" | "archived" | "all";
+import { apiConnectionErrorMessage, listRecords, type StatusFilter } from "../services/recordService";
+import type { MockRecord } from "../data/mockRecords";
 
 const searchLabels: Record<ModuleKey, string> = {
   "temple-affairs": "搜尋廟務資料",
@@ -26,30 +25,35 @@ export function ModuleListPage() {
   const { role } = useRole();
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
+  const [visibleRecords, setVisibleRecords] = useState<MockRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const moduleItem = modules.find((item) => item.route === location.pathname) ?? modules[0];
-  const records = recordsForModule(moduleItem.key);
   const effectiveStatusFilter = role === "viewer" ? "active" : statusFilter;
-  const visibleRecords = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
 
-    return records.filter((record) => {
-      const activeRecord = record.statusCategory !== "archived" && record.statusCategory !== "disabled";
-      const archivedRecord = record.statusCategory === "archived" || record.statusCategory === "disabled";
-      const matchesStatus =
-        effectiveStatusFilter === "all" || (effectiveStatusFilter === "active" && activeRecord) || (effectiveStatusFilter === "archived" && archivedRecord);
-      const searchableText = [
-        record.title,
-        record.summary,
-        record.status,
-        record.owner,
-        record.dateLabel,
-        ...record.listFields.flatMap((field) => [field.label, field.value]),
-      ].join(" ").toLowerCase();
-      const matchesKeyword = normalizedKeyword.length === 0 || searchableText.includes(normalizedKeyword);
+  useEffect(() => {
+    let active = true;
 
-      return matchesStatus && matchesKeyword;
-    });
-  }, [effectiveStatusFilter, keyword, records]);
+    setIsLoading(true);
+    setErrorMessage("");
+    listRecords(moduleItem.key, { keyword, statusFilter: effectiveStatusFilter, role })
+      .then((records) => {
+        if (!active) return;
+        setVisibleRecords(records);
+      })
+      .catch(() => {
+        if (!active) return;
+        setVisibleRecords([]);
+        setErrorMessage(apiConnectionErrorMessage);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [effectiveStatusFilter, keyword, moduleItem.key, role]);
 
   return (
     <div className="page-stack">
@@ -84,6 +88,18 @@ export function ModuleListPage() {
           )}
         </div>
         <div className="record-list">
+          {errorMessage ? (
+            <div className="process-panel warning">
+              <strong>資料服務連線失敗</strong>
+              <span>{errorMessage}</span>
+            </div>
+          ) : null}
+          {isLoading ? (
+            <div className="empty-state">
+              <strong>資料載入中</strong>
+              <span>請稍候。</span>
+            </div>
+          ) : null}
           {visibleRecords.map((record) => (
             <article key={record.id} className="record-card">
               <div className="record-status">
@@ -108,7 +124,7 @@ export function ModuleListPage() {
               </Link>
             </article>
           ))}
-          {visibleRecords.length === 0 ? (
+          {!isLoading && !errorMessage && visibleRecords.length === 0 ? (
             <div className="empty-state">
               <strong>目前沒有符合條件的資料</strong>
               <span>可調整搜尋文字或狀態篩選，再重新查看列表。</span>

@@ -1,14 +1,15 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { modules } from "../data/modules";
-import { EditField, recordById } from "../data/mockRecords";
+import { EditField, type MockRecord } from "../data/mockRecords";
 import { DetailActionMode, DetailActionPanel } from "../components/DetailActionPanel";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
 
 type EditValues = Record<string, string | string[]>;
-type PendingAction = "draft" | "submit" | "risk" | "staffRisk" | null;
+type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
 
 export function ModuleDetailPage() {
   const { id } = useParams();
@@ -17,9 +18,42 @@ export function ModuleDetailPage() {
   const [actionMode, setActionMode] = useState<DetailActionMode>("view");
   const [editValues, setEditValues] = useState<EditValues>({});
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const record = id ? recordById(id) : undefined;
+  const [record, setRecord] = useState<MockRecord | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const moduleItem = record ? modules.find((item) => item.key === record.moduleKey) : undefined;
   const isEditing = actionMode === "edit";
+
+  useEffect(() => {
+    let active = true;
+
+    if (!id) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
+    getRecord(id)
+      .then((nextRecord) => {
+        if (!active) return;
+        setRecord(nextRecord);
+      })
+      .catch(() => {
+        if (!active) return;
+        setRecord(undefined);
+        setErrorMessage(apiConnectionErrorMessage);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
   const initialEditValues = useMemo(() => {
     if (!record) return {};
 
@@ -78,11 +112,33 @@ export function ModuleDetailPage() {
     }
   };
 
-  const completeAndReturn = (nextMode: DetailActionMode) => {
-    setActionMode(nextMode);
-    setPendingAction(null);
-    if (moduleItem) {
+  const completeAndReturn = async (nextMode: DetailActionMode) => {
+    if (!record || !moduleItem) return;
+
+    setIsSaving(true);
+    setErrorMessage("");
+
+    try {
+      if ((nextMode === "draft" || nextMode === "submitted") && actionMode === "edit" && pendingAction !== "restore") {
+        await updateRecord(record.id, record.moduleKey, editValues, role);
+      }
+
+      if (nextMode === "riskSubmitted" && role === "admin") {
+        await archiveRecord(record.id, role);
+      }
+
+      if (pendingAction === "restore" && role === "admin") {
+        await restoreRecord(record.id, role);
+      }
+
+      setActionMode(nextMode);
+      setPendingAction(null);
       navigate(moduleItem.route);
+    } catch {
+      setErrorMessage(apiConnectionErrorMessage);
+      setPendingAction(null);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -114,13 +170,22 @@ export function ModuleDetailPage() {
       };
     }
 
+    if (pendingAction === "restore") {
+      return {
+        title: "確認還原資料",
+        body: "還原後，資料會重新回到日常列表中。",
+        tone: "default" as const,
+        onConfirm: () => completeAndReturn("submitted"),
+      };
+    }
+
     return {
       title: "確認停用 / 封存",
       body: "停用或封存後，資料仍會保留在紀錄中，日常列表將不再優先顯示。",
       tone: "warning" as const,
       onConfirm: () => completeAndReturn("riskSubmitted"),
     };
-  }, [pendingAction]);
+  }, [pendingAction, record, moduleItem, editValues, role]);
 
   const updateField = (key: string, value: string | string[]) => {
     setEditValues((current) => ({ ...current, [key]: value }));
@@ -209,6 +274,25 @@ export function ModuleDetailPage() {
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
+  if (isLoading) {
+    return (
+      <section className="content-panel">
+        <h2>資料載入中</h2>
+        <p>請稍候。</p>
+      </section>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <section className="content-panel">
+        <h2>資料暫時無法顯示</h2>
+        <p>{errorMessage}</p>
+        <Link to="/dashboard" className="detail-link">返回主控台</Link>
+      </section>
+    );
+  }
+
   if (!record || !moduleItem) {
     return (
       <section className="content-panel">
@@ -242,6 +326,12 @@ export function ModuleDetailPage() {
             <div className={`process-panel ${feedback.tone}`}>
               <strong>{feedback.title}</strong>
               <span>{feedback.body}</span>
+            </div>
+          ) : null}
+          {isSaving ? (
+            <div className="process-panel active">
+              <strong>處理中</strong>
+              <span>請稍候。</span>
             </div>
           ) : null}
           <h3>資料摘要</h3>
@@ -291,6 +381,8 @@ export function ModuleDetailPage() {
             onSaveDraft={() => setPendingAction("draft")}
             onSubmit={() => setPendingAction("submit")}
             onRequestRisk={() => setPendingAction(role === "admin" ? "risk" : "staffRisk")}
+            onRestore={() => setPendingAction("restore")}
+            isArchived={record.statusCategory === "archived" || record.statusCategory === "disabled"}
           />
         ) : null}
       </section>

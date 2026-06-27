@@ -14,9 +14,10 @@ type NewRecordPanelProps = {
   role: UserRole;
   onCancel: () => void;
   onComplete: () => void;
+  onSubmitRecord?: (values: FormValues) => Promise<unknown> | unknown;
 };
 
-export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRecordPanelProps) {
+export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmitRecord }: NewRecordPanelProps) {
   const fields = newRecordFields[moduleItem.key];
   const initialValues = useMemo(() => {
     return fields.reduce<FormValues>((values, field) => {
@@ -27,6 +28,8 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRe
   const [values, setValues] = useState<FormValues>(initialValues);
   const [state, setState] = useState<NewRecordState>("editing");
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const needsAdminConfirm = role !== "admin" && adminConfirmModules.includes(moduleItem.key);
 
   const updateField = (key: string, value: string | string[]) => {
@@ -106,7 +109,9 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRe
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
+    setErrorMessage("");
+
     if (pendingAction === "draft") {
       setState("draft");
       setPendingAction(null);
@@ -114,9 +119,17 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRe
     }
 
     if (pendingAction === "submit") {
-      setState("submitted");
-      setPendingAction(null);
-      onComplete();
+      setIsSubmitting(true);
+      try {
+        await onSubmitRecord?.(values);
+        setState("submitted");
+        setPendingAction(null);
+        onComplete();
+      } catch {
+        setErrorMessage("目前無法連線到測試資料服務，請確認本機 API 是否已啟動。");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -153,6 +166,12 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRe
           <span>{needsAdminConfirm ? "已送出確認流程，需管理者確認後才會生效。" : "已送出確認流程，請等待負責人確認。"}</span>
         </div>
       ) : null}
+      {errorMessage ? (
+        <div className="process-panel warning">
+          <strong>送出未完成</strong>
+          <span>{errorMessage}</span>
+        </div>
+      ) : null}
 
       <div className="edit-form-grid">
         {fields.map((field) => renderField(field))}
@@ -172,11 +191,11 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete }: NewRe
       ) : null}
 
       <div className="form-actions">
-        <button type="button" onClick={() => setPendingAction("draft")}>
+        <button type="button" disabled={isSubmitting} onClick={() => setPendingAction("draft")}>
           儲存草稿
         </button>
-        <button type="button" onClick={() => setPendingAction("submit")}>
-          送出確認
+        <button type="button" disabled={isSubmitting} onClick={() => setPendingAction("submit")}>
+          {isSubmitting ? "送出中" : "送出確認"}
         </button>
         <button type="button" className="secondary-action" onClick={onCancel}>
           取消新增

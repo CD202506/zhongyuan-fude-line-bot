@@ -14,6 +14,8 @@ type DetailActionPanelProps = {
   onSaveDraft: () => void;
   onSubmit: () => void;
   onRequestRisk: () => void;
+  onRestore?: () => void;
+  isArchived?: boolean;
 };
 
 function primaryActionLabel(moduleKey?: ModuleKey) {
@@ -39,6 +41,8 @@ export function DetailActionPanel({
   onSaveDraft,
   onSubmit,
   onRequestRisk,
+  onRestore,
+  isArchived = false,
 }: DetailActionPanelProps) {
   const canEdit = isAdminOnly ? canUseRiskAction(role) : canEditDailyWork(role);
   const canRisk = canUseRiskAction(role);
@@ -80,7 +84,11 @@ export function DetailActionPanel({
         </>
       )}
 
-      {canRisk ? (
+      {isArchived && canRisk ? (
+        <button type="button" className="secondary-action" onClick={onRestore}>
+          還原資料
+        </button>
+      ) : canRisk ? (
         <button type="button" className="danger" onClick={onRequestRisk}>
           停用 / 封存
         </button>
