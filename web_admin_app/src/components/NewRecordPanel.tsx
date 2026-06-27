@@ -111,22 +111,24 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
 
   const confirmAction = async () => {
     setErrorMessage("");
+    const action = pendingAction;
 
-    if (pendingAction === "draft") {
+    if (action === "draft") {
       setState("draft");
       setPendingAction(null);
       return;
     }
 
-    if (pendingAction === "submit") {
+    if (action === "submit") {
+      setPendingAction(null);
       setIsSubmitting(true);
       try {
         await onSubmitRecord?.(values);
         setState("submitted");
-        setPendingAction(null);
         onComplete();
-      } catch {
-        setErrorMessage("目前無法連線到測試資料服務，請確認本機 API 是否已啟動。");
+      } catch (error) {
+        console.error("create record failed", error instanceof Error ? error.message : "unknown error");
+        setErrorMessage("資料送出失敗，請稍後再試。");
       } finally {
         setIsSubmitting(false);
       }
@@ -172,6 +174,12 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           <span>{errorMessage}</span>
         </div>
       ) : null}
+      {isSubmitting ? (
+        <div className="process-panel active">
+          <strong>資料送出中</strong>
+          <span>請稍候，完成後會返回列表。</span>
+        </div>
+      ) : null}
 
       <div className="edit-form-grid">
         {fields.map((field) => renderField(field))}
@@ -208,6 +216,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           tone={confirmContent.tone}
           onCancel={() => setPendingAction(null)}
           onConfirm={confirmAction}
+          isConfirming={isSubmitting}
         />
       ) : null}
     </section>

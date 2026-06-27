@@ -64,6 +64,16 @@ type ListRecordsParams = {
   includeArchived?: boolean;
 };
 
+export class ApiRequestError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${webAdminApiBaseUrl}${path}`, {
     headers: {
@@ -74,7 +84,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw new ApiRequestError(response.status, `Request failed: ${response.status}`);
   }
 
   return response.json() as Promise<T>;
