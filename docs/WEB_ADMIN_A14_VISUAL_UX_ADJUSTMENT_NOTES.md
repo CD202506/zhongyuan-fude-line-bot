@@ -182,3 +182,17 @@
 - 新增 / 編輯 / 查看詳情 / 停用封存確認流程維持不變。
 
 本修正仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。
+
+## 16. A15 / A16 Deployment Feedback and Database-backed MVP Transition
+
+A14 UI / UX 測試版已部署到 Vercel，測試網址為 `https://zhongyuan-fude-web-admin-test.vercel.app`。
+
+第三方測試回饋指出：純前端資料缺乏實際 CRUD 臨場感，下一次測試應能實際新增、查詢、編輯與停用 / 封存。
+
+因此後續決策進入 `0.8.0A-16 Web Admin Database-backed MVP Transition`：
+
+- 不再只做純前端 mock 測試。
+- 下一階段建立 Web Admin API + Render PostgreSQL staging + 前端 API 串接。
+- A16 先排除 LINE Bot 串接。
+- V1 Google Sheets / LINE Bot / AppSheet 仍凍結不動。
+- 後續 UI / UX 調整應建立在資料可保存的 database-backed MVP 基礎上。

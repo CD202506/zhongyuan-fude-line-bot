@@ -189,3 +189,14 @@
 - 正式 V1 / Render / LINE Bot / Google Sheets / AppSheet 未修改。
 - 本階段仍未串 API、未建立 PostgreSQL、未建立正式登入、未寫入正式資料。
 - 部署紀錄見 `docs/WEB_ADMIN_VERCEL_PREVIEW_DEPLOYMENT_RECORD.md`。
+
+# 0.8.0A-16 handoff update
+
+- A14 UI / UX 測試版已部署，第三方測試回饋指出純前端資料缺乏臨場感。
+- 使用者決策：下一階段進入 database-backed MVP，不再只做純前端 mock 測試。
+- A16 先排除 LINE Bot 串接，不修改既有 LINE Bot runtime。
+- V1 Google Sheets / LINE Bot / AppSheet 仍凍結不動，不同步 Web 後台測試資料。
+- 新增 database-backed MVP 規劃文件、schema draft、API contract draft、frontend API integration plan。
+- 新增 `web_admin_api/` FastAPI skeleton 與 migration 草案，作為未來 Render Web Admin API service 基礎。
+- 下一步是建立 Web Admin API + Render PostgreSQL staging + 前端 API 串接；測試資料不可使用正式廟方敏感資料。
+- 本輪未部署、未建立實際資料庫、未新增 `.env`、未讀取或輸出 secret。
