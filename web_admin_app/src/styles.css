@@ -834,6 +834,13 @@ button {
   font-weight: 800;
 }
 
+.edit-field small {
+  color: #5e6b5c;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
 .edit-field.wide {
   grid-column: 1 / -1;
 }

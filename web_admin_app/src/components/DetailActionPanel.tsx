@@ -90,16 +90,16 @@ export function DetailActionPanel({
         </button>
       ) : canRisk ? (
         <button type="button" className="danger" onClick={onRequestRisk}>
-          停用 / 封存
+          作廢 / 封存此筆資料
         </button>
       ) : (
         <button type="button" className="secondary-action" onClick={onRequestRisk}>
-          停用 / 封存需管理者確認
+          作廢 / 封存需管理者確認
         </button>
       )}
 
       <div className="confirm-note">
-        {canRisk ? "送出前請先確認資料是否正確。停用或封存後，資料仍保留於紀錄中。" : "可查看，部分操作需管理者確認。"}
+        {canRisk ? "送出前請先確認資料是否正確。作廢或封存後，資料仍保留於紀錄中，可供日後查詢。" : "可查看，部分操作需管理者確認。"}
       </div>
     </aside>
   );

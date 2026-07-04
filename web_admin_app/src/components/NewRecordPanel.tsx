@@ -65,6 +65,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       return (
         <label key={field.key} className="edit-field wide">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder="請輸入備註" />
         </label>
       );
@@ -74,6 +75,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       return (
         <label key={field.key} className="edit-field">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
             {field.options.map((option) => (
               <option key={option} value={option}>
@@ -91,6 +93,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       return (
         <div key={field.key} className="edit-field wide">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
             {field.options.map((option) => (
               <button key={option} type="button" className={selected.includes(option) ? "selected" : ""} onClick={() => toggleTag(field, option)}>
@@ -105,6 +108,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     return (
       <label key={field.key} className="edit-field">
         <span>{field.label}</span>
+        {field.help ? <small>{field.help}</small> : null}
         <input
           type={field.type}
           value={String(value)}

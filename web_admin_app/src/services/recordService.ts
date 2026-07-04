@@ -85,8 +85,9 @@ const fieldDisplayLabels: Record<string, string> = {
   handler: "承辦人員",
   contact: "聯繫方式",
   contactPerson: "聯絡人",
-  phone: "電話",
+  phone: "聯絡電話",
   address: "地址",
+  contactMethod: "聯繫方式",
   relations: "關聯紀錄",
   replyStatus: "回覆狀態",
   relatedShrine: "關聯友宮",
@@ -102,6 +103,17 @@ const fieldDisplayLabels: Record<string, string> = {
   procurementNo: "採購單編號",
   paymentStatus: "付款狀態",
   approvalStage: "審核標記",
+  fortuneMoneyReceived: "是否領取發財金",
+  fortuneMoneyReceivedDate: "領取日期",
+  fortuneMoneyReturned: "是否繳回",
+  fortuneMoneyReturnedDate: "繳回日期",
+  fortuneMoneyNote: "發財金備註",
+  quantity: "數量",
+  itemName: "品項",
+  date: "日期",
+  recordDate: "發生日期",
+  dueDate: "預計完成日",
+  group: "承辦人員",
   note: "備註",
 };
 
@@ -117,12 +129,13 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     { label: "建立日期", value: record.created_at.slice(0, 10) },
     ...Object.entries(record.fields_json).slice(0, 6).map(([label, value]) => ({ label: displayFieldLabel(label), value: stringValue(value) })),
   ];
+  const recordDateLabel = record.module_key === "devotees" ? "建立日期" : record.module_key === "ledger" ? "帳務日期" : record.module_key === "documents" ? "文件日期" : "發生日期";
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
     { key: "summary", label: "摘要", type: "textarea", value: record.summary },
     { key: "status", label: "資料狀態", type: "select", value: statusLabel(record), options: ["使用中", "待確認", "草稿", "已停用", "已封存"] },
-    { key: "recordDate", label: "發生日期", type: "date", value: record.record_date ?? "" },
-    { key: "dueDate", label: "預計完成日", type: "date", value: record.due_date ?? "" },
+    { key: "recordDate", label: recordDateLabel, type: "date", value: record.record_date ?? "" },
+    ...(record.module_key === "devotees" ? [] : [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }]),
     { key: "responsible", label: "承辦人員", type: "text", value: owner },
     { key: "category", label: "類別", type: "text", value: record.category },
     { key: "tags", label: "關聯標籤", type: "tags", value: record.tags_json, options: Array.from(new Set([...record.tags_json, "待確認", "活動", "帳務", "文件"])) },
@@ -142,7 +155,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     note: stringValue(record.fields_json.note) === "未填寫" ? "目前尚未填寫備註。" : stringValue(record.fields_json.note),
     listFields: [
       { label: "類別", value: record.category || "未分類" },
-      { label: "狀態", value: statusLabel(record) },
+      { label: "資料狀態", value: statusLabel(record) },
       { label: "更新", value: record.updated_at.slice(0, 10) },
     ],
     detailFields,

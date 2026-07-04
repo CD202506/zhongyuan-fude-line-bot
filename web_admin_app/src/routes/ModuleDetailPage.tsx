@@ -82,13 +82,13 @@ export function ModuleDetailPage() {
         tone: "success",
       },
       riskPending: {
-        title: "停用 / 封存確認",
-        body: "這是重要操作，請先確認是否仍需保留紀錄。",
+        title: "作廢 / 封存確認",
+        body: "這是重要操作。若為輸錯或測試資料，可作廢或封存後不列入日常使用。",
         tone: "warning",
       },
       riskSubmitted: {
-        title: "已送出停用 / 封存確認",
-        body: "已送出停用 / 封存確認，請等待管理者處理。",
+        title: "已送出作廢 / 封存確認",
+        body: "已送出作廢 / 封存確認，資料仍保留於紀錄中。",
         tone: "warning",
       },
       staffRisk: {
@@ -142,7 +142,7 @@ export function ModuleDetailPage() {
             nextMode === "draft"
               ? "草稿已暫存，列表已重新整理。"
               : nextMode === "riskSubmitted"
-                ? "資料已送出停用 / 封存確認，列表已重新整理。"
+                ? "資料已送出作廢 / 封存確認，列表已重新整理。"
                 : "資料已送出確認，列表已重新整理。",
         },
       });
@@ -192,8 +192,8 @@ export function ModuleDetailPage() {
     }
 
     return {
-      title: "確認停用 / 封存",
-      body: "停用或封存後，資料仍會保留在紀錄中，日常列表將不再優先顯示。",
+      title: "確認作廢 / 封存",
+      body: "作廢或封存後，資料仍會保留在紀錄中，日常列表將不再優先顯示。",
       tone: "warning" as const,
       onConfirm: () => completeAndReturn("riskSubmitted"),
     };
@@ -218,6 +218,7 @@ export function ModuleDetailPage() {
       return (
         <label key={field.key} className="edit-field readonly">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <strong>{Array.isArray(value) ? value.join("、") : value}</strong>
           <em>需管理者調整</em>
         </label>
@@ -228,6 +229,7 @@ export function ModuleDetailPage() {
       return (
         <label key={field.key} className="edit-field wide">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} />
         </label>
       );
@@ -237,6 +239,7 @@ export function ModuleDetailPage() {
       return (
         <label key={field.key} className="edit-field">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
             {field.options.map((option) => (
               <option key={option} value={option}>
@@ -254,6 +257,7 @@ export function ModuleDetailPage() {
       return (
         <div key={field.key} className="edit-field wide">
           <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
             {field.options.map((option) => (
               <button key={option} type="button" className={selected.includes(option) ? "selected" : ""} onClick={() => toggleTag(field, option)}>
@@ -268,6 +272,7 @@ export function ModuleDetailPage() {
     return (
       <label key={field.key} className="edit-field">
         <span>{field.label}</span>
+        {field.help ? <small>{field.help}</small> : null}
         <input
           type={field.type}
           value={String(value)}

@@ -1,9 +1,9 @@
 import type { ModuleKey } from "./modules";
 
 export type EditField =
-  | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean }
-  | { key: string; label: string; type: "select"; value: string; options: string[]; readonly?: boolean }
-  | { key: string; label: string; type: "tags"; value: string[]; options: string[]; readonly?: boolean };
+  | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
+  | { key: string; label: string; type: "select"; value: string; options: string[]; readonly?: boolean; help?: string }
+  | { key: string; label: string; type: "tags"; value: string[]; options: string[]; readonly?: boolean; help?: string };
 
 export type MockRecord = {
   id: string;
@@ -29,7 +29,7 @@ export const mockRecords: MockRecord[] = [
     status: "待確認",
     statusCategory: "pending",
     summary: "整理供品、場地、值勤與公告關聯。",
-    owner: "經手人 A",
+    owner: "總幹事 A",
     dateLabel: "2026-07-01",
     relation: "關聯：平安祈福活動、供品採買",
     note: "場地與值勤名單確認後，再送管理者確認。",
@@ -46,10 +46,11 @@ export const mockRecords: MockRecord[] = [
     ],
     editFields: [
       { key: "title", label: "事項名稱", type: "text", value: "中元普渡準備" },
-      { key: "affairType", label: "廟務類型", type: "select", value: "祭典準備", options: ["祭典準備", "日常維護", "接待支援", "行政協調"] },
-      { key: "ownerGroup", label: "負責組別", type: "select", value: "總務組", options: ["總務組", "接待組", "文書組", "帳務組"] },
+      { key: "affairType", label: "廟務類別", type: "select", value: "祭典活動", options: ["一般廟務", "祭典活動", "場地事務", "對外聯繫", "其他"] },
+      { key: "ownerGroup", label: "承辦人員", type: "select", value: "總務組", options: ["主任委員 A", "總幹事 A", "總務組", "接待組", "文書組", "帳務組"] },
       { key: "date", label: "發生日期", type: "date", value: "2026-07-01" },
-      { key: "status", label: "處理狀態", type: "select", value: "待確認", options: ["待確認", "籌備中", "已完成", "暫緩"] },
+      { key: "dueDate", label: "預計完成日", type: "date", value: "2026-07-01" },
+      { key: "status", label: "處理狀態", type: "select", value: "待處理", options: ["待處理", "處理中", "已完成", "暫緩"] },
       { key: "approvalStage", label: "審核標記", type: "select", value: "初審", options: ["初審", "覆核", "核准", "暫不審核"] },
       { key: "supportItems", label: "支援項目", type: "tags", value: ["供品", "桌椅", "值勤"], options: ["供品", "桌椅", "值勤", "公告", "接待"] },
       { key: "note", label: "備註", type: "textarea", value: "場地與值勤名單確認後，再送管理者確認。" },
@@ -68,21 +69,30 @@ export const mockRecords: MockRecord[] = [
     note: "不含真實電話、地址或 LINE user id。",
     listFields: [
       { label: "服務", value: "發財金領取 / 繳回" },
-      { label: "授權", value: "已同意查詢本人紀錄" },
+      { label: "授權狀態", value: "已同意查詢本人紀錄" },
       { label: "最近", value: "6/18 櫃檯登記" },
     ],
     detailFields: [
       { label: "善信類型", value: "一般善信" },
+      { label: "建立日期", value: "2026-06-18" },
       { label: "服務紀錄", value: "發財金領取、發財金繳回、還金提醒" },
       { label: "授權狀態", value: "可查詢本人相關紀錄" },
-      { label: "經手人", value: "櫃檯人員 A" },
+      { label: "承辦人員", value: "櫃檯人員 A" },
+      { label: "發財金狀態", value: "已領取，待繳回確認" },
     ],
     editFields: [
       { key: "name", label: "善信名稱", type: "text", value: "善信範例 A" },
-      { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "長期服務", "活動聯絡", "團隊協助"] },
+      { key: "date", label: "建立日期", type: "date", value: "2026-06-18" },
+      { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"], help: "正式分類可依廟方試用結果再調整。" },
       { key: "services", label: "服務紀錄", type: "tags", value: ["發財金領取", "還金提醒"], options: ["發財金領取", "發財金繳回", "平安龜", "還金提醒", "活動通知"] },
-      { key: "authorization", label: "授權狀態", type: "select", value: "可查詢本人相關紀錄", options: ["可查詢本人相關紀錄", "未授權查詢", "待確認"] },
+      { key: "authorization", label: "授權狀態", type: "select", value: "可查詢本人相關紀錄", options: ["可查詢本人相關紀錄", "尚未授權", "待確認"], help: "用來標記此善信是否允許查詢本人相關紀錄。" },
+      { key: "fortuneMoneyReceived", label: "是否領取發財金", type: "select", value: "已領取", options: ["待確認", "已領取", "未領取"] },
+      { key: "fortuneMoneyReceivedDate", label: "領取日期", type: "date", value: "2026-06-18" },
+      { key: "fortuneMoneyReturned", label: "是否繳回", type: "select", value: "待確認", options: ["待確認", "已繳回", "未繳回"] },
+      { key: "fortuneMoneyReturnedDate", label: "繳回日期", type: "date", value: "2026-06-18" },
+      { key: "fortuneMoneyNote", label: "發財金備註", type: "textarea", value: "後續由承辦人員確認繳回日期。" },
       { key: "handler", label: "承辦人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"] },
+      { key: "relations", label: "關聯資訊", type: "tags", value: ["發財金", "還金提醒"], options: ["發財金", "活動參與", "還金提醒", "帳務草稿"] },
       { key: "note", label: "備註", type: "textarea", value: "不含真實電話、地址或 LINE user id。" },
     ],
   },
@@ -105,7 +115,9 @@ export const mockRecords: MockRecord[] = [
     detailFields: [
       { label: "宮廟類型", value: "友宮" },
       { label: "聯絡人", value: "聯絡窗口 A" },
-      { label: "電話 / 地址", value: "未填寫" },
+      { label: "聯絡電話", value: "未填寫" },
+      { label: "地址", value: "未填寫" },
+      { label: "聯繫方式", value: "電話" },
       { label: "最近來訪", value: "進香回覆" },
       { label: "下一步", value: "確認回覆內容與接待安排" },
     ],
@@ -114,8 +126,9 @@ export const mockRecords: MockRecord[] = [
       { key: "area", label: "地區", type: "text", value: "桃園地區" },
       { key: "relationStatus", label: "互動狀態", type: "select", value: "常態往來", options: ["常態往來", "近期來訪", "待回覆", "暫少往來"] },
       { key: "contactPerson", label: "聯絡人", type: "text", value: "聯絡窗口 A" },
-      { key: "phone", label: "電話", type: "text", value: "" },
+      { key: "phone", label: "聯絡電話", type: "text", value: "" },
       { key: "address", label: "地址", type: "text", value: "" },
+      { key: "contactMethod", label: "聯繫方式", type: "select", value: "電話", options: ["電話", "LINE", "Email", "其他"] },
       { key: "relations", label: "關聯紀錄", type: "tags", value: ["進香回覆"], options: ["進香回覆", "請帖", "公告", "活動支援"] },
       { key: "nextStep", label: "下一步", type: "textarea", value: "確認回覆內容與接待安排" },
     ],
@@ -165,7 +178,7 @@ export const mockRecords: MockRecord[] = [
     listFields: [
       { label: "對象", value: "一般信眾" },
       { label: "管道", value: "公告欄、社群" },
-      { label: "狀態", value: "草稿" },
+      { label: "公告狀態", value: "草稿" },
     ],
     detailFields: [
       { label: "公告對象", value: "一般信眾" },
@@ -262,7 +275,7 @@ export const mockRecords: MockRecord[] = [
     detailFields: [
       { label: "文件類型", value: "來文通知" },
       { label: "來源單位", value: "行政單位" },
-      { label: "處理狀態", value: "待整理附件與回覆期限" },
+      { label: "處理狀態", value: "待整理附件與預計回覆日" },
       { label: "關聯廟務", value: "中元普渡準備" },
     ],
     editFields: [
@@ -270,7 +283,7 @@ export const mockRecords: MockRecord[] = [
       { key: "date", label: "公文日期", type: "date", value: "2026-06-21" },
       { key: "status", label: "處理狀態", type: "select", value: "待整理", options: ["待整理", "處理中", "已回覆", "已歸檔"] },
       { key: "relatedItem", label: "關聯活動或廟務", type: "text", value: "中元普渡準備" },
-      { key: "note", label: "備註", type: "textarea", value: "待整理附件與回覆期限" },
+      { key: "note", label: "備註", type: "textarea", value: "待整理附件與預計回覆日" },
     ],
   },
   {
@@ -296,7 +309,7 @@ export const mockRecords: MockRecord[] = [
       { label: "任期狀態", value: "任期中" },
     ],
     editFields: [
-      { key: "role", label: "宮廟職稱", type: "select", value: "總幹事", options: ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員"] },
+      { key: "role", label: "宮廟職稱", type: "select", value: "總幹事", options: ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員", "其他"] },
       { key: "systemRole", label: "系統權限", type: "select", value: "廟方人員", options: ["管理者", "廟方人員", "善信瀏覽"] },
       { key: "termStatus", label: "任期狀態", type: "select", value: "任期中", options: ["任期中", "待確認", "已卸任", "暫停"] },
       { key: "duty", label: "值勤安排", type: "tags", value: ["週末上午"], options: ["週末上午", "週末下午", "平日晚間", "活動支援"] },
@@ -309,25 +322,30 @@ export const mockRecords: MockRecord[] = [
     title: "供品支出草稿",
     status: "草稿",
     statusCategory: "draft",
-    summary: "分類、金額摘要、經手人與月報公告草稿。",
+    summary: "分類、實際金額、承辦人員與月報公告草稿。",
     owner: "帳務人員 A",
     dateLabel: "2026-06-23",
     relation: "關聯：供品採買、善信範例 A",
     note: "不含真實銀行資料、帳戶或收據號碼。",
     listFields: [
       { label: "科目", value: "供品支出" },
-      { label: "經手", value: "帳務人員 A" },
+      { label: "承辦", value: "帳務人員 A" },
       { label: "月報", value: "待整理" },
     ],
     detailFields: [
       { label: "帳務科目", value: "供品支出" },
-      { label: "經手人", value: "帳務人員 A" },
+      { label: "帳務日期", value: "2026-06-23" },
+      { label: "承辦人員", value: "帳務人員 A" },
       { label: "關聯來源", value: "供品採買" },
+      { label: "付款狀態", value: "待核對" },
       { label: "月報狀態", value: "待整理公告草稿" },
     ],
     editFields: [
       { key: "cashType", label: "收支類型", type: "select", value: "支出", options: ["收入", "支出", "調整"] },
+      { key: "date", label: "帳務日期", type: "date", value: "2026-06-23" },
       { key: "amount", label: "實際金額", type: "number", value: "3600" },
+      { key: "quantity", label: "數量", type: "number", value: "1" },
+      { key: "itemName", label: "品項", type: "text", value: "供品" },
       { key: "procurementNo", label: "採購單編號", type: "text", value: "採購範例 A" },
       { key: "paymentStatus", label: "付款狀態", type: "select", value: "待核對", options: ["待付款", "已付款", "待核對", "已封存"] },
       { key: "category", label: "類別", type: "select", value: "供品支出", options: ["香油錢", "供品支出", "活動支出", "其他"] },
@@ -355,13 +373,14 @@ export const mockRecords: MockRecord[] = [
       { label: "善信類型", value: "一般善信" },
       { label: "服務紀錄", value: "舊年度服務" },
       { label: "授權狀態", value: "已封存" },
-      { label: "經手人", value: "櫃檯人員 A" },
+      { label: "承辦人員", value: "櫃檯人員 A" },
     ],
     editFields: [
       { key: "name", label: "善信名稱", type: "text", value: "善信封存紀錄" },
-      { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "長期服務", "活動聯絡", "團隊協助"] },
-      { key: "services", label: "服務紀錄", type: "tags", value: ["舊年度服務"], options: ["發財金", "平安龜", "還金提醒", "活動通知", "舊年度服務"] },
-      { key: "authorization", label: "授權狀態", type: "select", value: "已封存", options: ["可查詢本人相關紀錄", "未授權查詢", "待確認", "已封存"] },
+      { key: "date", label: "建立日期", type: "date", value: "2025-12-20" },
+      { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"] },
+      { key: "services", label: "服務紀錄", type: "tags", value: ["舊年度服務"], options: ["發財金領取", "發財金繳回", "平安龜", "還金提醒", "活動通知", "舊年度服務"] },
+      { key: "authorization", label: "授權狀態", type: "select", value: "已封存", options: ["可查詢本人相關紀錄", "尚未授權", "待確認", "已封存"], help: "用來標記此善信是否允許查詢本人相關紀錄。" },
       { key: "handler", label: "承辦人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"] },
       { key: "note", label: "備註", type: "textarea", value: "封存後不在日常列表優先顯示。" },
     ],
