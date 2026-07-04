@@ -7,6 +7,7 @@ import { SummaryCard } from "../components/SummaryCard";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { moduleKeysForRole } from "../lib/navigation";
+import { identityForRole, identityRuntime, lineBindingLabel } from "../lib/identity";
 
 export function DashboardPage() {
   const { role } = useRole();
@@ -16,17 +17,19 @@ export function DashboardPage() {
   const visibleRecords = mockRecords.filter((record) => visibleModuleKeys.includes(record.moduleKey));
   const urgentRecords = visibleRecords.filter((record) => ["待確認", "待回覆", "待整理", "草稿"].includes(record.status));
   const publicRecords = mockRecords.filter((record) => ["announcements", "events"].includes(record.moduleKey));
+  const identity = identityForRole(role);
 
   if (role === "viewer") {
     return (
       <div className="page-stack">
         <section className="hero-panel devotee-hero">
           <div>
-            <span className="eyebrow">中原福德宮 Web 後台</span>
-            <h2>善信服務</h2>
-            <p>可瀏覽對外公告與活動，不進入內部廟務或帳務；個人紀錄功能將於後續版本整理。</p>
-          </div>
-        </section>
+          <span className="eyebrow">中原福德宮 Web 後台</span>
+          <h2>善信服務</h2>
+          <p>可瀏覽對外公告與活動，不進入內部廟務或帳務；個人紀錄功能將於後續版本整理。</p>
+          <p className="identity-inline-note">目前測試身份：善信。正式版會依登入帳號或 LINE 綁定身份顯示本人資料。</p>
+        </div>
+      </section>
 
         <section className="summary-grid devotee-summary" aria-label="善信服務">
           <SummaryCard label="最新公告" value={countByModule("announcements")} note="公開資訊" />
@@ -85,6 +88,20 @@ export function DashboardPage() {
         {role === "admin" ? <SummaryCard label="待整理公文" value={countByModule("documents")} note="文件紀錄" /> : null}
         {role === "admin" ? <SummaryCard label="帳務草稿" value={countByModule("ledger")} note="內部帳務" /> : null}
       </section>
+
+      {role === "staff" ? (
+        <section className="content-panel identity-note">
+          <div className="section-heading">
+            <h3>我的作業權限</h3>
+            <span>{identityRuntime.modeLabel}</span>
+          </div>
+          <div className="status-box">
+            <span>目前測試身份：廟方人員 / {identity.displayName}。</span>
+            <span>{lineBindingLabel(identity)}；正式版依登入帳號與團隊授權顯示可處理作業。</span>
+            <span>初審、覆核、核准先作為權限標記，不強制卡住作業流程。</span>
+          </div>
+        </section>
+      ) : null}
 
       <section className="content-panel">
         <div className="section-heading">

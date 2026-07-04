@@ -5,6 +5,7 @@ import { canUseAdminSettings } from "../lib/permissions";
 import { DetailActionMode, DetailActionPanel } from "../components/DetailActionPanel";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { identityForRole, identityRuntime, lineBindingLabel } from "../lib/identity";
 
 const settings = [
   "權限設定",
@@ -18,6 +19,7 @@ const settings = [
 
 export function SettingsPage() {
   const { role } = useRole();
+  const identity = identityForRole(role);
   const [actionMode, setActionMode] = useState<DetailActionMode>("view");
   const [pendingAction, setPendingAction] = useState<"draft" | "submit" | "risk" | "staffRisk" | null>(null);
   const canUse = canUseAdminSettings(role);
@@ -84,7 +86,7 @@ export function SettingsPage() {
         <div>
           <span className="eyebrow">集中管理者設定</span>
           <h2>管理者設定</h2>
-          <p>權限、團隊成員、基礎資料、資料狀態與操作紀錄集中於此。</p>
+          <p>權限會以團隊成員為先決條件，正式版再依登入帳號或 LINE 綁定身份顯示可用功能。</p>
         </div>
         <span className="admin-state">管理者可操作</span>
       </section>
@@ -93,10 +95,23 @@ export function SettingsPage() {
         {settings.map((item) => (
           <article key={item} className="setting-card">
             <strong>{item}</strong>
-            <p>{item.includes("權限") ? "先選擇團隊成員，再授予不同作業的初審、覆核或核准權限。" : "可進入調整。"}</p>
+            <p>{item.includes("權限") ? "先選擇團隊成員，再授予不同作業的初審、覆核或核准權限標記。" : "可進入調整。"}</p>
             <button type="button">管理</button>
           </article>
         ))}
+      </section>
+
+      <section className="content-panel identity-note">
+        <div className="section-heading">
+          <h3>登入與 LINE 綁定準備</h3>
+          <span>{identityRuntime.modeLabel}</span>
+        </div>
+        <div className="status-box">
+          <span>正式版將依登入帳號或 LINE 綁定身份判斷權限，使用者不能自行切換。</span>
+          <span>LINE 帳號可連到團隊成員或善信資料；目前只做前端示意。</span>
+          <span>目前示意身份：{identity.displayName}，{lineBindingLabel(identity)}。</span>
+          <span>善信不列入內部權限授予清單，只保留對外資訊與本人資料查詢。</span>
+        </div>
       </section>
 
       <section className="detail-layout">

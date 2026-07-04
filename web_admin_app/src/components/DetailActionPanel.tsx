@@ -55,7 +55,7 @@ export function DetailActionPanel({
     <aside className="detail-actions">
       <div>
         <h3>操作確認</h3>
-        <p>目前角色：{permissionLabel(role)}</p>
+        <p>目前測試身份：{permissionLabel(role)}</p>
       </div>
 
       {mode === "edit" ? (

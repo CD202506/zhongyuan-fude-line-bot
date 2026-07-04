@@ -260,6 +260,15 @@ button {
   background: #fffdf7;
 }
 
+.test-identity-panel {
+  border-style: dashed;
+  background: #fff8e3;
+}
+
+.test-identity-panel strong {
+  color: #7d5d10;
+}
+
 .topbar-role span {
   color: #4c5a4b;
   line-height: 1.45;
@@ -303,6 +312,14 @@ button {
 .note-panel p {
   color: #4c5a4b;
   line-height: 1.65;
+}
+
+.identity-inline-note {
+  font-weight: 700;
+}
+
+.identity-note {
+  background: #f3f8ef;
 }
 
 .user-card {
