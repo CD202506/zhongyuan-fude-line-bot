@@ -50,6 +50,24 @@
 - `0.8.0A-22` Render Web Admin API Deployment 已完成：新的 Render Web Service `zhongyuan-fude-web-admin-api` 已部署，API URL 為 `https://zhongyuan-fude-web-admin-api.onrender.com`，`/api/health` 與 `/api/modules` 測試成功，Render API 已可使用 PostgreSQL staging。Vercel 前端測試站尚未切 API mode；下一步為 A23，等待使用者通知後再繼續。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 - `0.8.0A-23` Vercel API Mode Deployment 已完成：固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已切到 API mode，呼叫 Render Web Admin API `https://zhongyuan-fude-web-admin-api.onrender.com`，並以 PostgreSQL staging 作為 Web Admin 測試資料庫。Render CORS 已放行 Vercel production origin；production browser submit、CRUD、封存與還原實測通過。新增自動 smoke test 腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 - `0.8.0A-24` Third-party feedback based IA / navigation / wording refinement 進行中：依第三方回饋重整 Web 後台角色語意、左側選單分類與欄位文字；「檢視者」改為「善信」，移除「廟務文件」分類，採購歸日常作業，公文 / 通知歸對外發布，權限設定改為先選團隊成員再授權模組權限；初審、覆核、核准先作為紀錄與權限標記，不強制卡關。未修改 Web Admin API、DB schema、Render / Vercel env、LINE Bot、Google Sheets、AppSheet 或 V1 runtime。
+- `0.8.0A-25` Field wording and workflow consistency 已完成：依第三方測試資料修正欄位語意與流程文字，善信、廟務、友宮、帳務、公文 / 通知、團隊管理等欄位已細修；刪除需求改為封存 / 作廢語意；清理工程測試資料顯示並修正 sidebar RWD。新增 `web_admin_app/scripts/a25_field_workflow_audit.js` 與 `web_admin_app/scripts/a25_display_layout_audit.js`。
+- `0.8.0A-26` Identity-aware access preparation 已完成並暫停：右上角角色切換已改為明確「測試角色切換」；`web_admin_app/` 已建立 identity-aware 前端 mock model，預留 userId、團隊成員、善信、LINE 綁定、模組權限與初審 / 覆核 / 核准標記；管理者設定補強「先團隊成員，再授權」語意。LINE 綁定目前只做前端示意，未做真實登入、LINE Login、LIFF 或 OAuth，未接正式 LINE Bot。最新 commit：`44a7ee3 feat: add identity-aware access preparation`。
+
+## A26 identity-aware access preparation completed / paused checkpoint
+
+- Frontend：Vercel Web Admin test site，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app`。
+- Backend：Render Web Admin API，API URL `https://zhongyuan-fude-web-admin-api.onrender.com`。
+- Database：PostgreSQL staging，作為 Web Admin 測試資料庫。
+- V1 LINE Bot：仍維持原正式服務，不受 A23～A26 影響。
+- Google Sheets / AppSheet：未修改。
+- A23 已完成固定測試網址 API mode、Render API / PostgreSQL staging 串接、CRUD、封存 / 還原、production CORS 與自動 smoke test。
+- A24 已完成第三方回饋導向的角色、左側選單、Dashboard、UX / IA 重整；角色語意為管理者、廟方人員、善信。
+- A25 已完成欄位語意、流程文字、封存 / 作廢語意、工程測試資料顯示清理與 sidebar RWD 修正。
+- A26 已完成前端身份模型與 LINE 綁定準備語意；使用者已確認 A26 畫面 OK。
+- 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`。
+- 已確認未做：真實登入、LINE Login / LIFF / OAuth、LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema 修改、Render / Vercel env 修改、DELETE、正式個資或真實 LINE userId。
+- 下一階段建議：A27 LINE 帳號綁定流程設計與測試環境串接評估。開始前需先確認採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
+- 暫停點：文件補齊後先暫停，等待使用者通知再進入 A27。
 
 ## Current data source roles
 
@@ -117,17 +135,12 @@
 
 ## Pause point
 
-- 目前暫停在 `0.8.0A-7 Preview UI Residue Cleanup` 已完成並推送後。
-- 最新狀態標記 commit：`cc5b867 docs: mark preview residue cleanup complete`。
-- 下一次繼續前，請先確認工作區是否乾淨，再依使用者最新指示決定是否進入第三方 ZIP 預覽包打包 / 檢查。
-- 未獲正式明確指令前，仍限制在 `web_admin_mvp/` 與 `docs/`，不要接 Google Sheets、FastAPI runtime 或 Render。
-- A10 目前只完成文件規劃；不要誤認為已建立 `web_admin_app/`、已啟用 PostgreSQL、已部署 Vercel 或已改 LINE Bot。
-- A11 目前只完成 skeleton setup 文件規劃；不要誤認為已建立 `web_admin_app/` 或已安裝 Next.js package。
-- A13 建議改為 `0.8.0A-13 Replace Next.js Skeleton with Vite React Skeleton`：清理未提交 Next.js skeleton，保留 `web_admin_app/` 作為正式前端資料夾，建立 Vite + React + TypeScript skeleton，並要求 lint / build 通過；不串 API、不部署、不碰 V1。
-- A13 目前已建立 Vite + React + TypeScript Visual MVP Baseline；`web_admin_mvp/` 仍保留為 UX prototype。下一步建議 `0.8.0A-14 Visual MVP Review and UX Adjustment`，先 review 畫面、UX 與資訊密度，再討論 API contract。
-- A23 已完成固定 Vercel 測試站 API mode 與 Render Web Admin API / PostgreSQL staging 串接驗證；下一階段建議進入 A24，針對第三方實測與廟方試用前的資料模型、權限與操作流程做整理，不急著接 LINE Bot。
-- 不要修改正式 Google Sheets、Render、LINE Developers Webhook、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
-- 不要部署。
+- 目前暫停在 `0.8.0A-26 Identity-aware access preparation` 已完成並推送後。
+- 最新狀態標記 commit：`44a7ee3 feat: add identity-aware access preparation`。
+- 固定 Vercel Web Admin 測試站已更新並維持 API mode；資料寫入 Render Web Admin API / PostgreSQL staging。
+- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估，但開始前需先確認 LINE Login / LIFF / 既有 LINE Bot userId 綁定方向與 staging LINE channel 策略。
+- 不要修改正式 Google Sheets、AppSheet、Render / Vercel env、LINE Developers 設定、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
+- 不要部署，除非使用者明確要求。
 
 ## Next optional steps
 
