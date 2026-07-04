@@ -1,49 +1,89 @@
 import { Link } from "react-router-dom";
 import { modules } from "../data/modules";
 import type { ModuleKey } from "../data/modules";
-import { mockUser } from "../data/mockUser";
 import { mockDataStatus, mockRecords, reminders } from "../data/mockRecords";
 import { ModuleCard } from "../components/ModuleCard";
 import { SummaryCard } from "../components/SummaryCard";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
-import { permissionLabel } from "../lib/permissions";
+import { moduleKeysForRole } from "../lib/navigation";
 
 export function DashboardPage() {
   const { role } = useRole();
   const countByModule = (key: string) => mockRecords.filter((record) => record.moduleKey === key).length;
-  const visibleModuleKeys: ModuleKey[] = role === "admin"
-    ? modules.map((moduleItem) => moduleItem.key)
-    : role === "staff"
-      ? ["devotees", "shrines", "visits", "announcements", "events", "procurements", "documents", "ledger"] as ModuleKey[]
-      : ["announcements", "events", "devotees"] as ModuleKey[];
+  const visibleModuleKeys = Array.from(moduleKeysForRole(role)) as ModuleKey[];
   const visibleModules = modules.filter((moduleItem) => visibleModuleKeys.includes(moduleItem.key));
   const visibleRecords = mockRecords.filter((record) => visibleModuleKeys.includes(record.moduleKey));
   const urgentRecords = visibleRecords.filter((record) => ["待確認", "待回覆", "待整理", "草稿"].includes(record.status));
+  const publicRecords = mockRecords.filter((record) => ["announcements", "events"].includes(record.moduleKey));
+
+  if (role === "viewer") {
+    return (
+      <div className="page-stack">
+        <section className="hero-panel devotee-hero">
+          <div>
+            <span className="eyebrow">中原福德宮 Web 後台</span>
+            <h2>善信服務</h2>
+            <p>可瀏覽對外公告與活動，不進入內部廟務或帳務；個人紀錄功能將於後續版本整理。</p>
+          </div>
+        </section>
+
+        <section className="summary-grid devotee-summary" aria-label="善信服務">
+          <SummaryCard label="最新公告" value={countByModule("announcements")} note="公開資訊" />
+          <SummaryCard label="近期活動" value={countByModule("events")} note="活動資訊" />
+          <SummaryCard label="我的資料" value="1" note="本人相關紀錄" />
+        </section>
+
+        <section className="content-panel">
+          <div className="section-heading">
+            <h3>公告與活動</h3>
+            <span>公開資訊</span>
+          </div>
+          <div className="record-list compact">
+            {publicRecords.slice(0, 5).map((record) => (
+              <Link key={record.id} to={`/${record.moduleKey}/${record.id}`} className="record-row">
+                <div>
+                  <strong>{record.title}</strong>
+                  <span>{record.dateLabel}</span>
+                </div>
+                <StatusBadge status={record.status} />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="content-panel">
+          <div className="section-heading">
+            <h3>我的紀錄</h3>
+            <span>低干擾預留</span>
+          </div>
+          <div className="status-box">
+            <span>我的資料可先查看基本紀錄；參與紀錄與發財金紀錄會在後續試用前整理。</span>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="page-stack">
       <section className="hero-panel">
         <div>
           <span className="eyebrow">中原福德宮 Web 後台</span>
-          <h2>日常總覽</h2>
-          <p>今日待確認、近期來訪、公告活動與帳務草稿集中查看。</p>
-        </div>
-        <div className="user-card">
-          <strong>{mockUser.name}</strong>
-          <span>目前角色：{permissionLabel(role)}</span>
+          <h2>{role === "admin" ? "日常總覽" : "廟方作業"}</h2>
+          <p>{role === "admin" ? "今日待確認、近期來訪、公告活動與帳務草稿集中查看。" : "來訪請帖、公告活動與日常作業集中查看。"}</p>
         </div>
       </section>
 
-      <section className="summary-grid" aria-label="日常總覽">
-        <SummaryCard label="友宮數" value={countByModule("shrines")} note="友宮主檔" />
+      <section className="summary-grid" aria-label={role === "admin" ? "日常總覽" : "廟方作業"}>
+        {role === "admin" ? <SummaryCard label="友宮數" value={countByModule("shrines")} note="友宮主檔" /> : null}
         <SummaryCard label="近期來訪" value={countByModule("visits")} note="待確認" />
         <SummaryCard label="待處理請帖" value="2" note="待回覆" />
         <SummaryCard label="公告草稿" value={countByModule("announcements")} note="待發布" />
         <SummaryCard label="本月活動" value={countByModule("events")} note="籌備中" />
         <SummaryCard label="採購待確認" value={countByModule("procurements")} note="需驗收與對帳" />
-        <SummaryCard label="待整理公文" value={countByModule("documents")} note="文件紀錄" />
-        <SummaryCard label="帳務草稿" value={countByModule("ledger")} note="不含正式帳務" />
+        {role === "admin" ? <SummaryCard label="待整理公文" value={countByModule("documents")} note="文件紀錄" /> : null}
+        {role === "admin" ? <SummaryCard label="帳務草稿" value={countByModule("ledger")} note="內部帳務" /> : null}
       </section>
 
       <section className="content-panel">
@@ -81,7 +121,7 @@ export function DashboardPage() {
           </div>
         </article>
 
-        <article className="content-panel">
+        {role === "admin" ? <article className="content-panel">
           <div className="section-heading">
             <h3>維運提醒</h3>
             <span>資料提醒</span>
@@ -96,7 +136,7 @@ export function DashboardPage() {
               <span key={item}>{item}</span>
             ))}
           </div>
-        </article>
+        </article> : null}
       </section>
 
       <section className="content-panel">

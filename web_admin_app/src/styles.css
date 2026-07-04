@@ -39,14 +39,21 @@ button {
   min-height: 100vh;
 }
 
-.app-shell.sidebar-closed {
+.app-shell.sidebar-closed,
+.app-shell.sidebar-open {
   grid-template-columns: 1fr;
 }
 
 .sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 15;
+  width: min(86vw, 340px);
+  overflow: auto;
   background: #12351d;
   color: #fffdf5;
   padding: 18px;
+  box-shadow: 12px 0 30px rgba(18, 32, 18, 0.25);
 }
 
 .brand {
@@ -222,6 +229,12 @@ button {
 .topbar-title {
   grid-template-columns: auto 1fr;
   align-items: center;
+  min-width: 0;
+}
+
+.topbar-title h2,
+.topbar-title .eyebrow {
+  overflow-wrap: anywhere;
 }
 
 .topbar-module-summary {
@@ -931,15 +944,8 @@ button {
 }
 
 @media (min-width: 760px) {
-  .app-shell.sidebar-open {
-    grid-template-columns: 280px 1fr;
-  }
-
   .sidebar {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: auto;
+    width: 320px;
   }
 
   .nav-list {
@@ -1016,15 +1022,6 @@ button {
 }
 
 @media (max-width: 759px) {
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 15;
-    width: min(86vw, 320px);
-    overflow: auto;
-    box-shadow: 12px 0 30px rgba(18, 32, 18, 0.25);
-  }
-
   .record-card {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
