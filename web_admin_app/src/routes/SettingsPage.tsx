@@ -7,12 +7,13 @@ import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const settings = [
-  "來訪型態設定",
+  "權限設定",
+  "團隊成員權限",
+  "基礎資料設定",
   "發布管道設定",
-  "帳務科目設定",
-  "權限角色設定",
+  "帳務分類設定",
   "資料狀態",
-  "LINE Bot 整合設定",
+  "操作紀錄",
 ];
 
 export function SettingsPage() {
@@ -83,7 +84,7 @@ export function SettingsPage() {
         <div>
           <span className="eyebrow">集中管理者設定</span>
           <h2>管理者設定</h2>
-          <p>設定類、權限類、資料狀態與 LINE Bot 整合集中於此。</p>
+          <p>權限、團隊成員、基礎資料、資料狀態與操作紀錄集中於此。</p>
         </div>
         <span className="admin-state">管理者可操作</span>
       </section>
@@ -92,7 +93,7 @@ export function SettingsPage() {
         {settings.map((item) => (
           <article key={item} className="setting-card">
             <strong>{item}</strong>
-            <p>可進入調整。</p>
+            <p>{item.includes("權限") ? "先選擇團隊成員，再授予不同作業的初審、覆核或核准權限。" : "可進入調整。"}</p>
             <button type="button">管理</button>
           </article>
         ))}
@@ -105,6 +106,7 @@ export function SettingsPage() {
             {mockDataStatus.map((item) => (
               <span key={item}>{item}</span>
             ))}
+            <span>初審、覆核、核准先作為紀錄與權限標記，不強制卡住作業流程。</span>
             <span>重要設定需由管理者確認後處理。</span>
           </div>
         </article>

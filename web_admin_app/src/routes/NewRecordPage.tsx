@@ -26,8 +26,8 @@ export function NewRecordPage() {
             <span className="eyebrow">{moduleItem.title}</span>
             <h2>{moduleItem.addLabel}</h2>
             <div className="permission-strip compact">
-              <strong>查看模式</strong>
-              <span>目前可瀏覽資料內容；如需新增資料請洽管理者或廟方人員。</span>
+              <strong>善信瀏覽</strong>
+              <span>目前可瀏覽對外資訊與本人相關紀錄；如需新增資料請洽廟方人員。</span>
             </div>
           </div>
         </section>

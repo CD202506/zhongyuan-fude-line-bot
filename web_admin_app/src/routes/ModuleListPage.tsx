@@ -76,7 +76,7 @@ export function ModuleListPage() {
           {role === "viewer" ? (
             <div className="permission-strip compact">
               <strong>未停用 / 未封存</strong>
-              <span>查看模式只顯示日常可瀏覽資料。</span>
+              <span>善信角色只顯示可公開瀏覽或本人相關資料。</span>
             </div>
           ) : (
             <div className="status-filter-buttons" role="group" aria-label="狀態篩選">
@@ -127,7 +127,7 @@ export function ModuleListPage() {
                   </span>
                 ))}
                 <span>
-                  <b>日期 / 負責</b>{record.dateLabel} / {record.owner}
+                  <b>日期 / 承辦</b>{record.dateLabel} / {record.owner}
                 </span>
               </div>
               <Link to={`${moduleItem.route}/${record.id}`} className="detail-link">

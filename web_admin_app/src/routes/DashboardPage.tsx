@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { modules } from "../data/modules";
+import type { ModuleKey } from "../data/modules";
 import { mockUser } from "../data/mockUser";
 import { mockDataStatus, mockRecords, reminders } from "../data/mockRecords";
 import { ModuleCard } from "../components/ModuleCard";
@@ -11,7 +12,14 @@ import { permissionLabel } from "../lib/permissions";
 export function DashboardPage() {
   const { role } = useRole();
   const countByModule = (key: string) => mockRecords.filter((record) => record.moduleKey === key).length;
-  const urgentRecords = mockRecords.filter((record) => ["待確認", "待回覆", "待整理", "草稿"].includes(record.status));
+  const visibleModuleKeys: ModuleKey[] = role === "admin"
+    ? modules.map((moduleItem) => moduleItem.key)
+    : role === "staff"
+      ? ["devotees", "shrines", "visits", "announcements", "events", "procurements", "documents", "ledger"] as ModuleKey[]
+      : ["announcements", "events", "devotees"] as ModuleKey[];
+  const visibleModules = modules.filter((moduleItem) => visibleModuleKeys.includes(moduleItem.key));
+  const visibleRecords = mockRecords.filter((record) => visibleModuleKeys.includes(record.moduleKey));
+  const urgentRecords = visibleRecords.filter((record) => ["待確認", "待回覆", "待整理", "草稿"].includes(record.status));
 
   return (
     <div className="page-stack">
@@ -61,7 +69,7 @@ export function DashboardPage() {
             <span>近期廟務動態</span>
           </div>
           <div className="record-list compact">
-            {mockRecords.slice(0, 5).map((record) => (
+            {visibleRecords.slice(0, 5).map((record) => (
               <Link key={record.id} to={`/${record.moduleKey}/${record.id}`} className="record-row">
                 <div>
                   <strong>{record.title}</strong>
@@ -97,7 +105,7 @@ export function DashboardPage() {
           <span>少層級、卡片式入口</span>
         </div>
         <div className="module-grid">
-          {modules.map((moduleItem) => (
+          {visibleModules.map((moduleItem) => (
             <ModuleCard key={moduleItem.key} moduleItem={moduleItem} count={countByModule(moduleItem.key)} />
           ))}
         </div>

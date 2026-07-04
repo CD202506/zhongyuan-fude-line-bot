@@ -8,7 +8,7 @@ import type { UserRole } from "../data/mockUser";
 export type FormValues = Record<string, string | string[]>;
 export type StatusFilter = "active" | "archived" | "all";
 
-export const apiConnectionErrorMessage = "目前無法連線到測試資料服務，請確認本機 API 是否已啟動。";
+export const apiConnectionErrorMessage = "目前無法連線到測試資料服務，請稍後再試。";
 
 type ListRecordsOptions = {
   keyword?: string;
@@ -22,7 +22,7 @@ function actorForRole(role: UserRole): Pick<ApiRecordPayload, "actor_role" | "ac
   const actorName: Record<UserRole, string> = {
     admin: "測試管理者",
     staff: "廟方人員",
-    viewer: "檢視者",
+    viewer: "善信",
   };
 
   return {
@@ -33,6 +33,14 @@ function actorForRole(role: UserRole): Pick<ApiRecordPayload, "actor_role" | "ac
 
 function resolveSystemStatus(value: unknown) {
   const status = typeof value === "string" ? value : "";
+  const displayStatusMap: Record<string, string> = {
+    使用中: "active",
+    待確認: "pending",
+    草稿: "draft",
+    已停用: "disabled",
+    已封存: "archived",
+  };
+  if (displayStatusMap[status]) return displayStatusMap[status];
   return systemStatuses.has(status) ? status : "active";
 }
 
@@ -67,21 +75,55 @@ function stringValue(value: unknown) {
   return String(value);
 }
 
+const fieldDisplayLabels: Record<string, string> = {
+  name: "名稱",
+  title: "標題",
+  type: "類型",
+  category: "類別",
+  authorization: "授權狀態",
+  services: "服務紀錄",
+  handler: "承辦人員",
+  contact: "聯繫方式",
+  contactPerson: "聯絡人",
+  phone: "電話",
+  address: "地址",
+  relations: "關聯紀錄",
+  replyStatus: "回覆狀態",
+  relatedShrine: "關聯友宮",
+  channels: "發布管道",
+  supportItems: "支援項目",
+  supplier: "供應商",
+  ledgerHint: "帳務關聯",
+  documentType: "文件類型",
+  relatedItem: "關聯廟務或活動",
+  systemRole: "系統權限",
+  termStatus: "任期狀態",
+  cashType: "收支類型",
+  procurementNo: "採購單編號",
+  paymentStatus: "付款狀態",
+  approvalStage: "審核標記",
+  note: "備註",
+};
+
+function displayFieldLabel(key: string) {
+  return fieldDisplayLabels[key] ?? key;
+}
+
 function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const owner = record.responsible || record.updated_by || record.created_by || "廟方人員";
   const detailFields = [
     { label: "類別", value: record.category || "未分類" },
-    { label: "負責", value: owner },
-    { label: "建立", value: record.created_at.slice(0, 10) },
-    ...Object.entries(record.fields_json).slice(0, 6).map(([label, value]) => ({ label, value: stringValue(value) })),
+    { label: "承辦人員", value: owner },
+    { label: "建立日期", value: record.created_at.slice(0, 10) },
+    ...Object.entries(record.fields_json).slice(0, 6).map(([label, value]) => ({ label: displayFieldLabel(label), value: stringValue(value) })),
   ];
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
     { key: "summary", label: "摘要", type: "textarea", value: record.summary },
-    { key: "status", label: "狀態", type: "select", value: record.status, options: ["active", "pending", "draft", "disabled", "archived"] },
-    { key: "recordDate", label: "日期", type: "date", value: record.record_date ?? "" },
-    { key: "dueDate", label: "期限", type: "date", value: record.due_date ?? "" },
-    { key: "responsible", label: "負責人", type: "text", value: owner },
+    { key: "status", label: "資料狀態", type: "select", value: statusLabel(record), options: ["使用中", "待確認", "草稿", "已停用", "已封存"] },
+    { key: "recordDate", label: "發生日期", type: "date", value: record.record_date ?? "" },
+    { key: "dueDate", label: "預計完成日", type: "date", value: record.due_date ?? "" },
+    { key: "responsible", label: "承辦人員", type: "text", value: owner },
     { key: "category", label: "類別", type: "text", value: record.category },
     { key: "tags", label: "關聯標籤", type: "tags", value: record.tags_json, options: Array.from(new Set([...record.tags_json, "待確認", "活動", "帳務", "文件"])) },
     { key: "note", label: "備註", type: "textarea", value: stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },

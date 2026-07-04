@@ -159,6 +159,24 @@ button {
   color: #12351d;
 }
 
+.nav-placeholder {
+  display: grid;
+  min-height: 44px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(255, 253, 245, 0.1);
+  color: rgba(255, 253, 245, 0.78);
+  font-weight: 700;
+  text-align: center;
+}
+
+.nav-placeholder em {
+  color: rgba(255, 253, 245, 0.68);
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+}
+
 .sidebar-toggle {
   display: inline-flex;
   align-items: center;

@@ -1,20 +1,122 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { modules } from "../data/modules";
+import { findModuleByKey, modules, type ModuleKey } from "../data/modules";
 import { mockUser, roleOptions, type UserRole } from "../data/mockUser";
 import { canEditDailyWork, canUseAdminSettings, permissionLabel, roleHelpText } from "../lib/permissions";
 import { RoleContext } from "../lib/roleContext";
+
+type NavItem =
+  | { type: "route"; label: string; route: string }
+  | { type: "module"; key: ModuleKey; label?: string }
+  | { type: "placeholder"; label: string; note: string };
+
+type NavGroup = {
+  title: string;
+  items: NavItem[];
+};
+
+const adminNavGroups: NavGroup[] = [
+  { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
+  {
+    title: "管理設定",
+    items: [
+      { type: "route", label: "權限設定", route: "/settings" },
+      { type: "module", key: "team" },
+      { type: "route", label: "基礎資料設定", route: "/settings" },
+    ],
+  },
+  {
+    title: "日常作業",
+    items: [
+      { type: "module", key: "devotees" },
+      { type: "module", key: "shrines" },
+      { type: "module", key: "visits" },
+      { type: "module", key: "procurements" },
+      { type: "module", key: "ledger" },
+    ],
+  },
+  {
+    title: "對外發布",
+    items: [
+      { type: "module", key: "announcements" },
+      { type: "module", key: "events" },
+      { type: "module", key: "documents" },
+    ],
+  },
+  {
+    title: "系統維護",
+    items: [
+      { type: "route", label: "操作紀錄", route: "/settings" },
+      { type: "route", label: "測試資料狀態", route: "/settings" },
+    ],
+  },
+];
+
+const staffNavGroups: NavGroup[] = [
+  { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
+  {
+    title: "日常作業",
+    items: [
+      { type: "module", key: "devotees" },
+      { type: "module", key: "shrines" },
+      { type: "module", key: "visits" },
+      { type: "module", key: "procurements" },
+      { type: "module", key: "ledger" },
+    ],
+  },
+  {
+    title: "對外發布",
+    items: [
+      { type: "module", key: "announcements" },
+      { type: "module", key: "events" },
+      { type: "module", key: "documents" },
+    ],
+  },
+];
+
+const devoteeNavGroups: NavGroup[] = [
+  {
+    title: "對外資訊",
+    items: [
+      { type: "module", key: "announcements" },
+      { type: "module", key: "events" },
+    ],
+  },
+  {
+    title: "我的紀錄",
+    items: [
+      { type: "module", key: "devotees", label: "我的資料" },
+      { type: "placeholder", label: "我的參與紀錄", note: "未來開放" },
+      { type: "placeholder", label: "發財金紀錄", note: "未來開放" },
+    ],
+  },
+];
+
+function navGroupsForRole(role: UserRole) {
+  if (role === "admin") return adminNavGroups;
+  if (role === "staff") return staffNavGroups;
+  return devoteeNavGroups;
+}
+
+function moduleKeysForRole(role: UserRole) {
+  return new Set(
+    navGroupsForRole(role)
+      .flatMap((group) => group.items)
+      .filter((item): item is Extract<NavItem, { type: "module" }> => item.type === "module")
+      .map((item) => item.key),
+  );
+}
 
 export function AppShell() {
   const [role, setRole] = useState<UserRole>(mockUser.role);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const mainModules = modules.filter((moduleItem) => !["procurements", "documents"].includes(moduleItem.key));
-  const affairsModules = modules.filter((moduleItem) => ["procurements", "documents"].includes(moduleItem.key));
-  const canSeeSettings = canUseAdminSettings(role);
   const currentModule = modules.find((moduleItem) => location.pathname === moduleItem.route || location.pathname.startsWith(`${moduleItem.route}/`));
   const isModuleHome = currentModule ? location.pathname === currentModule.route : false;
   const canAddCurrentModule = Boolean(currentModule && isModuleHome && canEditDailyWork(role));
+  const visibleModuleKeys = moduleKeysForRole(role);
+  const canAddVisibleModule = Boolean(currentModule && visibleModuleKeys.has(currentModule.key));
+  const navGroups = navGroupsForRole(role);
 
   return (
     <RoleContext.Provider value={{ role, setRole }}>
@@ -34,27 +136,25 @@ export function AppShell() {
             ← 隱藏選單
           </button>
           <nav className="nav-list">
-            <div className="nav-group">
-              <span>常用</span>
-              <NavLink to="/dashboard">主控台</NavLink>
-              {canSeeSettings ? <NavLink to="/settings">管理者設定</NavLink> : null}
-            </div>
-            <div className="nav-group">
-              <span>日常作業</span>
-              {mainModules.map((moduleItem) => (
-                <NavLink key={moduleItem.key} to={moduleItem.route}>
-                  {moduleItem.title}
-                </NavLink>
-              ))}
-            </div>
-            <div className="nav-group">
-              <span>廟務文件</span>
-              {affairsModules.map((moduleItem) => (
-                <NavLink key={moduleItem.key} to={moduleItem.route}>
-                  {moduleItem.title}
-                </NavLink>
-              ))}
-            </div>
+            {navGroups.map((group) => (
+              <div className="nav-group" key={group.title}>
+                <span>{group.title}</span>
+                {group.items.map((item) => {
+                  if (item.type === "route") {
+                    if (item.route === "/settings" && !canUseAdminSettings(role)) return null;
+                    return <NavLink key={`${group.title}-${item.label}`} to={item.route}>{item.label}</NavLink>;
+                  }
+
+                  if (item.type === "placeholder") {
+                    return <span key={`${group.title}-${item.label}`} className="nav-placeholder">{item.label}<em>{item.note}</em></span>;
+                  }
+
+                  const moduleItem = findModuleByKey(item.key);
+                  if (!moduleItem) return null;
+                  return <NavLink key={`${group.title}-${item.key}-${item.label ?? moduleItem.title}`} to={moduleItem.route}>{item.label ?? moduleItem.title}</NavLink>;
+                })}
+              </div>
+            ))}
           </nav>
         </aside>
         ) : null}
@@ -76,7 +176,7 @@ export function AppShell() {
                   <p>{currentModule.description}</p>
                 </div>
               ) : null}
-              {canAddCurrentModule && currentModule ? (
+              {canAddCurrentModule && canAddVisibleModule && currentModule ? (
                 <Link to={`${currentModule.route}/new`} className="primary-action topbar-action">
                   {currentModule.addLabel}
                 </Link>

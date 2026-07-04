@@ -16,7 +16,7 @@ export function permissionLabel(role: UserRole) {
   const labels: Record<UserRole, string> = {
     admin: "管理者",
     staff: "廟方人員",
-    viewer: "檢視者",
+    viewer: "善信",
   };
 
   return labels[role];
@@ -25,8 +25,8 @@ export function permissionLabel(role: UserRole) {
 export function roleHelpText(role: UserRole) {
   const labels: Record<UserRole, string> = {
     admin: "可調整設定與處理高風險操作。",
-    staff: "可處理日常作業，管理者設定與停用封存需管理者確認。",
-    viewer: "以查看資料為主，無法編輯或停用。",
+    staff: "可處理被授權的日常作業與對外發布，停用封存需管理者確認。",
+    viewer: "可瀏覽對外資訊與本人相關紀錄，不進入內部廟務或帳務。",
   };
 
   return labels[role];

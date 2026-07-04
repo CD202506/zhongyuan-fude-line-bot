@@ -330,8 +330,8 @@ export function ModuleDetailPage() {
         <article className={`content-panel ${isEditing ? "editing-panel" : ""}`}>
           {role === "viewer" ? (
             <div className="permission-strip">
-              <strong>查看模式</strong>
-              <span>目前可瀏覽資料內容；如需修改請洽管理者或廟方人員。</span>
+              <strong>善信瀏覽</strong>
+              <span>目前可瀏覽對外資訊與本人相關紀錄；如需修改請洽廟方人員。</span>
             </div>
           ) : null}
           {feedback ? (
@@ -361,8 +361,8 @@ export function ModuleDetailPage() {
             <div className="info-grid">
               <div><span>狀態</span><strong className={actionMode === "draft" ? "inline-state" : ""}>{actionMode === "draft" ? "草稿暫存" : record.status}</strong></div>
               <div><span>日期</span><strong>{record.dateLabel}</strong></div>
-              <div><span>經手 / 負責</span><strong>{record.owner}</strong></div>
-              <div><span>模組邊界</span><strong>{moduleItem.boundary}</strong></div>
+              <div><span>承辦人員</span><strong>{record.owner}</strong></div>
+              <div><span>資料類型</span><strong>{moduleItem.boundary}</strong></div>
               {record.detailFields.map((field) => (
                 <div key={field.label}><span>{field.label}</span><strong>{field.value}</strong></div>
               ))}

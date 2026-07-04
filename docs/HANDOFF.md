@@ -152,6 +152,14 @@
 - 新增自動 smoke test 腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`。
 - 既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 - 下一階段建議進入 A24：針對第三方實測與廟方試用前的資料模型、權限與操作流程做整理，不急著接 LINE Bot。
+
+# 0.8.0A-24 handoff update
+
+- 依第三方測試回饋重整 Web 後台 IA、左側選單與使用者可見文字。
+- 角色顯示改為管理者、廟方人員、善信；原「檢視者」不再出現在畫面文字中。
+- 左側選單移除「廟務文件」分類：採購管理歸日常作業，公文 / 通知歸對外發布。
+- 管理者設定中的權限語意改為先選團隊成員，再授予初審、覆核、核准等模組權限標記；本階段不強制卡關。
+- 本輪未修改 Web Admin API、DB schema、Render / Vercel env、LINE Bot、Google Sheets、AppSheet 或 V1 runtime。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

@@ -49,6 +49,7 @@
 - `0.8.0A-20` PostgreSQL Runtime CRUD Support 進行中：`web_admin_api/` 新增 repository 層，保留 SQLite fallback，並加入 PostgreSQL records / audit CRUD runtime code。PostgreSQL staging 尚未建立，實際連線驗證留到 A21；Render / Vercel 未部署，V1 / Google Sheets / AppSheet / LINE Bot 仍不動。
 - `0.8.0A-22` Render Web Admin API Deployment 已完成：新的 Render Web Service `zhongyuan-fude-web-admin-api` 已部署，API URL 為 `https://zhongyuan-fude-web-admin-api.onrender.com`，`/api/health` 與 `/api/modules` 測試成功，Render API 已可使用 PostgreSQL staging。Vercel 前端測試站尚未切 API mode；下一步為 A23，等待使用者通知後再繼續。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
 - `0.8.0A-23` Vercel API Mode Deployment 已完成：固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已切到 API mode，呼叫 Render Web Admin API `https://zhongyuan-fude-web-admin-api.onrender.com`，並以 PostgreSQL staging 作為 Web Admin 測試資料庫。Render CORS 已放行 Vercel production origin；production browser submit、CRUD、封存與還原實測通過。新增自動 smoke test 腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`。既有 LINE Bot / Google Sheets / AppSheet / V1 runtime 未修改。
+- `0.8.0A-24` Third-party feedback based IA / navigation / wording refinement 進行中：依第三方回饋重整 Web 後台角色語意、左側選單分類與欄位文字；「檢視者」改為「善信」，移除「廟務文件」分類，採購歸日常作業，公文 / 通知歸對外發布，權限設定改為先選團隊成員再授權模組權限；初審、覆核、核准先作為紀錄與權限標記，不強制卡關。未修改 Web Admin API、DB schema、Render / Vercel env、LINE Bot、Google Sheets、AppSheet 或 V1 runtime。
 
 ## Current data source roles
 

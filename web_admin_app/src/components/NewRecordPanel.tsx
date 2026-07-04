@@ -20,9 +20,9 @@ type NewRecordPanelProps = {
 
 function submitErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
-    if (error.status === 422) return "API 驗證失敗，請確認必填資料。";
-    if (error.status >= 500) return "API 伺服器暫時無法處理，請稍後再試。";
-    return `API 回應失敗，狀態碼 ${error.status}。`;
+    if (error.status === 422) return "資料格式未通過，請確認必填資料。";
+    if (error.status >= 500) return "測試資料服務暫時無法處理，請稍後再試。";
+    return "資料服務回應失敗，請稍後再試。";
   }
 
   if (error instanceof TypeError) {
