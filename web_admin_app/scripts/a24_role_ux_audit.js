@@ -108,8 +108,9 @@ function auditLayout() {
   const styles = read("src/styles.css");
   const appShell = read("src/components/AppShell.tsx");
   assertIncludes(styles, ".app-shell.sidebar-open", "CSS 應明確處理選單展開狀態");
-  assertIncludes(styles, "grid-template-columns: 1fr;", "展開選單不應推擠主內容");
-  assertIncludes(styles, "position: fixed;", "展開選單應以抽屜方式呈現");
+  assertIncludes(styles, "grid-template-columns: 320px minmax(0, 1fr);", "桌機展開選單時主內容需配合 sidebar 寬度");
+  assertIncludes(styles, "position: fixed;", "手機展開選單應以抽屜方式呈現");
+  assertIncludes(styles, "position: sticky;", "桌機 sidebar 不應遮住主內容");
   assertIncludes(styles, "overflow-wrap: anywhere;", "標題需避免窄版直排或溢出");
   assertIncludes(appShell, "{!sidebarOpen ? (", "只有選單隱藏時才應顯示展開選單按鈕");
   assertIncludes(appShell, "navGroupsForRole(role)", "AppShell 應使用共用 navigation config");

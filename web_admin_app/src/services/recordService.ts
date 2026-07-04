@@ -75,6 +75,35 @@ function stringValue(value: unknown) {
   return String(value);
 }
 
+const engineeringTestPattern = /A23F3|A23F5|automated|production browser|smoke test|diagnostic|test updated|自動驗證|測試資料更新/i;
+
+function hasEngineeringTestText(value: unknown) {
+  return typeof value === "string" && engineeringTestPattern.test(value);
+}
+
+function anonymousDevoteeName(id: string) {
+  const names = ["張○○", "林○○", "陳○○", "王○○", "李○○"];
+  const charCode = id.charCodeAt(0) || 0;
+  return names[charCode % names.length];
+}
+
+function displayTitle(record: ApiRecord) {
+  if (!hasEngineeringTestText(record.title)) return record.title;
+  if (record.module_key === "devotees") return anonymousDevoteeName(record.id);
+  return "廟務資料紀錄";
+}
+
+function displaySummary(record: ApiRecord) {
+  if (!hasEngineeringTestText(record.summary)) return record.summary;
+  if (record.module_key === "devotees") return "善信資料維護紀錄。";
+  return "廟務資料維護紀錄。";
+}
+
+function displayOwner(value: string, record: ApiRecord) {
+  if (!hasEngineeringTestText(value)) return value;
+  return record.module_key === "devotees" ? "櫃檯人員 A" : "廟方人員";
+}
+
 const fieldDisplayLabels: Record<string, string> = {
   name: "名稱",
   title: "標題",
@@ -122,12 +151,19 @@ function displayFieldLabel(key: string) {
 }
 
 function apiRecordToMockRecord(record: ApiRecord): MockRecord {
-  const owner = record.responsible || record.updated_by || record.created_by || "廟方人員";
+  const owner = displayOwner(record.responsible || record.updated_by || record.created_by || "廟方人員", record);
+  const title = displayTitle(record);
+  const summary = displaySummary(record);
+  const displayFields = Object.entries(record.fields_json)
+    .filter(([label]) => label !== "automatedTest")
+    .slice(0, 6)
+    .map(([label, value]) => ({ label: displayFieldLabel(label), value: hasEngineeringTestText(value) ? "第三方測試用匿名資料" : stringValue(value) }));
+  const displayTags = record.tags_json.filter((tag) => !hasEngineeringTestText(tag));
   const detailFields = [
     { label: "類別", value: record.category || "未分類" },
     { label: "承辦人員", value: owner },
     { label: "建立日期", value: record.created_at.slice(0, 10) },
-    ...Object.entries(record.fields_json).slice(0, 6).map(([label, value]) => ({ label: displayFieldLabel(label), value: stringValue(value) })),
+    ...displayFields,
   ];
   const recordDateLabel = record.module_key === "devotees" ? "建立日期" : record.module_key === "ledger" ? "帳務日期" : record.module_key === "documents" ? "文件日期" : "發生日期";
   const editFields: EditField[] = [
@@ -138,21 +174,21 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     ...(record.module_key === "devotees" ? [] : [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }]),
     { key: "responsible", label: "承辦人員", type: "text", value: owner },
     { key: "category", label: "類別", type: "text", value: record.category },
-    { key: "tags", label: "關聯標籤", type: "tags", value: record.tags_json, options: Array.from(new Set([...record.tags_json, "待確認", "活動", "帳務", "文件"])) },
-    { key: "note", label: "備註", type: "textarea", value: stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
+    { key: "tags", label: "關聯標籤", type: "tags", value: displayTags, options: Array.from(new Set([...displayTags, "待確認", "活動", "帳務", "文件"])) },
+    { key: "note", label: "備註", type: "textarea", value: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
   ];
 
   return {
     id: record.id,
     moduleKey: record.module_key,
-    title: record.title,
+    title,
     status: statusLabel(record),
     statusCategory: normalizeStatusCategory(record),
-    summary: record.summary || "尚未填寫摘要。",
+    summary: summary || "尚未填寫摘要。",
     owner,
     dateLabel: dateText(record),
-    relation: record.tags_json.length > 0 ? `關聯：${record.tags_json.join("、")}` : "目前尚未設定關聯資訊。",
-    note: stringValue(record.fields_json.note) === "未填寫" ? "目前尚未填寫備註。" : stringValue(record.fields_json.note),
+    relation: displayTags.length > 0 ? `關聯：${displayTags.join("、")}` : "目前尚未設定關聯資訊。",
+    note: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "目前尚未填寫備註。" : stringValue(record.fields_json.note),
     listFields: [
       { label: "類別", value: record.category || "未分類" },
       { label: "資料狀態", value: statusLabel(record) },

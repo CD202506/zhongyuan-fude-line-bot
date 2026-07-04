@@ -3,7 +3,7 @@
 const apiBaseUrl = "https://zhongyuan-fude-web-admin-api.onrender.com";
 const productionOrigin = "https://zhongyuan-fude-web-admin-test.vercel.app";
 const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "");
-const title = `A23F5 production browser test ${timestamp}`;
+const title = "陳○○";
 
 function assert(condition, message) {
   if (!condition) {
@@ -39,17 +39,19 @@ async function postRecord() {
     body: JSON.stringify({
       module_key: "devotees",
       title,
-      summary: "A23F5 production browser submit diagnostic",
+      summary: "善信資料維護確認",
       status: "active",
-      responsible: "A23F5 diagnostic",
+      responsible: "櫃檯人員 A",
       category: "一般善信",
       fields_json: {
         authorization: "待確認",
-        note: "A23F5 production browser submit diagnostic",
+        note: "第三方測試用匿名資料",
+        automatedTest: true,
+        testRun: timestamp,
       },
-      tags_json: ["A23F5"],
+      tags_json: ["發財金"],
       actor_role: "admin",
-      actor_name: "A23F5 diagnostic",
+      actor_name: "系統檢查",
     }),
   });
 

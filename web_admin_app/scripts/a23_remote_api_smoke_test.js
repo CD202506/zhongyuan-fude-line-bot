@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 const apiBaseUrl = "https://zhongyuan-fude-web-admin-api.onrender.com";
 const frontendUrl = "https://zhongyuan-fude-web-admin-test.vercel.app";
 const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, "");
-const title = `A23F3 自動驗證善信資料 ${timestamp}`;
-const updatedTitle = `A23F3 自動驗證善信資料更新 ${timestamp}`;
+const title = "張○○";
+const updatedTitle = "林○○";
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function assert(condition, message) {
@@ -65,19 +65,21 @@ async function main() {
   const payload = {
     module_key: "devotees",
     title,
-    summary: "A23F3 automated test",
+    summary: "發財金領取紀錄確認",
     status: "active",
     responsible: "櫃檯人員 A",
     category: "一般善信",
     fields_json: {
       name: title,
       authorization: "待確認",
-      services: ["發財金"],
-      note: "A23F3 自動驗證",
+      services: ["發財金領取"],
+      note: "第三方測試用匿名資料",
+      automatedTest: true,
+      testRun: timestamp,
     },
-    tags_json: ["A23F3", "發財金"],
+    tags_json: ["發財金"],
     actor_role: "admin",
-    actor_name: "A23F3 automated test",
+    actor_name: "系統檢查",
   };
 
   const created = await request("/api/records", {
@@ -99,15 +101,18 @@ async function main() {
     method: "PATCH",
     body: JSON.stringify({
       title: updatedTitle,
-      summary: "A23F3 automated test updated",
+      summary: "善信資料維護確認",
       status: "active",
       fields_json: {
         ...detail.fields_json,
         name: updatedTitle,
         authorization: "已確認",
+        note: "第三方測試用匿名資料",
+        automatedTest: true,
+        testRun: timestamp,
       },
       actor_role: "admin",
-      actor_name: "A23F3 automated test",
+      actor_name: "系統檢查",
     }),
   });
   assert(updated.title === updatedTitle, "updated title should be persisted");
@@ -119,7 +124,7 @@ async function main() {
     method: "POST",
     body: JSON.stringify({
       actor_role: "admin",
-      actor_name: "A23F3 automated test",
+      actor_name: "系統檢查",
     }),
   });
   assert(archived.is_archived === true, "archive should set is_archived");
@@ -132,7 +137,7 @@ async function main() {
     body: JSON.stringify({
       status: "active",
       actor_role: "admin",
-      actor_name: "A23F3 automated test",
+      actor_name: "系統檢查",
     }),
   });
   assert(restored.is_archived === false, "restore should clear is_archived");

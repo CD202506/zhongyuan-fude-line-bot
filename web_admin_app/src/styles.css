@@ -951,8 +951,18 @@ button {
 }
 
 @media (min-width: 760px) {
+  .app-shell.sidebar-open {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
   .sidebar {
+    position: sticky;
+    inset: auto;
+    top: 0;
+    z-index: 1;
     width: 320px;
+    height: 100vh;
+    box-shadow: none;
   }
 
   .nav-list {
