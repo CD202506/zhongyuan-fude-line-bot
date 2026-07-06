@@ -4,6 +4,7 @@ import type { EditField, MockRecord } from "../data/mockRecords";
 import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
+import { assigneeSemantics, categorySemantics, fieldPolicyFor, tagSemantics } from "../lib/domainModel";
 
 export type FormValues = Record<string, string | string[]>;
 export type StatusFilter = "active" | "archived" | "all";
@@ -111,7 +112,7 @@ const fieldDisplayLabels: Record<string, string> = {
   category: "類別",
   authorization: "授權狀態",
   services: "服務紀錄",
-  handler: "承辦人員",
+  handler: "資料維護人員",
   contact: "聯繫方式",
   contactPerson: "聯絡人",
   phone: "聯絡電話",
@@ -139,6 +140,16 @@ const fieldDisplayLabels: Record<string, string> = {
   fortuneMoneyNote: "發財金備註",
   quantity: "數量",
   itemName: "品項",
+  sourceRecord: "來源資料",
+  publicSummary: "公開內容",
+  internalNote: "內部備註",
+  audience: "可見對象",
+  publishingPlan: "發布整理",
+  processStatus: "處理狀態",
+  purpose: "需求用途",
+  mainWindow: "主要聯絡窗口",
+  lineBinding: "LINE 綁定狀態示意",
+  enabled: "是否啟用",
   date: "日期",
   recordDate: "發生日期",
   dueDate: "預計完成日",
@@ -151,6 +162,7 @@ function displayFieldLabel(key: string) {
 }
 
 function apiRecordToMockRecord(record: ApiRecord): MockRecord {
+  const policy = fieldPolicyFor(record.module_key);
   const owner = displayOwner(record.responsible || record.updated_by || record.created_by || "廟方人員", record);
   const title = displayTitle(record);
   const summary = displaySummary(record);
@@ -160,23 +172,28 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     .map(([label, value]) => ({ label: displayFieldLabel(label), value: hasEngineeringTestText(value) ? "第三方測試用匿名資料" : stringValue(value) }));
   const displayTags = record.tags_json.filter((tag) => !hasEngineeringTestText(tag));
   const detailFields = [
-    { label: "類別", value: record.category || "未分類" },
-    { label: "承辦人員", value: owner },
-    { label: "建立日期", value: record.created_at.slice(0, 10) },
+    ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
+    ...(policy.showAssignee ? [{ label: policy.ownerLabel, value: owner }] : []),
+    { label: policy.dateLabel, value: dateText(record) },
     ...displayFields,
   ];
-  const recordDateLabel = record.module_key === "devotees" ? "建立日期" : record.module_key === "ledger" ? "帳務日期" : record.module_key === "documents" ? "文件日期" : "發生日期";
+  const categoryOptions = categorySemantics.moduleCategories[record.module_key];
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
     { key: "summary", label: "摘要", type: "textarea", value: record.summary },
     { key: "status", label: "資料狀態", type: "select", value: statusLabel(record), options: ["使用中", "待確認", "草稿", "已停用", "已封存"] },
-    { key: "recordDate", label: recordDateLabel, type: "date", value: record.record_date ?? "" },
-    ...(record.module_key === "devotees" ? [] : [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }]),
-    { key: "responsible", label: "承辦人員", type: "text", value: owner },
-    { key: "category", label: "類別", type: "text", value: record.category },
-    { key: "tags", label: "關聯標籤", type: "tags", value: displayTags, options: Array.from(new Set([...displayTags, "待確認", "活動", "帳務", "文件"])) },
+    { key: "recordDate", label: policy.dateLabel, type: "date", value: record.record_date ?? "" },
+    ...(policy.showDueDate ? [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }] : []),
+    ...(policy.showAssignee ? [{ key: "responsible", label: policy.ownerLabel, type: "select" as const, value: owner, options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note }] : []),
+    ...(policy.showCategory ? [{ key: "category", label: policy.categoryLabel ?? "類別", type: "select" as const, value: record.category || categoryOptions[0], options: categoryOptions, help: categorySemantics.note }] : []),
+    ...(policy.showTags ? [{ key: "tags", label: "輔助標籤", type: "tags" as const, value: displayTags, options: Array.from(new Set([...displayTags, ...tagSemantics.commonTags])), help: tagSemantics.note }] : []),
     { key: "note", label: "備註", type: "textarea", value: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
   ];
+  const listFields = [
+    ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
+    { label: "資料狀態", value: statusLabel(record) },
+    { label: "更新", value: record.updated_at.slice(0, 10) },
+  ].slice(0, 3);
 
   return {
     id: record.id,
@@ -189,11 +206,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     dateLabel: dateText(record),
     relation: displayTags.length > 0 ? `關聯：${displayTags.join("、")}` : "目前尚未設定關聯資訊。",
     note: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "目前尚未填寫備註。" : stringValue(record.fields_json.note),
-    listFields: [
-      { label: "類別", value: record.category || "未分類" },
-      { label: "資料狀態", value: statusLabel(record) },
-      { label: "更新", value: record.updated_at.slice(0, 10) },
-    ],
+    listFields,
     detailFields,
     editFields,
   };

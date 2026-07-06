@@ -6,15 +6,37 @@ import { DetailActionMode, DetailActionPanel } from "../components/DetailActionP
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { identityForRole, identityRuntime, lineBindingLabel } from "../lib/identity";
+import { assigneeSemantics, categorySemantics, publishingSemantics, tagSemantics } from "../lib/domainModel";
 
 const settings = [
-  "權限設定",
-  "團隊成員權限",
-  "基礎資料設定",
-  "發布管道設定",
-  "帳務分類設定",
-  "資料狀態",
-  "操作紀錄",
+  {
+    title: "權限設定",
+    body: "先選擇團隊成員，再授予不同模組的初審、覆核或核准權限標記。",
+  },
+  {
+    title: "類別管理",
+    body: categorySemantics.note,
+  },
+  {
+    title: "標籤管理",
+    body: tagSemantics.note,
+  },
+  {
+    title: "承辦與權限",
+    body: assigneeSemantics.note,
+  },
+  {
+    title: "發布管道管理",
+    body: "網站、LINE 官方帳號、LINE VOOM、Facebook、公告欄列印與內部備查先作為前端選項，不真正發布。",
+  },
+  {
+    title: "可見權限",
+    body: "發布內容可標示公開、善信、廟方人員、管理者、指定團隊成員或內部備查。",
+  },
+  {
+    title: "操作紀錄",
+    body: "記錄新增、編輯、封存、還原與審核標記，供後續治理使用。",
+  },
 ];
 
 export function SettingsPage() {
@@ -93,12 +115,26 @@ export function SettingsPage() {
 
       <section className="settings-grid">
         {settings.map((item) => (
-          <article key={item} className="setting-card">
-            <strong>{item}</strong>
-            <p>{item.includes("權限") ? "先選擇團隊成員，再授予不同作業的初審、覆核或核准權限標記。" : "可進入調整。"}</p>
+          <article key={item.title} className="setting-card">
+            <strong>{item.title}</strong>
+            <p>{item.body}</p>
             <button type="button">管理</button>
           </article>
         ))}
+      </section>
+
+      <section className="content-panel">
+        <div className="section-heading">
+          <h3>內容發布模型</h3>
+          <span>前端準備</span>
+        </div>
+        <div className="status-box">
+          <span>{publishingSemantics.sourceNote}</span>
+          <span>發布類別：{publishingSemantics.categories.join("、")}。</span>
+          <span>發布管道：{publishingSemantics.channels.join("、")}。</span>
+          <span>可見對象：{publishingSemantics.audiences.join("、")}。</span>
+          <span>本輪只整理前端語意，不會真正發布到 LINE、VOOM、網站或 Facebook。</span>
+        </div>
       </section>
 
       <section className="content-panel identity-note">

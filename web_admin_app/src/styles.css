@@ -206,6 +206,9 @@ button {
 }
 
 .main-content {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 18px;
 }
 
@@ -1002,17 +1005,20 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 18px;
   }
 
   .topbar-main {
+    flex: 1 1 620px;
     grid-template-columns: auto minmax(220px, 1fr) auto;
     align-items: center;
     column-gap: 16px;
   }
 
   .topbar-role {
-    min-width: 360px;
+    flex: 0 1 420px;
+    min-width: min(100%, 340px);
   }
 
   .hero-panel,
@@ -1032,7 +1038,7 @@ button {
 
   .two-column,
   .detail-layout {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   }
 
   .detail-layout.viewer-layout {

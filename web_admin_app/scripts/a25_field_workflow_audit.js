@@ -60,14 +60,14 @@ function auditNewRecordFields() {
   const ledger = sectionBetween(fields, "  ledger: [", "};");
 
   includes(devotees, "建立日期", "善信新增需有建立日期");
-  includes(devotees, "用來標記此善信是否允許查詢本人相關紀錄。", "善信授權狀態需有用途說明");
-  for (const expected of ["是否領取發財金", "領取日期", "是否繳回", "繳回日期", "發財金備註", "關聯資訊"]) {
+  includes(devotees, "標記善信是否可查詢本人相關紀錄。", "善信授權狀態需有用途說明");
+  for (const expected of ["是否領取發財金", "領取日期", "是否繳回", "繳回日期", "發財金備註", "相關紀錄"]) {
     includes(devotees, expected, `善信新增缺少 ${expected}`);
   }
   excludes(devotees, "預計完成日", "善信新增不應有期限或預計完成日");
   excludes(devotees, "dueDate", "善信新增不應送出 dueDate");
 
-  for (const expected of ["廟務類別", "承辦人員", "預計完成日", "處理狀態", "待處理", "處理中", "已完成", "暫緩"]) {
+  for (const expected of ["廟務類別", "承辦人員", "預計完成日", "處理狀態", "stateSemantics.processStatuses"]) {
     includes(templeAffairs, expected, `廟務管理缺少 ${expected}`);
   }
 
@@ -79,7 +79,7 @@ function auditNewRecordFields() {
     includes(ledger, expected, `帳務管理缺少 ${expected}`);
   }
 
-  includes(documents, "文件日期", "公文 / 通知需有文件日期");
+  includes(documents, "文件日期", "公文紀錄需有文件日期");
 
   for (const expected of ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員", "其他"]) {
     includes(team, expected, `團隊管理職稱缺少 ${expected}`);
@@ -94,7 +94,7 @@ function auditMockAndApiDisplay() {
     includes(mockRecords, expected, `demo / 詳情資料缺少 ${expected}`);
   }
 
-  includes(recordService, 'record.module_key === "devotees" ? []', "API mode 善信編輯不應顯示預計完成日");
+  includes(recordService, "policy.showDueDate", "API mode 需依模組 policy 決定是否顯示預計完成日");
   includes(recordService, 'label: "資料狀態"', "API mode 列表應顯示資料狀態");
   for (const expected of ["fortuneMoneyReceived", "fortuneMoneyReturned", "contactMethod", "quantity", "itemName"]) {
     includes(recordService, expected, `API mode 欄位中文轉換缺少 ${expected}`);

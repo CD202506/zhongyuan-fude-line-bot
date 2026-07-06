@@ -6,6 +6,7 @@ import { useRole } from "../lib/roleContext";
 import type { ModuleKey } from "../data/modules";
 import { apiConnectionErrorMessage, listRecords, type StatusFilter } from "../services/recordService";
 import type { MockRecord } from "../data/mockRecords";
+import { fieldPolicyFor } from "../lib/domainModel";
 
 type ListRouteState = {
   notice?: string;
@@ -33,6 +34,7 @@ export function ModuleListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const moduleItem = modules.find((item) => item.route === location.pathname) ?? modules[0];
+  const fieldPolicy = fieldPolicyFor(moduleItem.key);
   const effectiveStatusFilter = role === "viewer" ? "active" : statusFilter;
   const routeState = location.state as ListRouteState | null;
 
@@ -127,7 +129,8 @@ export function ModuleListPage() {
                   </span>
                 ))}
                 <span>
-                  <b>日期 / 承辦</b>{record.dateLabel} / {record.owner}
+                  <b>{fieldPolicy.dateLabel}{fieldPolicy.showAssignee ? ` / ${fieldPolicy.ownerLabel}` : ""}</b>
+                  {record.dateLabel}{fieldPolicy.showAssignee ? ` / ${record.owner}` : ""}
                 </span>
               </div>
               <Link to={`${moduleItem.route}/${record.id}`} className="detail-link">

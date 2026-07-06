@@ -35,21 +35,22 @@ function sliceFromTo(source, startMarker, endMarker) {
 function auditNavigation() {
   const navigation = read("src/lib/navigation.ts");
 
-  for (const expected of ["管理設定", "權限設定", 'key: "team"', "日常作業", "對外發布", "系統維護"]) {
+  for (const expected of ["資料主檔", "權限設定", 'key: "team"', "內部作業", "內容發布", "權限與系統治理"]) {
     assertIncludes(navigation, expected, `管理者選單缺少 ${expected}`);
   }
 
   const staffSection = navigation.slice(navigation.indexOf("const staffNavGroups"), navigation.indexOf("const devoteeNavGroups"));
-  assertIncludes(staffSection, "日常作業", "廟方人員選單缺少日常作業");
-  assertIncludes(staffSection, "對外發布", "廟方人員選單缺少對外發布");
+  assertIncludes(staffSection, "資料主檔", "廟方人員選單缺少資料主檔");
+  assertIncludes(staffSection, "內部作業", "廟方人員選單缺少內部作業");
+  assertIncludes(staffSection, "內容發布", "廟方人員選單缺少內容發布");
   assertNotIncludes(staffSection, "權限設定", "廟方人員不應有權限設定主入口");
-  assertNotIncludes(staffSection, "系統維護", "廟方人員不應有系統維護主入口");
+  assertNotIncludes(staffSection, "權限與系統治理", "廟方人員不應有系統治理主入口");
 
   const devoteeSection = navigation.slice(navigation.indexOf("const devoteeNavGroups"));
-  for (const expected of ["對外資訊", "個人資訊", 'key: "announcements"', 'key: "events"', "我的資料"]) {
+  for (const expected of ["對外資訊", "我的資料", 'key: "announcements"']) {
     assertIncludes(devoteeSection, expected, `善信選單缺少 ${expected}`);
   }
-  for (const forbidden of ["procurements", "ledger", "team", "documents", "權限設定", "系統維護", "我的參與紀錄", "發財金紀錄", "未來開放"]) {
+  for (const forbidden of ["procurements", "ledger", "team", "documents", "權限設定", "權限與系統治理", "我的參與紀錄", "發財金紀錄", "未來開放"]) {
     assertNotIncludes(devoteeSection, forbidden, `善信選單不應包含 ${forbidden}`);
   }
 }
@@ -57,7 +58,7 @@ function auditNavigation() {
 function auditDashboard() {
   const dashboard = read("src/routes/DashboardPage.tsx");
   assertIncludes(dashboard, 'if (role === "viewer")', "Dashboard 應有善信專屬分支");
-  assertIncludes(dashboard, "可瀏覽對外公告與活動，不進入內部廟務或帳務；個人紀錄功能將於後續版本整理。", "善信 Dashboard 應說明對外與本人紀錄範圍");
+  assertIncludes(dashboard, "可瀏覽對外公告 / 活動等公開內容，不進入內部廟務、採購、帳務或權限設定；個人紀錄功能將於後續版本整理。", "善信 Dashboard 應說明對外與本人紀錄範圍");
   assertNotIncludes(dashboard, "user-card", "Dashboard 不應重複顯示角色卡片，角色資訊由 AppShell 統一呈現");
   assertNotIncludes(dashboard, "目前角色：", "Dashboard 不應重複顯示目前角色");
 
@@ -65,7 +66,7 @@ function auditDashboard() {
   for (const forbidden of ["友宮數", "近期來訪", "待處理請帖", "採購待確認", "待整理公文", "帳務草稿", "維運提醒", "模組入口", "服務入口"]) {
     assertNotIncludes(devoteeBranch, forbidden, `善信 Dashboard 不應包含 ${forbidden}`);
   }
-  for (const expected of ["最新公告", "近期活動", "我的資料", "公告與活動", "我的紀錄"]) {
+  for (const expected of ["最新公告", "近期活動", "我的資料", "公告 / 活動", "我的紀錄"]) {
     assertIncludes(devoteeBranch, expected, `善信 Dashboard 缺少 ${expected}`);
   }
 }

@@ -13,34 +13,36 @@ export type NavGroup = {
 const adminNavGroups: NavGroup[] = [
   { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
   {
-    title: "管理設定",
+    title: "資料主檔",
     items: [
-      { type: "route", label: "權限設定", route: "/settings" },
+      { type: "module", key: "devotees" },
+      { type: "module", key: "shrines" },
       { type: "module", key: "team" },
       { type: "route", label: "基礎資料設定", route: "/settings" },
     ],
   },
   {
-    title: "日常作業",
+    title: "內部作業",
     items: [
-      { type: "module", key: "devotees" },
-      { type: "module", key: "shrines" },
       { type: "module", key: "visits" },
       { type: "module", key: "procurements" },
       { type: "module", key: "ledger" },
-    ],
-  },
-  {
-    title: "對外發布",
-    items: [
-      { type: "module", key: "announcements" },
-      { type: "module", key: "events" },
       { type: "module", key: "documents" },
     ],
   },
   {
-    title: "系統維護",
+    title: "內容發布",
     items: [
+      { type: "module", key: "announcements", label: "發布內容" },
+      { type: "module", key: "events", label: "活動消息" },
+      { type: "route", label: "發布管道", route: "/settings" },
+      { type: "route", label: "類別 / 標籤", route: "/settings" },
+    ],
+  },
+  {
+    title: "權限與系統治理",
+    items: [
+      { type: "route", label: "權限設定", route: "/settings" },
       { type: "route", label: "操作紀錄", route: "/settings" },
       { type: "route", label: "測試資料狀態", route: "/settings" },
     ],
@@ -50,21 +52,25 @@ const adminNavGroups: NavGroup[] = [
 const staffNavGroups: NavGroup[] = [
   { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
   {
-    title: "日常作業",
+    title: "資料主檔",
     items: [
       { type: "module", key: "devotees" },
       { type: "module", key: "shrines" },
+    ],
+  },
+  {
+    title: "內部作業",
+    items: [
       { type: "module", key: "visits" },
       { type: "module", key: "procurements" },
       { type: "module", key: "ledger" },
     ],
   },
   {
-    title: "對外發布",
+    title: "內容發布",
     items: [
-      { type: "module", key: "announcements" },
-      { type: "module", key: "events" },
-      { type: "module", key: "documents" },
+      { type: "module", key: "announcements", label: "發布內容" },
+      { type: "module", key: "events", label: "活動消息" },
     ],
   },
 ];
@@ -73,12 +79,11 @@ const devoteeNavGroups: NavGroup[] = [
   {
     title: "對外資訊",
     items: [
-      { type: "module", key: "announcements" },
-      { type: "module", key: "events" },
+      { type: "module", key: "announcements", label: "公告 / 活動" },
     ],
   },
   {
-    title: "個人資訊",
+    title: "我的資料",
     items: [{ type: "module", key: "devotees", label: "我的資料" }],
   },
 ];

@@ -26,7 +26,7 @@ export function DashboardPage() {
           <div>
           <span className="eyebrow">中原福德宮 Web 後台</span>
           <h2>善信服務</h2>
-          <p>可瀏覽對外公告與活動，不進入內部廟務或帳務；個人紀錄功能將於後續版本整理。</p>
+          <p>可瀏覽對外公告 / 活動等公開內容，不進入內部廟務、採購、帳務或權限設定；個人紀錄功能將於後續版本整理。</p>
           <p className="identity-inline-note">目前測試身份：善信。正式版會依登入帳號或 LINE 綁定身份顯示本人資料。</p>
         </div>
       </section>
@@ -39,7 +39,7 @@ export function DashboardPage() {
 
         <section className="content-panel">
           <div className="section-heading">
-            <h3>公告與活動</h3>
+            <h3>公告 / 活動</h3>
             <span>公開資訊</span>
           </div>
           <div className="record-list compact">
@@ -74,7 +74,7 @@ export function DashboardPage() {
         <div>
           <span className="eyebrow">中原福德宮 Web 後台</span>
           <h2>{role === "admin" ? "日常總覽" : "廟方作業"}</h2>
-          <p>{role === "admin" ? "今日待確認、近期來訪、公告活動與帳務草稿集中查看。" : "來訪請帖、公告活動與日常作業集中查看。"}</p>
+          <p>{role === "admin" ? "今日待確認、近期來訪、發布草稿與帳務草稿集中查看。" : "來訪請帖、發布草稿與日常作業集中查看。"}</p>
         </div>
       </section>
 
@@ -82,10 +82,10 @@ export function DashboardPage() {
         {role === "admin" ? <SummaryCard label="友宮數" value={countByModule("shrines")} note="友宮主檔" /> : null}
         <SummaryCard label="近期來訪" value={countByModule("visits")} note="待確認" />
         <SummaryCard label="待處理請帖" value="2" note="待回覆" />
-        <SummaryCard label="公告草稿" value={countByModule("announcements")} note="待發布" />
-        <SummaryCard label="本月活動" value={countByModule("events")} note="籌備中" />
+        <SummaryCard label="發布草稿" value={countByModule("announcements")} note="待確認" />
+        <SummaryCard label="活動消息" value={countByModule("events")} note="發布準備" />
         <SummaryCard label="採購待確認" value={countByModule("procurements")} note="需驗收與對帳" />
-        {role === "admin" ? <SummaryCard label="待整理公文" value={countByModule("documents")} note="文件紀錄" /> : null}
+        {role === "admin" ? <SummaryCard label="待整理公文" value={countByModule("documents")} note="內部文件" /> : null}
         {role === "admin" ? <SummaryCard label="帳務草稿" value={countByModule("ledger")} note="內部帳務" /> : null}
       </section>
 
@@ -122,8 +122,8 @@ export function DashboardPage() {
       <section className="two-column">
         <article className="content-panel">
           <div className="section-heading">
-            <h3>近期活動</h3>
-            <span>近期廟務動態</span>
+            <h3>近期資料</h3>
+            <span>內部作業與發布準備</span>
           </div>
           <div className="record-list compact">
             {visibleRecords.slice(0, 5).map((record) => (
