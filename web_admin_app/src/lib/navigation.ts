@@ -33,12 +33,12 @@ const adminNavGroups: NavGroup[] = [
   {
     title: "管理者設定",
     items: [
-      { type: "module", key: "team" },
+      { type: "route", label: "團隊管理", route: "/settings?section=team" },
       { type: "route", label: "權限設定", route: "/settings?section=permissions" },
-      { type: "route", label: "類別 / 標籤", route: "/settings?section=categories" },
+      { type: "route", label: "類別 / 標籤", route: "/settings?section=categories-tags" },
       { type: "route", label: "基礎資料設定", route: "/settings?section=basic-data" },
-      { type: "route", label: "發布管道設定", route: "/settings?section=publishing-channels" },
-      { type: "route", label: "操作紀錄", route: "/settings?section=audit" },
+      { type: "route", label: "發布管道設定", route: "/settings?section=publish-channels" },
+      { type: "route", label: "操作紀錄", route: "/settings?section=audit-log" },
     ],
   },
 ];

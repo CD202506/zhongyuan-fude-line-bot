@@ -64,7 +64,7 @@ function auditNavigation() {
   }
 
   const adminSettings = admin.slice(admin.indexOf('title: "管理者設定"'));
-  for (const expected of ["team", "權限設定", "類別 / 標籤", "基礎資料設定", "發布管道設定", "操作紀錄"]) {
+  for (const expected of ["團隊管理", "權限設定", "類別 / 標籤", "基礎資料設定", "發布管道設定", "操作紀錄"]) {
     includes(adminSettings, expected, `管理者設定缺少 ${expected}`);
   }
 
@@ -77,10 +77,10 @@ function auditSettingsRoutes() {
   const settings = read("src/routes/SettingsPage.tsx");
   for (const expected of [
     'route: "/settings?section=permissions"',
-    'route: "/settings?section=categories"',
+    'route: "/settings?section=categories-tags"',
     'route: "/settings?section=basic-data"',
-    'route: "/settings?section=publishing-channels"',
-    'route: "/settings?section=audit"',
+    'route: "/settings?section=publish-channels"',
+    'route: "/settings?section=audit-log"',
     "<Link to={item.route}",
     'className="setting-action"',
   ]) {

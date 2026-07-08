@@ -35,7 +35,7 @@ function sliceFromTo(source, startMarker, endMarker) {
 function auditNavigation() {
   const navigation = read("src/lib/navigation.ts");
 
-  for (const expected of ["常用", "日常作業", "對外發布", "管理者設定", "權限設定", 'key: "team"']) {
+  for (const expected of ["常用", "日常作業", "對外發布", "管理者設定", "權限設定", "團隊管理"]) {
     assertIncludes(navigation, expected, `管理者選單缺少 ${expected}`);
   }
 
