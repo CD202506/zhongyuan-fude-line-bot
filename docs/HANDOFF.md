@@ -175,6 +175,20 @@
 - 已確認未修改：既有 LINE Bot runtime / webhook、Google Sheets、AppSheet、DB schema、Render / Vercel env；未新增 DELETE，未放正式個資或真實 LINE userId。
 - 暫停點：使用者要求補齊文件後先暫停，等待後續通知再進入 A27。
 - A27 建議方向：LINE 帳號綁定流程設計與測試環境串接評估。開始前需先確認採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
+
+# 0.8.0A-26.5 handoff update
+
+- A26.5 已完成並推送，最新 commit：`2271be2 feat: refine web admin domain field model`。
+- 本階段將 Web Admin 前端語意收斂為資料主檔、內部作業、內容發布、權限治理。
+- 新增 `web_admin_app/src/lib/domainModel.ts`，集中定義 module domain type、類別、標籤、承辦人員、發布管道、可見對象與狀態語意。
+- 資料主檔已避免濫用內部作業欄位：團隊管理、善信管理、友宮管理不再像任務單。
+- 內容發布已從公告 / 活動個別 CRUD 語意，整理為來源資料、發布類別、發布管道、可見對象、公開內容與內部備註。
+- 管理者設定已補強類別管理、標籤管理、承辦與權限、發布管道管理、可見權限。
+- 新增 `web_admin_app/scripts/a265_domain_model_audit.js`，並維持 A23～A26 既有 smoke test / audit 通過。
+- 本階段未修改 Web Admin API、DB schema、Render / Vercel env、LINE Bot runtime / webhook、Google Sheets、AppSheet 或 `web_admin_mvp/`。
+- 尚未做真實登入、LINE Login、LIFF、OAuth、正式發布到 LINE / VOOM / Facebook，也未新增 DELETE。
+- 暫停點：目前停在 A26.5 完成後，等待使用者通知再進入 A27。
+- A27 前需先確認：採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

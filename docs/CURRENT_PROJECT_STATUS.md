@@ -52,19 +52,21 @@
 - `0.8.0A-24` Third-party feedback based IA / navigation / wording refinement 進行中：依第三方回饋重整 Web 後台角色語意、左側選單分類與欄位文字；「檢視者」改為「善信」，移除「廟務文件」分類，採購歸日常作業，公文 / 通知歸對外發布，權限設定改為先選團隊成員再授權模組權限；初審、覆核、核准先作為紀錄與權限標記，不強制卡關。未修改 Web Admin API、DB schema、Render / Vercel env、LINE Bot、Google Sheets、AppSheet 或 V1 runtime。
 - `0.8.0A-25` Field wording and workflow consistency 已完成：依第三方測試資料修正欄位語意與流程文字，善信、廟務、友宮、帳務、公文 / 通知、團隊管理等欄位已細修；刪除需求改為封存 / 作廢語意；清理工程測試資料顯示並修正 sidebar RWD。新增 `web_admin_app/scripts/a25_field_workflow_audit.js` 與 `web_admin_app/scripts/a25_display_layout_audit.js`。
 - `0.8.0A-26` Identity-aware access preparation 已完成並暫停：右上角角色切換已改為明確「測試角色切換」；`web_admin_app/` 已建立 identity-aware 前端 mock model，預留 userId、團隊成員、善信、LINE 綁定、模組權限與初審 / 覆核 / 核准標記；管理者設定補強「先團隊成員，再授權」語意。LINE 綁定目前只做前端示意，未做真實登入、LINE Login、LIFF 或 OAuth，未接正式 LINE Bot。最新 commit：`44a7ee3 feat: add identity-aware access preparation`。
+- `0.8.0A-26.5` Cross-module field model and publishing boundary refinement 已完成並推送：建立 `web_admin_app/src/lib/domainModel.ts`，將 Web Admin 前端語意收斂為資料主檔、內部作業、內容發布、權限治理；清理資料主檔不適合的預計完成日、通用標籤與承辦欄位；公告 / 活動改以內容發布、來源資料、發布類別、發布管道與可見對象表達；管理者設定補強類別、標籤、承辦權限、發布管道與可見權限。新增 `web_admin_app/scripts/a265_domain_model_audit.js`。最新 commit：`2271be2 feat: refine web admin domain field model`。
 
-## A26 identity-aware access preparation completed / paused checkpoint
+## A26.5 cross-module field model completed / paused checkpoint
 
 - Frontend：Vercel Web Admin test site，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app`。
 - Backend：Render Web Admin API，API URL `https://zhongyuan-fude-web-admin-api.onrender.com`。
 - Database：PostgreSQL staging，作為 Web Admin 測試資料庫。
-- V1 LINE Bot：仍維持原正式服務，不受 A23～A26 影響。
+- V1 LINE Bot：仍維持原正式服務，不受 A23～A26.5 影響。
 - Google Sheets / AppSheet：未修改。
 - A23 已完成固定測試網址 API mode、Render API / PostgreSQL staging 串接、CRUD、封存 / 還原、production CORS 與自動 smoke test。
 - A24 已完成第三方回饋導向的角色、左側選單、Dashboard、UX / IA 重整；角色語意為管理者、廟方人員、善信。
 - A25 已完成欄位語意、流程文字、封存 / 作廢語意、工程測試資料顯示清理與 sidebar RWD 修正。
 - A26 已完成前端身份模型與 LINE 綁定準備語意；使用者已確認 A26 畫面 OK。
-- 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`。
+- A26.5 已完成跨模組欄位模型、類別 / 標籤 / 承辦 / 發布邊界收斂，讓前端不再只是通用資料表 CRUD。
+- 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`。
 - 已確認未做：真實登入、LINE Login / LIFF / OAuth、LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema 修改、Render / Vercel env 修改、DELETE、正式個資或真實 LINE userId。
 - 下一階段建議：A27 LINE 帳號綁定流程設計與測試環境串接評估。開始前需先確認採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
 - 暫停點：文件補齊後先暫停，等待使用者通知再進入 A27。
@@ -135,8 +137,8 @@
 
 ## Pause point
 
-- 目前暫停在 `0.8.0A-26 Identity-aware access preparation` 已完成並推送後。
-- 最新狀態標記 commit：`44a7ee3 feat: add identity-aware access preparation`。
+- 目前暫停在 `0.8.0A-26.5 Cross-module field model, category / tag / assignee / publishing boundary refinement` 已完成並推送後。
+- 最新狀態標記 commit：`2271be2 feat: refine web admin domain field model`。
 - 固定 Vercel Web Admin 測試站已更新並維持 API mode；資料寫入 Render Web Admin API / PostgreSQL staging。
 - 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估，但開始前需先確認 LINE Login / LIFF / 既有 LINE Bot userId 綁定方向與 staging LINE channel 策略。
 - 不要修改正式 Google Sheets、AppSheet、Render / Vercel env、LINE Developers 設定、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
