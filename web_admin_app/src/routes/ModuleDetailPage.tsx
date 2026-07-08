@@ -7,7 +7,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
-import { fieldPolicyFor, moduleDomainLabel } from "../lib/domainModel";
+import { fieldPolicyFor } from "../lib/domainModel";
 
 type EditValues = Record<string, string | string[]>;
 type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
@@ -369,7 +369,7 @@ export function ModuleDetailPage() {
               <div><span>狀態</span><strong className={actionMode === "draft" ? "inline-state" : ""}>{actionMode === "draft" ? "草稿暫存" : record.status}</strong></div>
               <div><span>{fieldPolicy?.dateLabel ?? "日期"}</span><strong>{record.dateLabel}</strong></div>
               {fieldPolicy?.showAssignee ? <div><span>{fieldPolicy.ownerLabel}</span><strong>{record.owner}</strong></div> : null}
-              <div><span>資料定位</span><strong>{moduleDomainLabel(record.moduleKey)} / {moduleItem.boundary}</strong></div>
+              <div><span>作業分類</span><strong>{moduleItem.boundary}</strong></div>
               {record.detailFields.map((field) => (
                 <div key={field.label}><span>{field.label}</span><strong>{field.value}</strong></div>
               ))}

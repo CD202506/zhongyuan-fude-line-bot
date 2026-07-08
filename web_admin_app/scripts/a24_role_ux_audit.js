@@ -35,22 +35,21 @@ function sliceFromTo(source, startMarker, endMarker) {
 function auditNavigation() {
   const navigation = read("src/lib/navigation.ts");
 
-  for (const expected of ["資料主檔", "權限設定", 'key: "team"', "內部作業", "內容發布", "權限與系統治理"]) {
+  for (const expected of ["常用", "日常作業", "對外發布", "管理者設定", "權限設定", 'key: "team"']) {
     assertIncludes(navigation, expected, `管理者選單缺少 ${expected}`);
   }
 
   const staffSection = navigation.slice(navigation.indexOf("const staffNavGroups"), navigation.indexOf("const devoteeNavGroups"));
-  assertIncludes(staffSection, "資料主檔", "廟方人員選單缺少資料主檔");
-  assertIncludes(staffSection, "內部作業", "廟方人員選單缺少內部作業");
-  assertIncludes(staffSection, "內容發布", "廟方人員選單缺少內容發布");
+  assertIncludes(staffSection, "日常作業", "廟方人員選單缺少日常作業");
+  assertIncludes(staffSection, "對外發布", "廟方人員選單缺少對外發布");
   assertNotIncludes(staffSection, "權限設定", "廟方人員不應有權限設定主入口");
-  assertNotIncludes(staffSection, "權限與系統治理", "廟方人員不應有系統治理主入口");
+  assertNotIncludes(staffSection, "管理者設定", "廟方人員不應有管理者設定主入口");
 
   const devoteeSection = navigation.slice(navigation.indexOf("const devoteeNavGroups"));
   for (const expected of ["對外資訊", "我的資料", 'key: "announcements"']) {
     assertIncludes(devoteeSection, expected, `善信選單缺少 ${expected}`);
   }
-  for (const forbidden of ["procurements", "ledger", "team", "documents", "權限設定", "權限與系統治理", "我的參與紀錄", "發財金紀錄", "未來開放"]) {
+  for (const forbidden of ["procurements", "ledger", "team", "documents", "權限設定", "管理者設定", "我的參與紀錄", "發財金紀錄", "未來開放"]) {
     assertNotIncludes(devoteeSection, forbidden, `善信選單不應包含 ${forbidden}`);
   }
 }

@@ -13,17 +13,10 @@ export type NavGroup = {
 const adminNavGroups: NavGroup[] = [
   { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
   {
-    title: "資料主檔",
+    title: "日常作業",
     items: [
       { type: "module", key: "devotees" },
       { type: "module", key: "shrines" },
-      { type: "module", key: "team" },
-      { type: "route", label: "基礎資料設定", route: "/settings" },
-    ],
-  },
-  {
-    title: "內部作業",
-    items: [
       { type: "module", key: "visits" },
       { type: "module", key: "procurements" },
       { type: "module", key: "ledger" },
@@ -31,20 +24,22 @@ const adminNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "內容發布",
+    title: "對外發布",
     items: [
       { type: "module", key: "announcements", label: "發布內容" },
       { type: "module", key: "events", label: "活動消息" },
-      { type: "route", label: "發布管道", route: "/settings" },
-      { type: "route", label: "類別 / 標籤", route: "/settings" },
+      { type: "route", label: "發布管道設定", route: "/settings" },
     ],
   },
   {
-    title: "權限與系統治理",
+    title: "管理者設定",
     items: [
+      { type: "module", key: "team" },
       { type: "route", label: "權限設定", route: "/settings" },
+      { type: "route", label: "類別 / 標籤", route: "/settings" },
+      { type: "route", label: "基礎資料設定", route: "/settings" },
       { type: "route", label: "操作紀錄", route: "/settings" },
-      { type: "route", label: "測試資料狀態", route: "/settings" },
+      { type: "route", label: "測試資料說明", route: "/settings" },
     ],
   },
 ];
@@ -52,22 +47,17 @@ const adminNavGroups: NavGroup[] = [
 const staffNavGroups: NavGroup[] = [
   { title: "常用", items: [{ type: "route", label: "主控台", route: "/dashboard" }] },
   {
-    title: "資料主檔",
+    title: "日常作業",
     items: [
       { type: "module", key: "devotees" },
       { type: "module", key: "shrines" },
-    ],
-  },
-  {
-    title: "內部作業",
-    items: [
       { type: "module", key: "visits" },
       { type: "module", key: "procurements" },
       { type: "module", key: "ledger" },
     ],
   },
   {
-    title: "內容發布",
+    title: "對外發布",
     items: [
       { type: "module", key: "announcements", label: "發布內容" },
       { type: "module", key: "events", label: "活動消息" },

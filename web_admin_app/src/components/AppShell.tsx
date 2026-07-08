@@ -3,7 +3,6 @@ import { useState } from "react";
 import { findModuleByKey, modules } from "../data/modules";
 import { mockUser, roleOptions, type UserRole } from "../data/mockUser";
 import { canEditDailyWork, canUseAdminSettings, permissionLabel, roleHelpText } from "../lib/permissions";
-import { identityForRole, identityRuntime, lineBindingLabel, permissionSummary } from "../lib/identity";
 import { moduleKeysForRole, navGroupsForRole } from "../lib/navigation";
 import { RoleContext } from "../lib/roleContext";
 
@@ -17,7 +16,6 @@ export function AppShell() {
   const visibleModuleKeys = moduleKeysForRole(role);
   const canAddVisibleModule = Boolean(currentModule && visibleModuleKeys.has(currentModule.key));
   const navGroups = navGroupsForRole(role);
-  const identity = identityForRole(role);
 
   return (
     <RoleContext.Provider value={{ role, setRole }}>
@@ -82,12 +80,11 @@ export function AppShell() {
               ) : null}
             </div>
             <div className="topbar-role test-identity-panel">
-              <strong>測試角色切換</strong>
-              <span>目前測試身份：{permissionLabel(role)} / {identity.displayName}</span>
+              <strong>測試工具</strong>
+              <span>目前為測試模式，可模擬不同身份查看畫面。正式版將依登入帳號顯示權限。</span>
+              <span>模擬身份：{permissionLabel(role)}</span>
               <span>{roleHelpText(role)}</span>
-              <span>{identityRuntime.formalModeNote}</span>
-              <span>LINE 綁定示意：{lineBindingLabel(identity)}；權限標記：{permissionSummary(identity) || "查看"}</span>
-              <div className="role-switch" aria-label="測試角色切換">
+              <div className="role-switch" aria-label="模擬身份切換">
                 {roleOptions.map((option) => (
                   <button key={option} type="button" className={role === option ? "active" : ""} onClick={() => setRole(option)}>
                     {permissionLabel(option)}

@@ -8,7 +8,7 @@ type PermissionBadgeProps = {
 export function PermissionBadge({ role }: PermissionBadgeProps) {
   return (
     <span className="permission-badge">
-      測試身份：{permissionLabel(role)}
+      模擬身份：{permissionLabel(role)}
     </span>
   );
 }
