@@ -26,7 +26,7 @@ export type MockIdentity = {
 
 export const identityRuntime = {
   isTestMode: true,
-  modeLabel: "測試模式",
+  modeLabel: "畫面預覽",
   formalModeNote: "正式版將依登入帳號與權限顯示，不能自行切換。",
   lineBindingNote: "LINE 帳號綁定目前為前端示意，尚未啟用正式綁定流程。",
 };

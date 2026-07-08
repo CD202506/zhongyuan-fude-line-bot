@@ -27,7 +27,7 @@ export function DashboardPage() {
           <span className="eyebrow">中原福德宮 Web 後台</span>
           <h2>善信服務</h2>
           <p>可瀏覽對外公告 / 活動等公開內容，不進入內部廟務、採購、帳務或權限設定；個人紀錄功能將於後續版本整理。</p>
-          <p className="identity-inline-note">目前為測試模式，可模擬善信畫面；正式版會依登入帳號顯示本人資料。</p>
+          <p className="identity-inline-note">目前檢視善信畫面；正式版會依登入帳號顯示本人資料。</p>
         </div>
       </section>
 
@@ -96,7 +96,7 @@ export function DashboardPage() {
             <span>{identityRuntime.modeLabel}</span>
           </div>
           <div className="status-box">
-            <span>目前為測試模式，可模擬廟方人員畫面：{identity.displayName}。</span>
+            <span>目前檢視廟方人員畫面：{identity.displayName}。</span>
             <span>{lineBindingLabel(identity)}；正式版依登入帳號與團隊授權顯示可處理作業。</span>
             <span>初審、覆核、核准先作為權限標記，不強制卡住作業流程。</span>
           </div>

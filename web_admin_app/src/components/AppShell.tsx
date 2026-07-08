@@ -79,12 +79,12 @@ export function AppShell() {
                 </Link>
               ) : null}
             </div>
-            <div className="topbar-role test-identity-panel">
-              <strong>測試工具</strong>
-              <span>目前為測試模式，可模擬不同身份查看畫面。正式版將依登入帳號顯示權限。</span>
-              <span>模擬身份：{permissionLabel(role)}</span>
+            <div className="topbar-role preview-role-panel">
+              <strong>身份檢視</strong>
+              <span>切換不同身份，查看各角色可見畫面。</span>
+              <span>目前：{permissionLabel(role)}</span>
               <span>{roleHelpText(role)}</span>
-              <div className="role-switch" aria-label="模擬身份切換">
+              <div className="role-switch" aria-label="身份檢視切換">
                 {roleOptions.map((option) => (
                   <button key={option} type="button" className={role === option ? "active" : ""} onClick={() => setRole(option)}>
                     {permissionLabel(option)}

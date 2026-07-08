@@ -53,6 +53,7 @@ function auditNavigation() {
   const publishing = section(admin, 'title: "對外發布"', 'title: "管理者設定"');
   excludes(publishing, "類別 / 標籤", "類別 / 標籤不得放在對外發布");
   excludes(publishing, "基礎資料設定", "基礎資料設定不得放在對外發布");
+  excludes(publishing, "發布管道設定", "發布管道設定不得放在對外發布");
 
   for (const forbidden of ["權限設定", "基礎資料設定", "操作紀錄", "測試資料說明", "procurements", "ledger", "documents", "team"]) {
     excludes(devotee, forbidden, `善信不應看到 ${forbidden}`);
@@ -104,17 +105,18 @@ function auditUserFacingWording() {
     excludes(combined, forbidden, `使用者可見文字不應包含 ${forbidden}`);
   }
 
-  includes(combined, "測試模式", "測試輔助文案需使用低干擾的測試模式語意");
-  includes(combined, "模擬身份", "身份切換需使用模擬身份語意");
+  includes(combined, "身份檢視", "身份切換需使用低干擾身份檢視語意");
+  excludes(combined, "測試模式", "使用者畫面不應顯示測試模式");
+  excludes(combined, "模擬身份", "使用者畫面不應顯示模擬身份");
 }
 
 function auditSettings() {
   const settings = read("src/routes/SettingsPage.tsx");
-  for (const expected of ["管理者設定總覽", "設定權限", "管理團隊", "管理類別", "管理標籤", "設定基礎資料", "查看操作紀錄", "查看說明"]) {
+  for (const expected of ["管理者設定總覽", "設定權限", "管理團隊", "管理類別 / 標籤", "設定基礎資料", "查看操作紀錄", "設定發布管道"]) {
     includes(settings, expected, `SettingsPage 缺少 ${expected}`);
   }
   excludes(settings, "<button type=\"button\">管理</button>", "設定卡片不應全部使用管理按鈕");
-  includes(settings, "測試資料說明", "測試資料狀態需改為測試資料說明");
+  excludes(settings, "測試資料說明", "測試資料說明不應作為一般設定入口");
 }
 
 function auditLayout() {

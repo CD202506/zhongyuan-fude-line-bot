@@ -88,16 +88,21 @@ function auditNavigationAndSettings() {
   for (const expected of ["日常作業", "對外發布", "管理者設定"]) {
     includes(navigation, expected, `左側選單缺少 ${expected}`);
   }
-  for (const expected of ["發布內容", "活動消息", "發布管道設定"]) {
-    includes(navigation, expected, `內容發布選單缺少 ${expected}`);
+  for (const expected of ["發布內容", "活動消息"]) {
+    includes(navigation, expected, `對外發布選單缺少 ${expected}`);
   }
+  const adminSection = navigation.slice(navigation.indexOf("const adminNavGroups"), navigation.indexOf("const staffNavGroups"));
+  const publishingSection = sectionBetween(adminSection, 'title: "對外發布"', 'title: "管理者設定"');
+  const settingsSection = adminSection.slice(adminSection.indexOf('title: "管理者設定"'));
+  excludes(publishingSection, "發布管道設定", "發布管道設定應歸管理者設定");
+  includes(settingsSection, "發布管道設定", "管理者設定需包含發布管道設定");
   includes(modules, "公文紀錄為文件留存；通知發布需由承辦人整理部分內容後進入發布內容。", "公文 / 通知需區分內部留存與通知發布");
   includes(modules, "由來源資料整理發布草稿", "公告 route 需收斂成發布語意");
 
-  for (const expected of ["類別管理", "標籤管理", "承辦與權限", "發布管道管理", "可見權限", "目前只做發布資料整理"]) {
+  for (const expected of ["類別 / 標籤", "基礎資料設定", "發布管道設定", "操作紀錄", "settingSections"]) {
     includes(settings, expected, `管理者設定缺少 ${expected}`);
   }
-  includes(settings, "不會真正發布到 LINE、VOOM、網站或 Facebook", "設定頁需明確說明本輪不真正發布");
+  excludes(settings, "不會真正發布", "設定頁不應顯示過渡說明");
 }
 
 function auditVisibleWording() {

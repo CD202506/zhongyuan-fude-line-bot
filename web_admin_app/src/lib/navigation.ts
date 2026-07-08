@@ -28,18 +28,17 @@ const adminNavGroups: NavGroup[] = [
     items: [
       { type: "module", key: "announcements", label: "發布內容" },
       { type: "module", key: "events", label: "活動消息" },
-      { type: "route", label: "發布管道設定", route: "/settings" },
     ],
   },
   {
     title: "管理者設定",
     items: [
       { type: "module", key: "team" },
-      { type: "route", label: "權限設定", route: "/settings" },
-      { type: "route", label: "類別 / 標籤", route: "/settings" },
-      { type: "route", label: "基礎資料設定", route: "/settings" },
-      { type: "route", label: "操作紀錄", route: "/settings" },
-      { type: "route", label: "測試資料說明", route: "/settings" },
+      { type: "route", label: "權限設定", route: "/settings?section=permissions" },
+      { type: "route", label: "類別 / 標籤", route: "/settings?section=categories" },
+      { type: "route", label: "基礎資料設定", route: "/settings?section=basic-data" },
+      { type: "route", label: "發布管道設定", route: "/settings?section=publishing-channels" },
+      { type: "route", label: "操作紀錄", route: "/settings?section=audit" },
     ],
   },
 ];
@@ -54,6 +53,7 @@ const staffNavGroups: NavGroup[] = [
       { type: "module", key: "visits" },
       { type: "module", key: "procurements" },
       { type: "module", key: "ledger" },
+      { type: "module", key: "documents" },
     ],
   },
   {

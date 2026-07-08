@@ -55,10 +55,10 @@ function auditRoleSwitchWording() {
   const appShell = read("src/components/AppShell.tsx");
   const identity = read("src/lib/identity.ts");
 
-  includes(appShell, "測試工具", "右上角色工具需以低干擾測試工具呈現");
-  includes(appShell, "目前為測試模式，可模擬不同身份查看畫面。正式版將依登入帳號顯示權限。", "需說明正式版依登入帳號顯示權限");
+  includes(appShell, "身份檢視", "右上角色工具需以低干擾身份檢視呈現");
+  includes(appShell, "切換不同身份，查看各角色可見畫面。", "需說明身份檢視用途");
   includes(identity, "正式版將依登入帳號與權限顯示，不能自行切換。", "需說明正式版不能自行切換");
-  includes(appShell, "aria-label=\"模擬身份切換\"", "角色切換輔助標籤需是模擬身份語意");
+  includes(appShell, "aria-label=\"身份檢視切換\"", "角色切換輔助標籤需是身份檢視語意");
   excludes(appShell, "測試角色切換", "右上不應使用過度突出的測試角色切換文字");
   excludes(appShell, "目前測試身份", "右上不應使用目前測試身份文字");
   excludes(appShell, "LINE 綁定示意", "右上不應顯示 LINE 綁定示意");
@@ -70,11 +70,9 @@ function auditAdminSettings() {
   const navigation = read("src/lib/navigation.ts");
 
   includes(settings, "權限會以團隊成員為先決條件", "管理者設定需說明團隊成員是權限先決條件");
-  includes(settings, "登入與帳號連結準備", "管理者設定需包含帳號連結準備");
-  includes(settings, "正式版將依登入帳號或 LINE 綁定身份判斷權限", "需說明正式權限依登入或 LINE 綁定身份");
-  includes(settings, "LINE 帳號未來可連到團隊成員或善信資料", "需說明 LINE 可連團隊成員或善信資料");
-  includes(settings, "善信不列入內部權限授予清單", "需明確排除善信內部權限授予");
-  includes(settings, "初審、覆核、核准先作為紀錄與權限標記，不強制卡住作業流程。", "審核概念應只是標記，不強制卡關");
+  includes(settings, "團隊成員是權限設定的先決條件。", "需說明團隊成員是權限先決條件");
+  includes(settings, "初審、覆核、核准是權限標記，不強制作業卡關。", "審核概念應只是標記，不強制卡關");
+  excludes(settings, "登入與帳號連結準備", "帳號連結準備不應佔用一般設定主畫面");
 
   const staffSection = navigation.slice(navigation.indexOf("const staffNavGroups"), navigation.indexOf("const devoteeNavGroups"));
   excludes(staffSection, "權限設定", "廟方人員不應看到全域權限設定入口");
@@ -88,7 +86,7 @@ function auditAdminSettings() {
 function auditRoleSpecificDisplay() {
   const dashboard = read("src/routes/DashboardPage.tsx");
 
-  includes(dashboard, "目前為測試模式，可模擬善信畫面", "善信 Dashboard 需以低干擾測試模式說明本人資料範圍");
+  includes(dashboard, "目前檢視善信畫面", "善信 Dashboard 需以低干擾身份檢視說明本人資料範圍");
   includes(dashboard, "正式版會依登入帳號顯示本人資料", "善信需看到正式版身份來源說明");
   includes(dashboard, "我的作業權限", "廟方人員需看到自己的權限狀態");
   includes(dashboard, "正式版依登入帳號與團隊授權顯示可處理作業", "廟方人員權限需綁定登入與團隊授權");

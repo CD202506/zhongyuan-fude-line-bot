@@ -263,12 +263,12 @@ button {
   background: #fffdf7;
 }
 
-.test-identity-panel {
+.preview-role-panel {
   border-style: dashed;
   background: #f7f3ea;
 }
 
-.test-identity-panel strong {
+.preview-role-panel strong {
   color: #7d5d10;
   font-size: 0.92rem;
 }
@@ -466,6 +466,7 @@ button {
 .detail-link,
 .primary-action,
 .back-link,
+.setting-action,
 .detail-actions button,
 .setting-card button {
   display: inline-flex;
@@ -960,6 +961,10 @@ button {
   display: grid;
   gap: 8px;
   padding: 16px;
+}
+
+.setting-action {
+  justify-self: start;
 }
 
 .setting-card.locked {
