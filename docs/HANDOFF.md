@@ -189,6 +189,25 @@
 - 尚未做真實登入、LINE Login、LIFF、OAuth、正式發布到 LINE / VOOM / Facebook，也未新增 DELETE。
 - 暫停點：目前停在 A26.5 完成後，等待使用者通知再進入 A27。
 - A27 前需先確認：採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
+
+# 0.8.0A-26.9 handoff update
+
+- A26.9 pre-A27 Web Admin stabilization checkpoint 已完成並部署，最新 commit：`37f3266 fix: add collapsible sidebar sections`。
+- 固定 Web Admin 測試網址：`https://zhongyuan-fude-web-admin-test.vercel.app`。
+- 最新線上資產：`assets/index-BXWVPK32.js`、`assets/index-CN8f4ThH.css`。
+- 線上已確認 HTTP 200；線上 JS bundle 已包含 `aria-expanded`、展開 / 收合符號 `▼` / `▶`、settings 子頁 active state 精準判斷邏輯。
+- A26.5 已完成跨模組 domain model 與欄位模型收斂。
+- A26.6 已將左側選單 IA 改回廟方 SOP 分類：常用、日常作業、對外發布、管理者設定。
+- A26.7 已完成全域 IA / CTA / placeholder 清理，移除不適合顯示給使用者的測試、工程、規劃說明文字。
+- A26.8 已將管理者設定子頁改為前端-only 可操作設定工作區：團隊管理、權限設定、類別 / 標籤、基礎資料設定、發布管道設定、操作紀錄。
+- A26.8 hotfix 已修正 settings 子頁左側 active state，避免所有管理者設定子項目同時反白。
+- A26.9 hotfix 已讓 sidebar section 可展開 / 收合，目前頁面所在 section 會自動展開，手機 drawer 邏輯未改壞。
+- 目前角色可見範圍：管理者可見常用、日常作業、對外發布、管理者設定；廟方人員可見常用、日常作業、對外發布；善信可見對外資訊、我的資料。
+- Render Web Admin API / PostgreSQL staging 仍為 Web Admin 測試資料服務；正式 V1 LINE Bot / Google Sheets / AppSheet 未受本輪影響。
+- 自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`。
+- 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
+- 暫停點：使用者需先人工確認 A26.9 最新畫面是否 OK。若畫面仍有 UX / IA / 文字 / RWD 問題，先修前端；確認後再決定是否進入 A27。
+- 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

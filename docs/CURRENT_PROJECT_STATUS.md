@@ -53,6 +53,7 @@
 - `0.8.0A-25` Field wording and workflow consistency 已完成：依第三方測試資料修正欄位語意與流程文字，善信、廟務、友宮、帳務、公文 / 通知、團隊管理等欄位已細修；刪除需求改為封存 / 作廢語意；清理工程測試資料顯示並修正 sidebar RWD。新增 `web_admin_app/scripts/a25_field_workflow_audit.js` 與 `web_admin_app/scripts/a25_display_layout_audit.js`。
 - `0.8.0A-26` Identity-aware access preparation 已完成並暫停：右上角角色切換已改為明確「測試角色切換」；`web_admin_app/` 已建立 identity-aware 前端 mock model，預留 userId、團隊成員、善信、LINE 綁定、模組權限與初審 / 覆核 / 核准標記；管理者設定補強「先團隊成員，再授權」語意。LINE 綁定目前只做前端示意，未做真實登入、LINE Login、LIFF 或 OAuth，未接正式 LINE Bot。最新 commit：`44a7ee3 feat: add identity-aware access preparation`。
 - `0.8.0A-26.5` Cross-module field model and publishing boundary refinement 已完成並推送：建立 `web_admin_app/src/lib/domainModel.ts`，將 Web Admin 前端語意收斂為資料主檔、內部作業、內容發布、權限治理；清理資料主檔不適合的預計完成日、通用標籤與承辦欄位；公告 / 活動改以內容發布、來源資料、發布類別、發布管道與可見對象表達；管理者設定補強類別、標籤、承辦權限、發布管道與可見權限。新增 `web_admin_app/scripts/a265_domain_model_audit.js`。最新 commit：`2271be2 feat: refine web admin domain field model`。
+- `0.8.0A-26.9` Pre-A27 Web Admin stabilization checkpoint 已完成並部署：A26.6～A26.9 已完成左側選單 SOP 分類、全域 IA / CTA / placeholder 清理、管理者設定可操作子頁、settings 子頁 active state 修正，以及 sidebar section 展開 / 收合。最新 commit：`37f3266 fix: add collapsible sidebar sections`，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已確認 HTTP 200。使用者將先人工確認最新版畫面，確認後才決定是否進入 A27。
 
 ## A26.5 cross-module field model completed / paused checkpoint
 
@@ -70,6 +71,28 @@
 - 已確認未做：真實登入、LINE Login / LIFF / OAuth、LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema 修改、Render / Vercel env 修改、DELETE、正式個資或真實 LINE userId。
 - 下一階段建議：A27 LINE 帳號綁定流程設計與測試環境串接評估。開始前需先確認採 LINE Login、LIFF 或既有 LINE Bot userId 綁定；是否新增 users / identities / line_bindings / permissions schema；是否建立 staging 專用 LINE channel 或避免動正式 LINE Bot；是否先整理匿名 / 準正式測試資料。
 - 暫停點：文件補齊後先暫停，等待使用者通知再進入 A27。
+
+## A26.9 pre-A27 Web Admin stabilization checkpoint / paused for visual confirmation
+
+- 最新 commit：`37f3266 fix: add collapsible sidebar sections`。
+- 前一筆 hotfix：`fea2ce8 fix: correct settings navigation active state`。
+- A26.8 commit：`dc8c9f0 feat: make admin settings pages functional`。
+- 固定 Vercel Web Admin 測試站：`https://zhongyuan-fude-web-admin-test.vercel.app`。
+- 最新線上資產：`assets/index-BXWVPK32.js`、`assets/index-CN8f4ThH.css`。
+- 線上已確認 HTTP 200；線上 JS bundle 已包含 `aria-expanded`、展開 / 收合符號 `▼` / `▶`、settings 子頁 active state 精準判斷邏輯。
+- A26.5：跨模組 domain model 與欄位模型收斂，Web Admin 前端語意整理為資料主檔、內部作業、內容發布、權限治理。
+- A26.6：左側選單 IA 從工程 / 資料模型分類改回廟方 SOP 分類，包括常用、日常作業、對外發布、管理者設定。
+- A26.7：全域 IA / CTA / placeholder 清理，設定頁與選單對齊，移除使用者畫面中不適合的測試、工程、規劃說明文字。
+- A26.8：管理者設定子頁從說明頁改為前端-only 可操作設定工作區，包括團隊管理、權限設定、類別 / 標籤、基礎資料設定、發布管道設定、操作紀錄。
+- A26.8 hotfix：修正 settings 子頁左側 active state，避免所有管理者設定子項目同時反白。
+- A26.9 hotfix：左側 sidebar 分類可展開 / 收合，目前頁面所在分類會自動展開，settings 子頁 active state 保持正確，手機 drawer 邏輯未改壞。
+- 目前 Web Admin 線上狀態：Vercel 固定測試站可連線；Render Web Admin API / PostgreSQL staging 仍為測試資料服務；V1 LINE Bot / Google Sheets / AppSheet 未受 A26.5～A26.9 影響。
+- 目前主要功能狀態：左側選單依角色顯示；管理者可見常用、日常作業、對外發布、管理者設定；廟方人員可見常用、日常作業、對外發布；善信可見對外資訊、我的資料。
+- 管理者設定子頁具備前端-only 可操作介面；settings 子頁只反白目前所在項目；sidebar section 可展開 / 收合；目前頁面所在 section 預設展開。
+- 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
+- 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。開始 A27 前，使用者需先確認 A26.9 最新畫面是否 OK；若畫面仍有 UX / IA / 文字 / RWD 問題，應先處理前端修正，不要急著接 LINE。
+- 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`。
+- 暫停點：目前停在 A26.9 pre-A27 Web Admin stabilization checkpoint，等待使用者人工確認最新版畫面後再決定下一步。
 
 ## Current data source roles
 
@@ -137,10 +160,10 @@
 
 ## Pause point
 
-- 目前暫停在 `0.8.0A-26.5 Cross-module field model, category / tag / assignee / publishing boundary refinement` 已完成並推送後。
-- 最新狀態標記 commit：`2271be2 feat: refine web admin domain field model`。
+- 目前暫停在 `0.8.0A-26.9 Pre-A27 Web Admin stabilization checkpoint` 已完成並部署後，等待使用者人工確認最新版 Web Admin 畫面。
+- 最新狀態標記 commit：`37f3266 fix: add collapsible sidebar sections`。
 - 固定 Vercel Web Admin 測試站已更新並維持 API mode；資料寫入 Render Web Admin API / PostgreSQL staging。
-- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估，但開始前需先確認 LINE Login / LIFF / 既有 LINE Bot userId 綁定方向與 staging LINE channel 策略。
+- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估；但開始前需先確認 A26.9 最新畫面是否 OK。若仍有 UX / IA / 文字 / RWD 問題，先修前端，不急著接 LINE。
 - 不要修改正式 Google Sheets、AppSheet、Render / Vercel env、LINE Developers 設定、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署，除非使用者明確要求。
 
