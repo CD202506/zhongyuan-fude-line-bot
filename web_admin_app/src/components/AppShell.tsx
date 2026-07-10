@@ -16,6 +16,18 @@ export function AppShell() {
   const visibleModuleKeys = moduleKeysForRole(role);
   const canAddVisibleModule = Boolean(currentModule && visibleModuleKeys.has(currentModule.key));
   const navGroups = navGroupsForRole(role);
+  const routeIsActive = (route: string) => {
+    const [pathname, search = ""] = route.split("?");
+    if (location.pathname !== pathname) return false;
+    if (!search) return location.search === "";
+
+    const expectedParams = new URLSearchParams(search);
+    const currentParams = new URLSearchParams(location.search);
+    for (const [key, value] of expectedParams.entries()) {
+      if (currentParams.get(key) !== value) return false;
+    }
+    return currentParams.toString() === expectedParams.toString();
+  };
 
   return (
     <RoleContext.Provider value={{ role, setRole }}>
@@ -40,8 +52,13 @@ export function AppShell() {
                 <span>{group.title}</span>
                 {group.items.map((item) => {
                   if (item.type === "route") {
-                    if (item.route === "/settings" && !canUseAdminSettings(role)) return null;
-                    return <NavLink key={`${group.title}-${item.label}`} to={item.route}>{item.label}</NavLink>;
+                    if (item.route.startsWith("/settings") && !canUseAdminSettings(role)) return null;
+                    const isActive = routeIsActive(item.route);
+                    return (
+                      <Link key={`${group.title}-${item.label}`} to={item.route} className={isActive ? "active" : undefined} aria-current={isActive ? "page" : undefined}>
+                        {item.label}
+                      </Link>
+                    );
                   }
 
                   const moduleItem = findModuleByKey(item.key);

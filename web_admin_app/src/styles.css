@@ -160,8 +160,17 @@ button {
   text-align: center;
 }
 
-.nav-list a.active,
 .nav-list a:hover {
+  background: rgba(255, 253, 245, 0.14);
+  color: #fffdf5;
+}
+
+.nav-list a:focus-visible {
+  outline: 3px solid #f3c74e;
+  outline-offset: 2px;
+}
+
+.nav-list a.active {
   background: #fffdf5;
   color: #12351d;
 }
