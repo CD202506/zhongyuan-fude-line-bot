@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { findModuleByKey, modules } from "../data/modules";
 import { mockUser, roleOptions, type UserRole } from "../data/mockUser";
 import { canEditDailyWork, canUseAdminSettings, permissionLabel, roleHelpText } from "../lib/permissions";
@@ -28,6 +28,33 @@ export function AppShell() {
     }
     return currentParams.toString() === expectedParams.toString();
   };
+  const navItemIsActive = (item: (typeof navGroups)[number]["items"][number]) => {
+    if (item.type === "route") return routeIsActive(item.route);
+
+    const moduleItem = findModuleByKey(item.key);
+    return Boolean(moduleItem && (location.pathname === moduleItem.route || location.pathname.startsWith(`${moduleItem.route}/`)));
+  };
+  const activeGroupTitle = navGroups.find((group) => group.items.some(navItemIsActive))?.title;
+  const [openGroupKeys, setOpenGroupKeys] = useState<Set<string>>(() => activeGroupTitle ? new Set([`${role}:${activeGroupTitle}`]) : new Set());
+
+  useEffect(() => {
+    if (!activeGroupTitle) return;
+    const activeGroupKey = `${role}:${activeGroupTitle}`;
+    setOpenGroupKeys((current) => current.has(activeGroupKey) ? current : new Set(current).add(activeGroupKey));
+  }, [activeGroupTitle, role, location.pathname, location.search]);
+
+  const toggleGroup = (groupTitle: string) => {
+    const groupKey = `${role}:${groupTitle}`;
+    setOpenGroupKeys((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  };
 
   return (
     <RoleContext.Provider value={{ role, setRole }}>
@@ -49,22 +76,38 @@ export function AppShell() {
           <nav className="nav-list">
             {navGroups.map((group) => (
               <div className="nav-group" key={group.title}>
-                <span>{group.title}</span>
-                {group.items.map((item) => {
-                  if (item.type === "route") {
-                    if (item.route.startsWith("/settings") && !canUseAdminSettings(role)) return null;
-                    const isActive = routeIsActive(item.route);
-                    return (
-                      <Link key={`${group.title}-${item.label}`} to={item.route} className={isActive ? "active" : undefined} aria-current={isActive ? "page" : undefined}>
-                        {item.label}
-                      </Link>
-                    );
-                  }
+                {(() => {
+                  const groupKey = `${role}:${group.title}`;
+                  const isOpen = openGroupKeys.has(groupKey);
 
-                  const moduleItem = findModuleByKey(item.key);
-                  if (!moduleItem) return null;
-                  return <NavLink key={`${group.title}-${item.key}-${item.label ?? moduleItem.title}`} to={moduleItem.route}>{item.label ?? moduleItem.title}</NavLink>;
-                })}
+                  return (
+                    <>
+                      <button type="button" className="nav-group-toggle" aria-expanded={isOpen} onClick={() => toggleGroup(group.title)}>
+                        <span>{group.title}</span>
+                        <span aria-hidden="true">{isOpen ? "▼" : "▶"}</span>
+                      </button>
+                      {isOpen ? (
+                        <div className="nav-group-items">
+                          {group.items.map((item) => {
+                            if (item.type === "route") {
+                              if (item.route.startsWith("/settings") && !canUseAdminSettings(role)) return null;
+                              const isActive = routeIsActive(item.route);
+                              return (
+                                <Link key={`${group.title}-${item.label}`} to={item.route} className={isActive ? "active" : undefined} aria-current={isActive ? "page" : undefined}>
+                                  {item.label}
+                                </Link>
+                              );
+                            }
+
+                            const moduleItem = findModuleByKey(item.key);
+                            if (!moduleItem) return null;
+                            return <NavLink key={`${group.title}-${item.key}-${item.label ?? moduleItem.title}`} to={moduleItem.route}>{item.label ?? moduleItem.title}</NavLink>;
+                          })}
+                        </div>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
             ))}
           </nav>
