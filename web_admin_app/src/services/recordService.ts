@@ -5,6 +5,7 @@ import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { formatDisplayDate } from "../lib/dateFormat";
 
 export type FormValues = Record<string, string | string[]>;
 export type StatusFilter = "active" | "archived" | "all";
@@ -59,7 +60,7 @@ function statusLabel(record: ApiRecord) {
 }
 
 function dateText(record: ApiRecord) {
-  return record.record_date || record.due_date || record.updated_at.slice(0, 10);
+  return formatDisplayDate(record.record_date || record.due_date || record.updated_at.slice(0, 10));
 }
 
 function stringValue(value: unknown) {
@@ -107,6 +108,7 @@ const fieldDisplayLabels: Record<string, string> = {
   services: "服務紀錄",
   handler: "資料維護人員",
   contact: "聯繫方式",
+  mobile: "手機號碼",
   contactPerson: "聯絡人",
   phone: "聯絡電話",
   address: "地址",
@@ -131,6 +133,8 @@ const fieldDisplayLabels: Record<string, string> = {
   fortuneMoneyReturned: "是否繳回",
   fortuneMoneyReturnedDate: "繳回日期",
   fortuneMoneyNote: "發財金備註",
+  gender: "性別",
+  ageRange: "年齡區間",
   quantity: "數量",
   itemName: "品項",
   sourceRecord: "來源資料",
@@ -193,7 +197,8 @@ const emptyFieldValues = new Set(["", "未填寫", "尚未指定", "無", "null"
 
 function displayValue(value: unknown) {
   const text = hasEngineeringTestText(value) ? "第三方測試用匿名資料" : stringValue(value);
-  return emptyFieldValues.has(text.trim()) ? "" : text;
+  if (emptyFieldValues.has(text.trim())) return "";
+  return formatDisplayDate(text);
 }
 
 function visibleDetailField([key, value]: [string, unknown]) {
@@ -221,8 +226,13 @@ function relatedRecordSummary(record: ApiRecord, tags: string[]) {
   };
 
   if (record.module_key === "devotees") {
-    add("發財金：1 筆", fields.fortuneMoneyReceived || fields.fortuneMoneyReturned || tags.includes("發財金"));
+    const relationText = String(fields.relations ?? "");
+    add("發財金：1 筆", fields.fortuneMoneyReceived || fields.fortuneMoneyReturned || tags.includes("發財金") || relationText.includes("發財金"));
+    add("還金：1 筆", relationText.includes("還金") || String(fields.fortuneMoneyNote ?? "").includes("還金"));
+    add("香油錢：1 筆", relationText.includes("香油錢"));
+    add("捐款：1 筆", relationText.includes("捐款"));
     add("活動參與：1 筆", String(fields.relations ?? "").includes("活動") || tags.includes("活動通知"));
+    add("服務紀錄：1 筆", fields.services);
     add("帳務紀錄：1 筆", String(fields.relations ?? "").includes("帳務"));
   }
 
@@ -254,7 +264,7 @@ function publishingStatusFor(record: ApiRecord) {
 
 function listFieldsFor(record: ApiRecord, owner: string) {
   const policy = fieldPolicyFor(record.module_key);
-  const updated = record.updated_at.slice(0, 10);
+  const updated = formatDisplayDate(record.updated_at.slice(0, 10));
   const add = (fields: Array<{ label: string; value: string }>, label: string, value: unknown) => {
     const text = displayValue(value);
     if (text) fields.push({ label, value: text });

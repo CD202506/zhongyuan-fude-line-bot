@@ -5,6 +5,7 @@ import type { UserRole } from "../data/mockUser";
 import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { formatDisplayDate } from "../lib/dateFormat";
 
 type FormValues = Record<string, string | string[]>;
 type NewRecordState = "editing" | "draft" | "submitted";
@@ -105,6 +106,21 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       );
     }
 
+    if (field.type === "date") {
+      return (
+        <label key={field.key} className="edit-field">
+          <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
+          <input
+            type="date"
+            value={String(value)}
+            onChange={(event) => updateField(field.key, event.target.value)}
+          />
+          <small>目前顯示：{formatDisplayDate(String(value))}</small>
+        </label>
+      );
+    }
+
     return (
       <label key={field.key} className="edit-field">
         <span>{field.label}</span>
@@ -124,7 +140,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       const value = values[field.key];
       if (!value || (Array.isArray(value) && value.length === 0)) return null;
 
-      return { label: field.label, value: Array.isArray(value) ? value.join("、") : value };
+      return { label: field.label, value: Array.isArray(value) ? value.join("、") : formatDisplayDate(String(value)) };
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 

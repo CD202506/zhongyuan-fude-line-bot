@@ -1,4 +1,5 @@
 import type { ModuleKey } from "./modules";
+import { formatDisplayDate } from "../lib/dateFormat";
 
 export type EditField =
   | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
@@ -84,6 +85,10 @@ export const mockRecords: MockRecord[] = [
       { key: "name", label: "善信姓名 / 代稱", type: "text", value: "善信範例 A" },
       { key: "date", label: "建立日期", type: "date", value: "2026-06-18" },
       { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"], help: "正式分類可依廟方試用結果再調整。" },
+      { key: "mobile", label: "手機號碼", type: "text", value: "" },
+      { key: "address", label: "地址", type: "text", value: "" },
+      { key: "gender", label: "性別", type: "select", value: "未填寫", options: ["未填寫", "男", "女", "其他 / 不便透露"] },
+      { key: "ageRange", label: "年齡區間", type: "select", value: "未填寫", options: ["未填寫", "14 以下", "15～24", "25～34", "35～44", "45～54", "55～64", "65 以上"], help: "只記錄級距，不填實際年齡或生日。" },
       { key: "services", label: "發財金與服務紀錄", type: "tags", value: ["發財金領取", "還金提醒"], options: ["發財金領取", "發財金繳回", "平安龜", "還金提醒", "活動通知"], help: "這是服務紀錄，不是通用標籤。" },
       { key: "authorization", label: "本人資料授權", type: "select", value: "已授權", options: ["待確認", "已授權", "未授權", "取消授權"], help: "用於確認是否可查詢本人相關服務紀錄。" },
       { key: "fortuneMoneyReceived", label: "是否領取發財金", type: "select", value: "已領取", options: ["待確認", "已領取", "未領取"] },
@@ -400,6 +405,10 @@ export const mockRecords: MockRecord[] = [
       { key: "name", label: "善信姓名 / 代稱", type: "text", value: "善信封存紀錄" },
       { key: "date", label: "建立日期", type: "date", value: "2025-12-20" },
       { key: "devoteeType", label: "善信類型", type: "select", value: "一般善信", options: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"] },
+      { key: "mobile", label: "手機號碼", type: "text", value: "" },
+      { key: "address", label: "地址", type: "text", value: "" },
+      { key: "gender", label: "性別", type: "select", value: "未填寫", options: ["未填寫", "男", "女", "其他 / 不便透露"] },
+      { key: "ageRange", label: "年齡區間", type: "select", value: "未填寫", options: ["未填寫", "14 以下", "15～24", "25～34", "35～44", "45～54", "55～64", "65 以上"] },
       { key: "services", label: "服務紀錄", type: "tags", value: ["舊年度服務"], options: ["發財金領取", "發財金繳回", "平安龜", "還金提醒", "活動通知", "舊年度服務"] },
       { key: "authorization", label: "本人資料授權", type: "select", value: "未授權", options: ["待確認", "已授權", "未授權", "取消授權"], help: "用於確認是否可查詢本人相關服務紀錄。" },
       { key: "handler", label: "資料維護人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"], help: "由具備善信資料維護權限的團隊成員中選擇。" },
@@ -421,9 +430,19 @@ export const mockDataStatus = [
 ];
 
 export function recordsForModule(moduleKey: ModuleKey) {
-  return mockRecords.filter((record) => record.moduleKey === moduleKey);
+  return mockRecords.filter((record) => record.moduleKey === moduleKey).map(normalizeRecordDates);
 }
 
 export function recordById(id: string) {
-  return mockRecords.find((record) => record.id === id);
+  const record = mockRecords.find((item) => item.id === id);
+  return record ? normalizeRecordDates(record) : undefined;
+}
+
+function normalizeRecordDates(record: MockRecord): MockRecord {
+  return {
+    ...record,
+    dateLabel: formatDisplayDate(record.dateLabel),
+    listFields: record.listFields.map((field) => ({ ...field, value: formatDisplayDate(field.value) })),
+    detailFields: record.detailFields.map((field) => ({ ...field, value: formatDisplayDate(field.value) })),
+  };
 }

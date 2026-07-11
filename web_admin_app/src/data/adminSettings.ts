@@ -230,10 +230,17 @@ export const teamSettings: TeamSetting[] = [
   { name: "總幹事 A", title: "總幹事", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "日常作業、覆核", accountState: "已連結" },
   { name: "財務 A", title: "財務", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購與帳務", accountState: "待確認" },
   { name: "志工 A", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "活動協助", accountState: "未連結" },
+  { name: "櫃檯人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "善信資料維護", accountState: "待確認" },
+  { name: "接待人員 A", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "來訪與請帖接待", accountState: "待確認" },
+  { name: "文書人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "公文紀錄", accountState: "待確認" },
+  { name: "採購人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購管理", accountState: "待確認" },
+  { name: "帳務人員 A", title: "會計", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "帳務管理", accountState: "待確認" },
 ];
 
+export const assignableTeamMemberNames = teamSettings.filter((member) => member.assignable && member.state === "使用中").map((member) => member.name);
+
 export const auditLogSettings: AuditLogSetting[] = [
-  { time: "2026/07/08 09:20", actor: "主任委員 A", action: "調整權限標記", module: "權限設定", state: "已完成", note: "新增總幹事覆核權限。" },
-  { time: "2026/07/08 10:05", actor: "總幹事 A", action: "封存資料", module: "善信管理", state: "已完成", note: "保留紀錄並從日常列表移出。" },
-  { time: "2026/07/08 11:15", actor: "財務 A", action: "更新分類", module: "帳務管理", state: "待覆核", note: "新增採購付款分類。" },
+  { time: "115 年 7 月 8 日 09:20", actor: "主任委員 A", action: "調整權限標記", module: "權限設定", state: "已完成", note: "新增總幹事覆核權限。" },
+  { time: "115 年 7 月 8 日 10:05", actor: "總幹事 A", action: "封存資料", module: "善信管理", state: "已完成", note: "保留紀錄並從日常列表移出。" },
+  { time: "115 年 7 月 8 日 11:15", actor: "財務 A", action: "更新分類", module: "帳務管理", state: "待覆核", note: "新增採購付款分類。" },
 ];

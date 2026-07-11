@@ -23,11 +23,10 @@ export function NewRecordPage() {
             <Link to={moduleItem.route} className="back-link">
               返回列表
             </Link>
-            <span className="eyebrow">{moduleItem.title}</span>
             <h2>{moduleItem.addLabel}</h2>
             <div className="permission-strip compact">
-              <strong>善信瀏覽</strong>
-              <span>目前可瀏覽對外資訊與本人相關紀錄；如需新增資料請洽廟方人員。</span>
+              <strong>本人資料確認</strong>
+              <span>目前可查詢本人資料與本人相關紀錄；如需新增資料請洽廟方人員。</span>
             </div>
           </div>
         </section>
@@ -42,7 +41,6 @@ export function NewRecordPage() {
           <Link to={moduleItem.route} className="back-link">
             返回列表
           </Link>
-          <span className="eyebrow">{moduleItem.boundary}</span>
           <h2>{moduleItem.addLabel}</h2>
           <p>{moduleItem.description}</p>
         </div>

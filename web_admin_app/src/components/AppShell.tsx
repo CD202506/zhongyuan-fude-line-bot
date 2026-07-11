@@ -123,13 +123,11 @@ export function AppShell() {
                   </button>
                 ) : null}
                 <div>
-                  <span className="eyebrow">中原福德宮 Web 後台</span>
                   <h2>{currentModule ? currentModule.title : "主控台"}</h2>
                 </div>
               </div>
               {currentModule ? (
                 <div className="topbar-module-summary">
-                  <span>{currentModule.boundary}</span>
                   <p>{currentModule.description}</p>
                 </div>
               ) : null}

@@ -8,6 +8,7 @@ import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
 import { fieldPolicyFor } from "../lib/domainModel";
+import { formatDisplayDate } from "../lib/dateFormat";
 
 type EditValues = Record<string, string | string[]>;
 type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
@@ -24,9 +25,46 @@ export function ModuleDetailPage() {
   const [loadErrorMessage, setLoadErrorMessage] = useState("");
   const [actionErrorMessage, setActionErrorMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [activeRelatedRecord, setActiveRelatedRecord] = useState<string | null>(null);
+  const [relatedActionMessage, setRelatedActionMessage] = useState("");
   const moduleItem = record ? modules.find((item) => item.key === record.moduleKey) : undefined;
   const fieldPolicy = record ? fieldPolicyFor(record.moduleKey) : undefined;
   const isEditing = actionMode === "edit";
+  const visibleEditFields = useMemo(() => {
+    if (!record) return [];
+    return record.editFields.filter((field) => role === "admin" || field.key !== "dataStatus");
+  }, [record, role]);
+  const relatedRecordItems = useMemo(() => {
+    if (!record?.relation) return [];
+    return record.relation.split("、").map((item) => item.trim()).filter(Boolean);
+  }, [record?.relation]);
+  const relatedRecordDetail = useMemo(() => {
+    if (!activeRelatedRecord || !record) return null;
+    const financeRelated = ["發財金", "還金", "香油錢", "捐款", "帳務"].some((keyword) => activeRelatedRecord.includes(keyword));
+    if (financeRelated) {
+      return {
+        type: activeRelatedRecord.replace(/：.*$/, ""),
+        date: record.dateLabel,
+        state: activeRelatedRecord.includes("帳務") ? "待核對" : "待確認",
+        module: "帳務管理",
+        action: "查看帳務紀錄",
+      };
+    }
+
+    if (activeRelatedRecord.includes("活動")) {
+      return { type: "活動參與", date: record.dateLabel, state: "待確認", module: "活動消息", action: "查看活動紀錄" };
+    }
+
+    if (activeRelatedRecord.includes("服務")) {
+      return { type: "服務紀錄", date: record.dateLabel, state: "待確認", module: "善信管理", action: "查看服務紀錄" };
+    }
+
+    if (activeRelatedRecord.includes("採購")) {
+      return { type: "採購紀錄", date: record.dateLabel, state: "待對帳", module: "採購管理", action: "查看採購紀錄" };
+    }
+
+    return { type: activeRelatedRecord.replace(/：.*$/, ""), date: record.dateLabel, state: "待確認", module: moduleItem?.title ?? "相關模組", action: "查看相關紀錄" };
+  }, [activeRelatedRecord, moduleItem?.title, record]);
 
   useEffect(() => {
     let active = true;
@@ -43,6 +81,8 @@ export function ModuleDetailPage() {
       .then((nextRecord) => {
         if (!active) return;
         setRecord(nextRecord);
+        setActiveRelatedRecord(null);
+        setRelatedActionMessage("");
       })
       .catch(() => {
         if (!active) return;
@@ -271,6 +311,21 @@ export function ModuleDetailPage() {
       );
     }
 
+    if (field.type === "date") {
+      return (
+        <label key={field.key} className="edit-field">
+          <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
+          <input
+            type="date"
+            value={String(value)}
+            onChange={(event) => updateField(field.key, event.target.value)}
+          />
+          <small>目前顯示：{formatDisplayDate(String(value))}</small>
+        </label>
+      );
+    }
+
     return (
       <label key={field.key} className="edit-field">
         <span>{field.label}</span>
@@ -289,7 +344,7 @@ export function ModuleDetailPage() {
       const value = editValues[field.key];
       if (!value) return null;
 
-      return { label: field.label, value: Array.isArray(value) ? value.join("、") : value };
+      return { label: field.label, value: Array.isArray(value) ? value.join("、") : formatDisplayDate(String(value)) };
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
@@ -327,7 +382,6 @@ export function ModuleDetailPage() {
       <section className="content-panel detail-header">
         <div>
           <Link to={moduleItem.route} className="back-link">返回列表</Link>
-          <span className="eyebrow">{moduleItem.title}</span>
           <h2>{record.title}</h2>
           <StatusBadge status={record.status} />
         </div>
@@ -337,8 +391,8 @@ export function ModuleDetailPage() {
         <article className={`content-panel ${isEditing ? "editing-panel" : ""}`}>
           {role === "viewer" ? (
             <div className="permission-strip">
-              <strong>善信瀏覽</strong>
-              <span>目前可瀏覽對外資訊與本人相關紀錄；如需修改請洽廟方人員。</span>
+              <strong>本人資料確認</strong>
+              <span>目前可查詢本人資料與本人相關紀錄；如需修改請洽廟方人員。</span>
             </div>
           ) : null}
           {feedback ? (
@@ -362,11 +416,10 @@ export function ModuleDetailPage() {
           <h3>資料摘要</h3>
           {isEditing ? (
             <div className="edit-form-grid">
-              {record.editFields.map((field) => renderEditField(field))}
+              {visibleEditFields.map((field) => renderEditField(field))}
             </div>
           ) : (
             <div className="info-grid">
-              <div><span>資料狀態</span><strong className={actionMode === "draft" ? "inline-state" : ""}>{actionMode === "draft" ? "草稿暫存" : record.status}</strong></div>
               <div><span>{fieldPolicy?.dateLabel ?? "日期"}</span><strong>{record.dateLabel}</strong></div>
               {fieldPolicy?.showAssignee ? <div><span>{fieldPolicy.ownerLabel}</span><strong>{record.owner}</strong></div> : null}
               <div><span>作業分類</span><strong>{moduleItem.boundary}</strong></div>
@@ -387,13 +440,41 @@ export function ModuleDetailPage() {
               </div>
             </div>
           ) : null}
-          {record.relation ? (
+          {!isEditing && relatedRecordItems.length > 0 ? (
             <div className="note-panel">
               <strong>相關紀錄</strong>
-              <p>{record.relation}</p>
+              <div className="related-record-actions">
+                {relatedRecordItems.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => {
+                      setActiveRelatedRecord(item);
+                      setRelatedActionMessage("");
+                    }}
+                  >
+                    查詢{item}
+                  </button>
+                ))}
+              </div>
+              {activeRelatedRecord && relatedRecordDetail ? (
+                <div className="related-result-panel">
+                  <strong>{relatedRecordDetail.type}</strong>
+                  <p>已開啟相關紀錄查詢，正式串接後會帶入對應模組與篩選條件。</p>
+                  <dl>
+                    <div><dt>日期</dt><dd>{relatedRecordDetail.date}</dd></div>
+                    <div><dt>狀態</dt><dd>{relatedRecordDetail.state}</dd></div>
+                    <div><dt>對應模組</dt><dd>{relatedRecordDetail.module}</dd></div>
+                  </dl>
+                  <button type="button" className="secondary-inline-action" onClick={() => setRelatedActionMessage(`已準備前往${relatedRecordDetail.module}查詢 ${relatedRecordDetail.type}。`)}>
+                    {relatedRecordDetail.action}
+                  </button>
+                  {relatedActionMessage ? <span>{relatedActionMessage}</span> : null}
+                </div>
+              ) : null}
             </div>
           ) : null}
-          {record.note ? (
+          {!isEditing && record.note ? (
             <div className="note-panel">
               <strong>備註</strong>
               <p>{record.note}</p>

@@ -67,8 +67,9 @@ function auditListPage() {
 function auditDetailPage() {
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
 
-  includes(detailPage, "<span>資料狀態</span>", "詳情頁應明確顯示資料狀態");
-  includes(detailPage, "record.relation ?", "相關紀錄需有內容才顯示");
+  includes(detailPage, "<StatusBadge status={record.status} />", "詳情頁標題區需顯示資料狀態 badge");
+  excludes(detailPage, "<div><span>資料狀態</span>", "詳情摘要不應重複顯示資料狀態");
+  includes(detailPage, "relatedRecordItems.length > 0", "相關紀錄需有內容才顯示");
   includes(detailPage, "record.note ?", "備註需有內容才顯示");
   includes(detailPage, "<strong>相關紀錄</strong>", "詳情頁關聯區塊需改名為相關紀錄");
   excludes(detailPage, "<strong>關聯資訊</strong>", "詳情頁不應再顯示關聯資訊");

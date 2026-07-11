@@ -1,4 +1,5 @@
 import type { ModuleKey } from "../data/modules";
+import { assignableTeamMemberNames } from "../data/adminSettings";
 
 export type ModuleDomainType = "masterData" | "internalWork" | "publishing" | "governance";
 
@@ -152,7 +153,7 @@ export const tagSemantics = {
 
 export const assigneeSemantics = {
   note: "承辦人員來自具備該模組權限的團隊成員；資料主檔只在有資料維護語意時顯示。",
-  eligibleMembers: ["主任委員 A", "總幹事 A", "櫃檯人員 A", "接待人員 A", "文書人員 A", "採購人員 A", "帳務人員 A"],
+  eligibleMembers: assignableTeamMemberNames,
 };
 
 export const publishingSemantics = {

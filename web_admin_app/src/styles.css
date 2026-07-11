@@ -657,6 +657,68 @@ button {
   background: #f7f3ea;
 }
 
+.related-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.related-record-actions button {
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 2px solid #d5c28d;
+  background: #fff;
+  color: #12351d;
+  font-weight: 800;
+}
+
+.related-record-actions button:hover,
+.related-record-actions button:focus-visible {
+  border-color: #12351d;
+  background: #eef4ea;
+}
+
+.related-result-panel {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.related-result-panel dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.related-result-panel dl div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.related-result-panel dt {
+  color: #7d5d10;
+  font-weight: 800;
+}
+
+.related-result-panel dd {
+  margin: 0;
+  color: #263026;
+}
+
+.secondary-inline-action {
+  width: fit-content;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #e9dfca;
+  color: #162016;
+  font-weight: 800;
+}
+
 .detail-actions {
   align-self: start;
   display: grid;
