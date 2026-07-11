@@ -183,6 +183,65 @@ export type ShrineDeityRecord = {
   role: "主祀" | "陪祀" | "其他";
 };
 
+export type FieldOption = string | {
+  value: string;
+  label: string;
+  meta?: string;
+};
+
+export type BusinessRecordOption = {
+  id: string;
+  title: string;
+  date: string;
+  type?: string;
+};
+
+export function fieldOptionValue(option: FieldOption) {
+  return typeof option === "string" ? option : option.value;
+}
+
+export function fieldOptionLabel(option: FieldOption) {
+  if (typeof option === "string") return option;
+  return option.meta ? `${option.label}｜${option.meta}` : option.label;
+}
+
+export function businessRecordFieldOption(record: BusinessRecordOption): FieldOption {
+  return {
+    value: record.id,
+    label: record.title || "未命名相關紀錄",
+    meta: record.date,
+  };
+}
+
+export function shrineRelatedRecordLabel(record: ShrineRelatedRecord) {
+  const title = record.title || `未命名${record.recordType}紀錄`;
+  return `${record.recordType}｜${title}`;
+}
+
+export function shrineSystemSummary(input: {
+  title: string;
+  area?: string;
+  category?: string;
+  primaryDeity?: string;
+  contacts?: ShrineContact[];
+  relatedRecords?: ShrineRelatedRecord[];
+}) {
+  const activeContacts = input.contacts?.filter((contact) => contact.isActive) ?? [];
+  const primaryContact = input.contacts?.find((contact) => contact.isPrimary && contact.isActive) ?? activeContacts[0];
+  const latestVisit = input.relatedRecords
+    ?.filter((record) => record.recordType === "來訪")
+    .sort((left, right) => right.date.localeCompare(left.date))[0];
+  const eventCount = input.relatedRecords?.filter((record) => record.recordType === "活動").length ?? 0;
+  const documentCount = input.relatedRecords?.filter((record) => record.recordType === "公文").length ?? 0;
+  const areaText = input.area ? `${input.area}友宮` : "友宮";
+  const deityText = input.primaryDeity ? `，主祀${input.primaryDeity}` : "";
+  const contactText = `；目前有 ${activeContacts.length} 位有效聯絡人${primaryContact ? `，主要聯絡人為${primaryContact.name}` : ""}`;
+  const visitText = latestVisit ? `，最近一筆來訪為 ${latestVisit.date}` : "，目前尚無來訪紀錄";
+  const relationText = eventCount || documentCount ? `；關聯活動 ${eventCount} 筆、公文 ${documentCount} 筆` : "";
+
+  return `${areaText}${deityText}${contactText}${visitText}${relationText}。`;
+}
+
 export const businessRecordOptions = {
   visits: [
     { id: "visit-a", title: "進香回覆", date: "2026-07-08" },

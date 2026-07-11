@@ -5,7 +5,7 @@ import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
-import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { assigneeSemantics, categorySemantics, fieldPolicyFor, shrineSystemSummary, stateSemantics, tagSemantics } from "../lib/domainModel";
 import type { DevoteeRelatedRecord, ShrineContact, ShrineDeityRecord, ShrineRelatedRecord } from "../lib/domainModel";
 import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
@@ -228,7 +228,16 @@ const hiddenDetailFieldKeys = new Set([
 
 const emptyFieldValues = new Set(["", "未填寫", "尚未指定", "無", "null", "undefined"]);
 
-function displayValue(value: unknown) {
+function displayValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.map((item) => displayValue(item)).filter(Boolean).join("、");
+  }
+  if (typeof value === "object" && value !== null) {
+    const candidate = value as { label?: unknown; title?: unknown; name?: unknown; value?: unknown };
+    const readable = candidate.label ?? candidate.title ?? candidate.name;
+    if (readable) return displayValue(readable);
+    return "";
+  }
   const text = hasEngineeringTestText(value) ? "第三方測試用匿名資料" : stringValue(value);
   if (emptyFieldValues.has(text.trim())) return "";
   return formatDisplayDate(text);
@@ -316,6 +325,19 @@ function shrineRelationSummary(relatedRecords: ShrineRelatedRecord[]) {
   ].filter(([, count]) => Number(count) > 0);
 
   return items.map(([label, count]) => `${label} ${count} 筆`).join("、");
+}
+
+function editableSummaryField(record: ApiRecord) {
+  if (record.module_key === "announcements") {
+    return { key: "summary", label: "公告摘要", type: "textarea" as const, value: record.summary, help: "正式短文摘要，可與公告內容分工。" };
+  }
+  if (record.module_key === "events") {
+    return { key: "summary", label: "活動簡介", type: "textarea" as const, value: record.summary, help: "正式活動簡介，可供對外發布整理。" };
+  }
+  if (record.module_key === "documents") {
+    return { key: "summary", label: "文件摘要", type: "textarea" as const, value: record.summary, help: "整理公文重點，不取代主旨或備註。" };
+  }
+  return null;
 }
 
 function displayNote(record: ApiRecord) {
@@ -408,6 +430,16 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const shrineContacts = Array.isArray(record.fields_json.shrineContacts) ? record.fields_json.shrineContacts as ShrineContact[] : [];
   const shrineRelatedRecords = Array.isArray(record.fields_json.shrineRelatedRecords) ? record.fields_json.shrineRelatedRecords as ShrineRelatedRecord[] : [];
   const shrineDeities = Array.isArray(record.fields_json.shrineDeities) ? record.fields_json.shrineDeities as ShrineDeityRecord[] : [];
+  const derivedShrineSummary = record.module_key === "shrines"
+    ? shrineSystemSummary({
+        title,
+        area: displayValue(record.fields_json.area),
+        category: record.category,
+        primaryDeity: displayValue(record.fields_json.primaryDeity),
+        contacts: shrineContacts,
+        relatedRecords: shrineRelatedRecords,
+      })
+    : "";
   const detailFields = [
     ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
     ...displayFields,
@@ -441,9 +473,10 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
         value: Array.isArray(field.value) ? (Array.isArray(value) ? value : []) : String(value),
       } as EditField;
     });
+  const summaryEditField = editableSummaryField(record);
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
-    { key: "summary", label: "摘要", type: "textarea", value: record.summary },
+    ...(summaryEditField ? [summaryEditField] : []),
     { key: "dataStatus", label: "資料狀態", type: "select", value: statusLabel(record), options: stateSemantics.dataStatuses, help: "資料狀態由管理者或具封存權限的廟方人員調整。" },
     { key: "recordDate", label: policy.dateLabel, type: "date", value: record.record_date ?? "" },
     ...(policy.showDueDate ? [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }] : []),
@@ -461,7 +494,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     title,
     status: statusLabel(record),
     statusCategory: normalizeStatusCategory(record),
-    summary: summary || "尚未填寫摘要。",
+    summary: derivedShrineSummary || summary || "尚未填寫摘要。",
     owner,
     dateLabel: dateText(record),
     relation: relatedRecordSummary(record, displayTags),

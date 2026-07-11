@@ -7,7 +7,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
-import { fieldPolicyFor } from "../lib/domainModel";
+import { fieldOptionLabel, fieldOptionValue, fieldPolicyFor, shrineRelatedRecordLabel, shrineSystemSummary } from "../lib/domainModel";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 
 type EditValues = Record<string, string | string[]>;
@@ -60,12 +60,12 @@ export function ModuleDetailPage() {
     const shrineRecord = record.shrineRelatedRecords?.find((item) => item.id === activeRelatedRecord);
     if (shrineRecord) {
       return {
-        type: `${shrineRecord.recordType}｜${shrineRecord.title}`,
+        type: shrineRelatedRecordLabel(shrineRecord),
         date: formatDisplayDate(shrineRecord.date),
         state: shrineRecord.status,
         module: shrineRecord.module,
         action: `查看${shrineRecord.recordType}紀錄`,
-        item: `紀錄代碼：${shrineRecord.recordId}`,
+        item: `${formatDisplayDate(shrineRecord.date)}｜${shrineRecord.status}`,
         amount: "",
         note: "",
       };
@@ -103,7 +103,7 @@ export function ModuleDetailPage() {
   const relatedButtonLabel = (item: string) => {
     const detailedRecord = record?.relatedRecords?.find((recordItem) => recordItem.id === item);
     const shrineRecord = record?.shrineRelatedRecords?.find((recordItem) => recordItem.id === item);
-    if (shrineRecord) return `${shrineRecord.recordType}｜${shrineRecord.title}`;
+    if (shrineRecord) return shrineRelatedRecordLabel(shrineRecord);
     return detailedRecord ? `${detailedRecord.category}｜${detailedRecord.type}` : item;
   };
 
@@ -293,6 +293,16 @@ export function ModuleDetailPage() {
     updateField(field.key, nextValue);
   };
 
+  const displayValueForField = (field: EditField, value: string | string[]) => {
+    if (field.type !== "select" && field.type !== "tags") return Array.isArray(value) ? value.join("、") : formatDisplayDate(value);
+    const labels = field.options.reduce<Record<string, string>>((map, option) => {
+      map[fieldOptionValue(option)] = fieldOptionLabel(option);
+      return map;
+    }, {});
+    if (Array.isArray(value)) return value.map((item) => labels[item] ?? "未命名相關紀錄").join("、");
+    return labels[value] ?? value;
+  };
+
   const renderEditField = (field: EditField) => {
     const value = editValues[field.key] ?? field.value;
     const readonly = field.readonly || (field.key === "systemRole" && role !== "admin");
@@ -326,8 +336,8 @@ export function ModuleDetailPage() {
           {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
             {field.options.map((option) => (
-              <option key={option} value={option}>
-                {option}
+              <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
+                {fieldOptionLabel(option)}
               </option>
             ))}
           </select>
@@ -344,8 +354,13 @@ export function ModuleDetailPage() {
           {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
             {field.options.map((option) => (
-              <button key={option} type="button" className={selected.includes(option) ? "selected" : ""} onClick={() => toggleTag(field, option)}>
-                {option}
+              <button
+                key={fieldOptionValue(option)}
+                type="button"
+                className={selected.includes(fieldOptionValue(option)) ? "selected" : ""}
+                onClick={() => toggleTag(field, fieldOptionValue(option))}
+              >
+                {fieldOptionLabel(option)}
               </button>
             ))}
           </div>
@@ -389,7 +404,7 @@ export function ModuleDetailPage() {
       const value = editValues[field.key];
       if (!value) return null;
 
-      return { label: field.label, value: Array.isArray(value) ? value.join("、") : formatDisplayDate(String(value)) };
+      return { label: field.label, value: displayValueForField(field, Array.isArray(value) ? value : String(value)) };
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
@@ -459,6 +474,21 @@ export function ModuleDetailPage() {
             </div>
           ) : null}
           <h3>資料摘要</h3>
+          {record.moduleKey === "shrines" ? (
+            <div className="system-summary-strip">
+              <strong>系統摘要</strong>
+              <span>
+                {shrineSystemSummary({
+                  title: record.title,
+                  area: record.detailFields.find((field) => field.label === "地區")?.value,
+                  category: record.detailFields.find((field) => field.label === "友宮分類")?.value,
+                  primaryDeity: record.detailFields.find((field) => field.label === "主祀神祇")?.value,
+                  contacts: record.shrineContacts,
+                  relatedRecords: record.shrineRelatedRecords,
+                })}
+              </span>
+            </div>
+          ) : null}
           {isEditing ? (
             <div className="edit-form-grid">
               {visibleEditFields.map((field) => renderEditField(field))}

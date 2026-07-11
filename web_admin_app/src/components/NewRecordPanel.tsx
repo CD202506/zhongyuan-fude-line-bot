@@ -8,6 +8,9 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 import {
   devoteeRelatedRecordExamples,
+  fieldOptionLabel,
+  fieldOptionValue,
+  shrineRelatedRecordLabel,
   shrineContactExamples,
   shrineRelatedRecordExamples,
   type DevoteeRelatedRecord,
@@ -70,6 +73,16 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     updateField(field.key, nextValue);
   };
 
+  const displayValueForField = (field: EditField, value: string | string[]) => {
+    if (field.type !== "select" && field.type !== "tags") return Array.isArray(value) ? value.join("、") : formatDisplayDate(value);
+    const labels = field.options.reduce<Record<string, string>>((map, option) => {
+      map[fieldOptionValue(option)] = fieldOptionLabel(option);
+      return map;
+    }, {});
+    if (Array.isArray(value)) return value.map((item) => labels[item] ?? "未命名相關紀錄").join("、");
+    return labels[value] ?? value;
+  };
+
   const renderField = (field: EditField) => {
     const value = values[field.key] ?? field.value;
     const textPlaceholder = field.key === "birthMonthDay" ? "月/日" : field.label.includes("電話") ? "請輸入電話" : "請輸入內容";
@@ -91,8 +104,8 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
             {field.options.map((option) => (
-              <option key={option} value={option}>
-                {option}
+              <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
+                {fieldOptionLabel(option)}
               </option>
             ))}
           </select>
@@ -109,8 +122,13 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
             {field.options.map((option) => (
-              <button key={option} type="button" className={selected.includes(option) ? "selected" : ""} onClick={() => toggleTag(field, option)}>
-                {option}
+              <button
+                key={fieldOptionValue(option)}
+                type="button"
+                className={selected.includes(fieldOptionValue(option)) ? "selected" : ""}
+                onClick={() => toggleTag(field, fieldOptionValue(option))}
+              >
+                {fieldOptionLabel(option)}
               </button>
             ))}
           </div>
@@ -153,8 +171,10 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     .map((field) => {
       const value = values[field.key];
       if (!value || (Array.isArray(value) && value.length === 0)) return null;
+      if (Array.isArray(value) && value.some((item) => typeof item !== "string")) return null;
+      const entryValue: string | string[] = Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : String(value);
 
-      return { label: field.label, value: Array.isArray(value) ? value.join("、") : formatDisplayDate(String(value)) };
+      return { label: field.label, value: displayValueForField(field, entryValue) };
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
@@ -348,9 +368,8 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
             <div className="related-record-table">
               {shrineRelatedRecords.map((record) => (
                 <article key={record.id}>
-                  <strong>{record.recordType}｜{record.title}</strong>
+                  <strong>{shrineRelatedRecordLabel(record)}</strong>
                   <span>{formatDisplayDate(record.date)}｜{record.status}｜對應：{record.module}</span>
-                  <span>紀錄代碼：{record.recordId}</span>
                 </article>
               ))}
             </div>

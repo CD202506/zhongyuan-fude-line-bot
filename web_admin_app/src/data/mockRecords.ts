@@ -2,6 +2,8 @@ import type { ModuleKey } from "./modules";
 import { formatDisplayDate } from "../lib/dateFormat";
 import {
   devoteeRelatedRecordExamples,
+  fieldOptionLabel,
+  type FieldOption,
   shrineContactExamples,
   shrineDeityExamples,
   shrineRelatedRecordExamples,
@@ -13,8 +15,8 @@ import {
 
 export type EditField =
   | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
-  | { key: string; label: string; type: "select"; value: string; options: string[]; readonly?: boolean; help?: string }
-  | { key: string; label: string; type: "tags"; value: string[]; options: string[]; readonly?: boolean; help?: string };
+  | { key: string; label: string; type: "select"; value: string; options: FieldOption[]; readonly?: boolean; help?: string }
+  | { key: string; label: string; type: "tags"; value: string[]; options: FieldOption[]; readonly?: boolean; help?: string };
 
 export type MockRecord = {
   id: string;
@@ -489,5 +491,12 @@ function normalizeRecordDates(record: MockRecord): MockRecord {
     dateLabel: formatDisplayDate(record.dateLabel),
     listFields: record.listFields.map((field) => ({ ...field, value: formatDisplayDate(field.value) })),
     detailFields: record.detailFields.map((field) => ({ ...field, value: formatDisplayDate(field.value) })),
+    editFields: record.editFields.map((field) => {
+      if (field.type !== "select" && field.type !== "tags") return field;
+      return {
+        ...field,
+        options: field.options.map((option) => typeof option === "string" ? option : { ...option, label: fieldOptionLabel(option) }),
+      };
+    }) as EditField[],
   };
 }

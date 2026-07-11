@@ -1,7 +1,7 @@
 import type { EditField } from "./mockRecords";
 import type { ModuleKey } from "./modules";
 import { masterDataCatalogs } from "./adminSettings";
-import { assigneeSemantics, businessRecordOptions, categorySemantics, publishingSemantics, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { assigneeSemantics, businessRecordFieldOption, businessRecordOptions, categorySemantics, publishingSemantics, stateSemantics, tagSemantics } from "../lib/domainModel";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -35,12 +35,12 @@ export const newRecordFields: Record<ModuleKey, EditField[]> = {
     { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神"], options: masterDataCatalogs.deityCatalog, help: "可複選主祀與陪祀神祇，主祀神祇另於下方指定。" },
     { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: masterDataCatalogs.deityCatalog },
     { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: masterDataCatalogs.relationshipStatuses },
-    { key: "relatedVisitIds", label: "關聯來訪", type: "tags", value: [], options: businessRecordOptions.visits.map((item) => `${item.id}｜${item.title}`) },
-    { key: "relatedInvitationIds", label: "關聯請帖", type: "tags", value: [], options: businessRecordOptions.invitations.map((item) => `${item.id}｜${item.title}`) },
-    { key: "relatedEventIds", label: "關聯活動", type: "tags", value: [], options: businessRecordOptions.events.map((item) => `${item.id}｜${item.title}`) },
-    { key: "relatedDocumentIds", label: "關聯公文", type: "tags", value: [], options: businessRecordOptions.documents.map((item) => `${item.id}｜${item.title}`) },
+    { key: "relatedVisitIds", label: "關聯來訪", type: "tags", value: [], options: businessRecordOptions.visits.map(businessRecordFieldOption) },
+    { key: "relatedInvitationIds", label: "關聯請帖", type: "tags", value: [], options: businessRecordOptions.invitations.map(businessRecordFieldOption) },
+    { key: "relatedEventIds", label: "關聯活動", type: "tags", value: [], options: businessRecordOptions.events.map(businessRecordFieldOption) },
+    { key: "relatedDocumentIds", label: "關聯公文", type: "tags", value: [], options: businessRecordOptions.documents.map(businessRecordFieldOption) },
     { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note },
-    { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "正式關聯請使用上方實際紀錄；此欄僅補充舊資料或背景說明。" },
+    { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "非日常使用；僅補充舊紙本或舊系統轉入且無法拆分的背景。" },
     { key: "note", label: "備註", type: "textarea", value: "" },
   ],
   visits: [

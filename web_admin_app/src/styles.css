@@ -799,6 +799,20 @@ button {
   color: #17451f;
 }
 
+.system-summary-strip {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #e5dcc8;
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.system-summary-strip strong {
+  color: #7a5700;
+}
+
 .process-panel {
   border: 1px solid #d5c28d;
   background: #fff8d8;
