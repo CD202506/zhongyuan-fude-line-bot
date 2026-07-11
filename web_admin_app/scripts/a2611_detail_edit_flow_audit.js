@@ -96,7 +96,7 @@ function auditDevoteeOptionalFields() {
     includes(devotees, expected, `年齡級距缺少 ${expected}`);
   }
 
-  includes(devotees, "value: []", "善信服務紀錄預設不應硬塞相關紀錄");
+  includes(devotees, "沒有往來紀錄", "善信往來紀錄預設不應強迫填寫");
   excludes(listPage, "手機號碼", "列表頁不應顯示手機號碼");
   excludes(listPage, "地址", "列表頁不應顯示地址");
   excludes(listPage, "出生月 / 日", "列表頁不應顯示出生月 / 日");
@@ -106,7 +106,7 @@ function auditRelatedFinanceRecords() {
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
   const recordService = read("src/services/recordService.ts");
 
-  for (const expected of ["發財金", "還金", "香油錢", "捐款", "帳務紀錄", "服務紀錄"]) {
+  for (const expected of ["發財金", "平安龜", "待返還", "香油錢", "捐款", "帳務紀錄", "往來紀錄"]) {
     includes(recordService, expected, `相關紀錄需支援 ${expected}`);
   }
 

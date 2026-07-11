@@ -6,7 +6,7 @@ import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
 import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
-import { formatDisplayDate } from "../lib/dateFormat";
+import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
 export type FormValues = Record<string, string | string[]>;
 export type StatusFilter = "active" | "archived" | "all";
@@ -89,7 +89,7 @@ function displayTitle(record: ApiRecord) {
 }
 
 function displaySummary(record: ApiRecord) {
-  if (record.module_key === "devotees" && record.summary === "善信資料維護確認") return "本人資料授權待確認。";
+  if (record.module_key === "devotees" && record.summary === "善信資料維護確認") return "善信基本資料維護。";
   if (!hasEngineeringTestText(record.summary)) return record.summary;
   if (record.module_key === "devotees") return "善信資料維護紀錄。";
   return "廟務資料維護紀錄。";
@@ -105,8 +105,16 @@ const fieldDisplayLabels: Record<string, string> = {
   title: "標題",
   type: "類型",
   category: "類別",
-  authorization: "本人資料授權",
-  services: "服務紀錄",
+  services: "往來紀錄",
+  interactionCategory: "往來分類",
+  interactionType: "往來類型",
+  interactionDate: "往來日期",
+  returnStatus: "返還狀態",
+  returnDate: "返還日期",
+  returnReminder: "返還提醒",
+  amountOrItem: "金額 / 品項",
+  quantityNote: "數量 / 備註",
+  receiver: "登錄 / 接收人員",
   handler: "資料維護人員",
   contact: "聯繫方式",
   mobile: "手機號碼",
@@ -179,6 +187,7 @@ const hiddenDetailFieldKeys = new Set([
   "title",
   "name",
   "summary",
+  "authorization",
   "date",
   "recordDate",
   "publishDate",
@@ -229,12 +238,17 @@ function relatedRecordSummary(record: ApiRecord, tags: string[]) {
 
   if (record.module_key === "devotees") {
     const relationText = String(fields.relations ?? "");
-    add("發財金：1 筆", fields.fortuneMoneyReceived || fields.fortuneMoneyReturned || tags.includes("發財金") || relationText.includes("發財金"));
-    add("還金：1 筆", relationText.includes("還金") || String(fields.fortuneMoneyNote ?? "").includes("還金"));
+    const interactionText = [fields.interactionCategory, fields.interactionType, fields.returnStatus, fields.returnReminder].map(String).join(" ");
+    add("發財金：1 筆", interactionText.includes("發財金") || fields.fortuneMoneyReceived || fields.fortuneMoneyReturned || tags.includes("發財金") || relationText.includes("發財金"));
+    add("平安龜：1 筆", interactionText.includes("平安龜") || relationText.includes("平安龜"));
+    add("待返還：1 筆", interactionText.includes("待返還") || interactionText.includes("逾期提醒"));
+    add("已返還：1 筆", interactionText.includes("已返還"));
     add("香油錢：1 筆", relationText.includes("香油錢"));
     add("捐款：1 筆", relationText.includes("捐款"));
-    add("活動參與：1 筆", String(fields.relations ?? "").includes("活動") || tags.includes("活動通知"));
-    add("服務紀錄：1 筆", fields.services);
+    add("金牌：1 筆", interactionText.includes("金牌") || relationText.includes("金牌"));
+    add("物資捐贈：1 筆", interactionText.includes("物資捐贈") || interactionText.includes("供品捐贈") || relationText.includes("物資"));
+    add("活動參與：1 筆", String(fields.relations ?? "").includes("活動"));
+    add("往來紀錄：1 筆", fields.services || fields.interactionCategory && fields.interactionCategory !== "沒有往來紀錄");
     add("帳務紀錄：1 筆", String(fields.relations ?? "").includes("帳務"));
   }
 
@@ -274,8 +288,9 @@ function listFieldsFor(record: ApiRecord, owner: string) {
   const fields: Array<{ label: string; value: string }> = [];
 
   if (record.module_key === "devotees") {
+    const relationSummary = relatedRecordSummary(record, record.tags_json);
     add(fields, "善信類型", record.category);
-    add(fields, "本人資料授權", record.fields_json.authorization);
+    add(fields, "往來紀錄", relationSummary);
     add(fields, "最近更新", updated);
     add(fields, policy.ownerLabel, owner);
     return fields;
@@ -445,8 +460,8 @@ function valuesToPayload(moduleKey: ModuleKey, values: FormValues, role: UserRol
     title,
     summary,
     status: resolveSystemStatus(values.dataStatus),
-    record_date: String(values.date || values.publishDate || values.recordDate || "") || null,
-    due_date: String(values.dueDate || "") || null,
+    record_date: toIsoDateValue(String(values.date || values.publishDate || values.recordDate || "")),
+    due_date: toIsoDateValue(String(values.dueDate || "")),
     responsible: String(values.handler || values.owner || values.group || values.responsible || ""),
     category: String(values.type || values.category || values.cashType || values.documentType || ""),
     fields_json: values,

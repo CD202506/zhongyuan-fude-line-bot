@@ -26,7 +26,7 @@ const searchLabels: Record<ModuleKey, string> = {
 
 const listHints: Record<ModuleKey, string> = {
   "temple-affairs": "請先確認廟務內容，再更新處理狀態或封存紀錄。",
-  devotees: "查看詳情後，可維護本人資料授權、發財金或基本資料。",
+  devotees: "查看詳情後，可維護基本資料與往來紀錄。",
   shrines: "查看詳情後，可維護聯絡窗口與相關往來紀錄。",
   visits: "查看詳情後，可確認來訪、請帖回覆與承辦進度。",
   announcements: "查看詳情後，可整理發布內容、管道與可見對象。",

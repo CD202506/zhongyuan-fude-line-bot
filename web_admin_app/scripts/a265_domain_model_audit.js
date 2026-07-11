@@ -41,7 +41,7 @@ function auditDomainModel() {
   for (const expected of ["發布類別", "發布管道", "可見對象", "可由來源資料整理發布內容"]) {
     includes(domainModel, expected, `發布模型缺少語意：${expected}`);
   }
-  for (const expected of ["使用中", "已封存", "作廢", "待確認", "處理中", "已完成", "暫緩", "草稿", "已發布", "已授權", "未授權", "取消授權"]) {
+  for (const expected of ["使用中", "已封存", "作廢", "待確認", "處理中", "已完成", "暫緩", "草稿", "已發布"]) {
     includes(domainModel, expected, `狀態語意缺少 ${expected}`);
   }
 }
@@ -63,7 +63,7 @@ function auditFieldBoundaries() {
   for (const forbidden of ["預計完成日", "關聯標籤", "工程式 tag"]) {
     excludes(devotees, forbidden, `善信管理不應出現 ${forbidden}`);
   }
-  for (const expected of ["善信類型", "本人資料授權", "發財金與服務紀錄", "資料維護人員", "相關紀錄"]) {
+  for (const expected of ["善信類型", "往來分類", "往來類型", "資料維護人員", "相關紀錄"]) {
     includes(devotees, expected, `善信管理缺少 ${expected}`);
   }
 

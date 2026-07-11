@@ -46,6 +46,8 @@ function auditVisibleWording() {
     "diagnostic",
     "目前身份",
     "身份檢視",
+    "本人資料授權",
+    "授權狀態",
   ]) {
     excludes(visibleSources, forbidden, `使用者主畫面不應顯示 ${forbidden}`);
   }
@@ -121,7 +123,8 @@ function auditRelatedRecords() {
   includes(detailPage, "setRelatedActionMessage", "相關紀錄查詢需有可見回饋");
   includes(detailPage, "查看帳務紀錄", "金流類相關紀錄需指向帳務管理查詢");
   includes(recordService, "發財金：1 筆", "善信相關紀錄需支援發財金");
-  includes(recordService, "還金：1 筆", "善信相關紀錄需支援還金");
+  includes(recordService, "平安龜：1 筆", "善信相關紀錄需支援平安龜");
+  includes(recordService, "待返還：1 筆", "善信相關紀錄需支援返還狀態");
   includes(recordService, "香油錢：1 筆", "善信相關紀錄需支援香油錢");
   includes(recordService, "捐款：1 筆", "善信相關紀錄需支援捐款");
   includes(recordService, "帳務紀錄：1 筆", "善信相關紀錄需支援帳務紀錄");

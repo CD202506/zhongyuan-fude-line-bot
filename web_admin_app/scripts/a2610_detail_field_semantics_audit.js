@@ -41,14 +41,14 @@ function auditDetailMapper() {
     includes(recordService, hidden, `詳情 mapper 未隱藏 ${hidden}`);
   }
 
-  for (const expected of ["本人資料授權", "相關紀錄", "發財金：1 筆", "帳務紀錄：1 筆", "採購紀錄：1 筆", "來源資料：1 筆"]) {
+  for (const expected of ["往來紀錄", "相關紀錄", "發財金：1 筆", "帳務紀錄：1 筆", "採購紀錄：1 筆", "來源資料：1 筆"]) {
     includes(recordService, expected, `詳情 mapper 缺少使用者語意 ${expected}`);
   }
 
   includes(recordService, "status: resolveSystemStatus(values.dataStatus)", "API 主狀態應只由資料狀態決定");
   excludes(recordService, "status: resolveSystemStatus(values.status)", "不可把各模組處理狀態寫入 API 主狀態");
   excludes(recordService, '{ label: "資料狀態", value: statusLabel(record) }', "列表摘要不應重複顯示資料狀態");
-  includes(recordService, 'add(fields, "本人資料授權", record.fields_json.authorization)', "善信列表需顯示本人資料授權");
+  includes(recordService, 'add(fields, "往來紀錄", relationSummary)', "善信列表需顯示往來紀錄摘要");
   includes(recordService, 'add(fields, "最近更新", updated)', "列表摘要需以最近更新取代建立日期混合欄位");
 }
 
@@ -56,7 +56,7 @@ function auditListPage() {
   const listPage = read("src/routes/ModuleListPage.tsx");
 
   includes(listPage, "listHints", "列表頁需依模組提供提示文字");
-  includes(listPage, "查看詳情後，可維護本人資料授權、發財金或基本資料。", "善信列表提示需符合模組語意");
+  includes(listPage, "查看詳情後，可維護基本資料與往來紀錄。", "善信列表提示需符合模組語意");
   includes(listPage, "查看詳情後，可確認採購內容與帳務紀錄。", "採購列表提示需符合模組語意");
   includes(listPage, "查看詳情後，可整理發布內容、管道與可見對象。", "發布列表提示需符合模組語意");
   excludes(listPage, "先查看詳情，再處理資料", "列表頁不應使用籠統提示");
@@ -81,8 +81,8 @@ function auditFormSemantics() {
   const devotees = sectionBetween(fields, "  devotees: [", "  shrines: [");
   const ledger = sectionBetween(fields, "  ledger: [", "};");
 
-  includes(devotees, "本人資料授權", "善信表單需使用本人資料授權");
-  includes(devotees, "stateSemantics.notes.authorization", "本人資料授權需有用途說明");
+  includes(devotees, "往來分類", "善信表單需使用往來分類");
+  includes(devotees, "往來類型", "善信表單需使用往來類型");
   includes(devotees, "可由管理者設定。", "善信類型需有簡短來源提示");
   includes(ledger, "相關紀錄", "帳務表單需使用相關紀錄");
   excludes(fields, "授權狀態", "新增表單不應再使用授權狀態");
@@ -93,13 +93,11 @@ function auditStateSemantics() {
   const domainModel = read("src/lib/domainModel.ts");
   const adminSettings = read("src/data/adminSettings.ts");
 
-  for (const expected of ["dataStatuses", "processStatuses", "publishingStatuses", "authorizationStatuses", "資料狀態由管理者調整", "依作業進度調整", "依發布進度調整", "確認本人相關紀錄查詢範圍"]) {
+  for (const expected of ["dataStatuses", "processStatuses", "publishingStatuses", "資料狀態由管理者調整", "依作業進度調整", "依發布進度調整"]) {
     includes(domainModel, expected, `狀態語意缺少 ${expected}`);
   }
 
-  for (const expected of ["本人資料授權", "已授權", "未授權", "取消授權"]) {
-    includes(adminSettings, expected, `管理者基礎資料缺少 ${expected}`);
-  }
+  excludes(adminSettings, "本人資料授權", "管理者基礎資料不應再顯示善信本人資料授權");
 }
 
 function auditVisibleFiles() {
@@ -113,7 +111,7 @@ function auditVisibleFiles() {
     "src/routes/ModuleDetailPage.tsx",
   ].map((file) => read(file)).join("\n");
 
-  for (const forbidden of ["授權狀態", "關聯資訊", "關聯紀錄", "關聯：", "可查詢本人紀錄", "尚未授權", "fields_json", "tags_json", "module_key", "record_id", "raw status", "A23F3", "A23F5", "身份檢視", "切換不同身份"]) {
+  for (const forbidden of ["本人資料授權", "授權狀態", "關聯資訊", "關聯紀錄", "關聯：", "可查詢本人紀錄", "尚未授權", "fields_json", "tags_json", "module_key", "record_id", "raw status", "A23F3", "A23F5", "身份檢視", "切換不同身份"]) {
     excludes(combined, forbidden, `使用者可見文字不應包含 ${forbidden}`);
   }
 }

@@ -8,7 +8,7 @@ import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
 import { fieldPolicyFor } from "../lib/domainModel";
-import { formatDisplayDate, rocDateInputHint } from "../lib/dateFormat";
+import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 
 type EditValues = Record<string, string | string[]>;
 type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
@@ -40,7 +40,7 @@ export function ModuleDetailPage() {
   }, [record?.relation]);
   const relatedRecordDetail = useMemo(() => {
     if (!activeRelatedRecord || !record) return null;
-    const financeRelated = ["發財金", "還金", "香油錢", "捐款", "帳務"].some((keyword) => activeRelatedRecord.includes(keyword));
+    const financeRelated = ["發財金", "平安龜", "香油錢", "捐款", "金牌", "帳務", "待返還", "已返還"].some((keyword) => activeRelatedRecord.includes(keyword));
     if (financeRelated) {
       return {
         type: activeRelatedRecord.replace(/：.*$/, ""),
@@ -53,6 +53,10 @@ export function ModuleDetailPage() {
 
     if (activeRelatedRecord.includes("活動")) {
       return { type: "活動參與", date: record.dateLabel, state: "待確認", module: "活動消息", action: "查看活動紀錄" };
+    }
+
+    if (activeRelatedRecord.includes("物資") || activeRelatedRecord.includes("供品")) {
+      return { type: "物資往來", date: record.dateLabel, state: "已記錄", module: moduleItem?.title ?? "善信管理", action: "查看物資紀錄" };
     }
 
     if (activeRelatedRecord.includes("服務")) {
@@ -318,10 +322,11 @@ export function ModuleDetailPage() {
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <input
-            type="date"
+            type="text"
             aria-label={`${field.label}，${rocDateInputHint}`}
-            value={String(value)}
+            value={formatRocDateInputValue(String(value))}
             onChange={(event) => updateField(field.key, event.target.value)}
+            placeholder="年/月/日"
           />
           <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
         </label>

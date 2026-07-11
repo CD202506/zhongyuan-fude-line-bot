@@ -5,7 +5,7 @@ import type { UserRole } from "../data/mockUser";
 import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { formatDisplayDate, rocDateInputHint } from "../lib/dateFormat";
+import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 
 type FormValues = Record<string, string | string[]>;
 type NewRecordState = "editing" | "draft" | "submitted";
@@ -113,10 +113,11 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <input
-            type="date"
+            type="text"
             aria-label={`${field.label}，${rocDateInputHint}`}
-            value={String(value)}
+            value={formatRocDateInputValue(String(value))}
             onChange={(event) => updateField(field.key, event.target.value)}
+            placeholder="年/月/日"
           />
           <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
         </label>

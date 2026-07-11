@@ -116,16 +116,6 @@ export const basicDataGroups: BasicDataGroup[] = [
     ],
   },
   {
-    title: "本人資料授權",
-    scope: "善信管理",
-    options: [
-      { name: "待確認", state: "使用中" },
-      { name: "已授權", state: "使用中" },
-      { name: "未授權", state: "使用中" },
-      { name: "取消授權", state: "使用中" },
-    ],
-  },
-  {
     title: "處理狀態",
     scope: "日常作業",
     options: [
