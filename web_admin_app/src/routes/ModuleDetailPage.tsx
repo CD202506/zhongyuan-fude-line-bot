@@ -36,9 +36,10 @@ export function ModuleDetailPage() {
   }, [record, role]);
   const relatedRecordItems = useMemo(() => {
     if (record?.relatedRecords && record.relatedRecords.length > 0) return record.relatedRecords.map((item) => item.id);
+    if (record?.shrineRelatedRecords && record.shrineRelatedRecords.length > 0) return record.shrineRelatedRecords.map((item) => item.id);
     if (!record?.relation) return [];
     return record.relation.split("、").map((item) => item.trim()).filter(Boolean);
-  }, [record?.relation, record?.relatedRecords]);
+  }, [record?.relation, record?.relatedRecords, record?.shrineRelatedRecords]);
   const relatedRecordDetail = useMemo(() => {
     if (!activeRelatedRecord || !record) return null;
     const detailedRecord = record.relatedRecords?.find((item) => item.id === activeRelatedRecord);
@@ -54,6 +55,19 @@ export function ModuleDetailPage() {
         item: `${detailedRecord.action}｜${detailedRecord.item} ${detailedRecord.quantity}${detailedRecord.unit}`,
         amount: detailedRecord.amount ? `${detailedRecord.amount} 元` : "",
         note: detailedRecord.differenceHandling || detailedRecord.note,
+      };
+    }
+    const shrineRecord = record.shrineRelatedRecords?.find((item) => item.id === activeRelatedRecord);
+    if (shrineRecord) {
+      return {
+        type: `${shrineRecord.recordType}｜${shrineRecord.title}`,
+        date: formatDisplayDate(shrineRecord.date),
+        state: shrineRecord.status,
+        module: shrineRecord.module,
+        action: `查看${shrineRecord.recordType}紀錄`,
+        item: `紀錄代碼：${shrineRecord.recordId}`,
+        amount: "",
+        note: "",
       };
     }
     const financeRelated = ["發財金", "平安龜", "香油錢", "捐款", "金牌", "帳務", "待返還", "已返還"].some((keyword) => activeRelatedRecord.includes(keyword));
@@ -88,6 +102,8 @@ export function ModuleDetailPage() {
 
   const relatedButtonLabel = (item: string) => {
     const detailedRecord = record?.relatedRecords?.find((recordItem) => recordItem.id === item);
+    const shrineRecord = record?.shrineRelatedRecords?.find((recordItem) => recordItem.id === item);
+    if (shrineRecord) return `${shrineRecord.recordType}｜${shrineRecord.title}`;
     return detailedRecord ? `${detailedRecord.category}｜${detailedRecord.type}` : item;
   };
 
@@ -469,6 +485,42 @@ export function ModuleDetailPage() {
               </div>
             </div>
           ) : null}
+          {!isEditing && record.moduleKey === "shrines" ? (
+            <div className="note-panel">
+              <strong>友宮聯絡人</strong>
+              {record.shrineContacts && record.shrineContacts.length > 0 ? (
+                <div className="related-record-table">
+                  {record.shrineContacts.map((contact) => (
+                    <article key={contact.contactId}>
+                      <strong>{contact.name}｜{contact.title}{contact.isPrimary ? "｜主要聯絡人" : ""}</strong>
+                      <span>{contact.contactStatus}｜{contact.isActive ? "使用中" : "已封存"}</span>
+                      <span>{contact.methods.map((method) => `${method.type}${method.isPrimary ? "（主要）" : ""}：${method.value}`).join("、")}</span>
+                      {contact.note ? <span>{contact.note}</span> : null}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-inline-state">目前尚無聯絡人。</div>
+              )}
+            </div>
+          ) : null}
+          {!isEditing && record.moduleKey === "shrines" ? (
+            <div className="note-panel">
+              <strong>供奉神祇</strong>
+              {record.shrineDeities && record.shrineDeities.length > 0 ? (
+                <div className="related-record-table">
+                  {record.shrineDeities.map((deity) => (
+                    <article key={deity.id}>
+                      <strong>{deity.name}</strong>
+                      <span>{deity.role}</span>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-inline-state">目前尚無供奉神祇紀錄。</div>
+              )}
+            </div>
+          ) : null}
           {!isEditing && relatedRecordItems.length > 0 ? (
             <div className="note-panel">
               <strong>相關紀錄</strong>
@@ -504,6 +556,12 @@ export function ModuleDetailPage() {
                   {relatedActionMessage ? <span>{relatedActionMessage}</span> : null}
                 </div>
               ) : null}
+            </div>
+          ) : null}
+          {!isEditing && record.moduleKey === "shrines" && relatedRecordItems.length === 0 ? (
+            <div className="note-panel">
+              <strong>相關紀錄</strong>
+              <div className="empty-inline-state">目前尚無來訪、請帖、活動或公文關聯。</div>
             </div>
           ) : null}
           {!isEditing && record.note ? (

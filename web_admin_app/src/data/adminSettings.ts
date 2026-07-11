@@ -66,6 +66,13 @@ export type AuditLogSetting = {
 
 export const masterDataCatalogs = {
   devoteeTypes: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"],
+  shrineTypes: ["友宮", "合作宮廟", "行政單位", "其他"],
+  regionCatalog: ["桃園地區", "中壢地區", "平鎮地區", "新竹地區", "其他地區"],
+  contactTypes: ["電話", "手機", "LINE", "Email", "地址", "其他"],
+  contactStatuses: ["可聯繫", "待確認", "暫停聯繫", "已封存"],
+  contactRoleTypes: ["主委", "總幹事", "窗口", "廟方人員", "志工", "其他"],
+  deityCatalog: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"],
+  relationshipStatuses: ["常態往來", "近期來訪", "待回覆", "暫少往來", "已封存"],
   teamRoles: ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員", "其他"],
   permissionTypes: ["管理者", "承辦", "覆核", "核准", "封存", "發布", "設定"],
   templeWorkCategories: ["例行廟務", "祭典準備", "場地事務", "對外聯繫", "內部提醒"],
@@ -78,6 +85,8 @@ export const masterDataCatalogs = {
   notificationStatuses: ["待通知", "已通知", "已回覆", "未回覆"],
   activityTypes: ["祭典活動", "志工活動", "友宮聯誼", "一般活動"],
   activityStatuses: ["待報名", "已報名", "已參與", "未出席"],
+  visitTypes: ["參訪", "進香", "請帖", "祝壽", "聯誼"],
+  invitationTypes: ["活動請帖", "祝壽請帖", "聯誼邀請", "其他請帖"],
   documentTypes: ["公文紀錄", "內部行政", "通知發布", "會議紀錄"],
   recordStatuses: ["使用中", "已封存", "作廢"],
 };
@@ -93,12 +102,32 @@ export const basicDataGroups: BasicDataGroup[] = [
   {
     title: "友宮分類",
     scope: "友宮管理",
-    options: [
-      { name: "友宮", state: "使用中" },
-      { name: "廟宇", state: "使用中" },
-      { name: "協會", state: "使用中" },
-      { name: "其他", state: "停用" },
-    ],
+    options: masterDataCatalogs.shrineTypes.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "聯絡方式類型",
+    scope: "友宮管理",
+    options: masterDataCatalogs.contactTypes.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "聯繫狀態",
+    scope: "友宮管理",
+    options: masterDataCatalogs.contactStatuses.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "聯絡人身分",
+    scope: "友宮管理",
+    options: masterDataCatalogs.contactRoleTypes.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "神祇目錄",
+    scope: "友宮管理",
+    options: masterDataCatalogs.deityCatalog.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "地區分類",
+    scope: "友宮管理",
+    options: masterDataCatalogs.regionCatalog.map((name) => ({ name, state: "使用中" as const })),
   },
   {
     title: "採購類別",

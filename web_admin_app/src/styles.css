@@ -752,6 +752,13 @@ button {
   font-weight: 700;
 }
 
+.inline-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .empty-inline-state {
   padding: 10px 12px;
   border: 1px dashed #cbbfaa;

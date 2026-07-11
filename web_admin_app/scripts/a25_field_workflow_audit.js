@@ -74,8 +74,17 @@ function auditNewRecordFields() {
     includes(templeAffairs, expected, `廟務管理缺少 ${expected}`);
   }
 
-  for (const expected of ["聯絡人", "聯絡電話", "地址", "聯繫方式", "電話", "LINE", "Email"]) {
-    includes(shrines, expected, `友宮管理缺少 ${expected}`);
+  for (const expected of ["友宮分類", "地區", "供奉神祇", "主祀神祇", "聯繫狀態", "資料維護人員"]) {
+    includes(shrines, expected, `友宮主檔缺少 ${expected}`);
+  }
+  for (const forbidden of ["contactPerson", "phone", "contactMethod", "mainWindow"]) {
+    excludes(shrines, forbidden, `友宮主檔不應保留單一聯絡欄位 ${forbidden}`);
+  }
+  for (const expected of ["export type ShrineContact", "methods: ContactMethod[]", "shrineContactExamples"]) {
+    includes(read("src/lib/domainModel.ts"), expected, `友宮聯絡人多筆模型缺少 ${expected}`);
+  }
+  for (const expected of ["電話", "手機", "LINE", "Email"]) {
+    includes(adminSettings, expected, `聯絡方式主檔缺少 ${expected}`);
   }
 
   for (const expected of ["帳務日期", "採購單編號", "實際金額", "數量", "品項", "付款狀態"]) {
@@ -96,9 +105,10 @@ function auditMockAndApiDisplay() {
   const newRecordPanel = read("src/components/NewRecordPanel.tsx");
   const domainModel = read("src/lib/domainModel.ts");
 
-  for (const expected of ["承辦人員", "建立日期", "手機號碼", "聯絡電話", "帳務日期", "付款狀態"]) {
+  for (const expected of ["承辦人員", "建立日期", "手機號碼", "帳務日期", "付款狀態"]) {
     includes(mockRecords, expected, `demo / 詳情資料缺少 ${expected}`);
   }
+  includes(read("src/lib/domainModel.ts"), "methods: ContactMethod[]", "友宮聯絡方式需由聯絡人清單承接");
 
   includes(newRecordPanel, "善信相關紀錄", "新增善信頁需提供相關紀錄區塊");
   includes(domainModel, "devoteeRelatedRecordExamples", "善信往來資料需由相關紀錄模型承接");

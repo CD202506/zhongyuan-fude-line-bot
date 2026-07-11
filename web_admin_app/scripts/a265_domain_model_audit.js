@@ -74,9 +74,14 @@ function auditFieldBoundaries() {
   for (const forbidden of ["預計完成日", "關聯標籤"]) {
     excludes(shrines, forbidden, `友宮管理不應出現 ${forbidden}`);
   }
-  for (const expected of ["聯絡人", "聯絡電話", "地址", "主要聯絡窗口", "相關紀錄"]) {
-    includes(shrines, expected, `友宮管理缺少 ${expected}`);
+  for (const expected of ["友宮分類", "地區", "供奉神祇", "主祀神祇", "聯繫狀態", "資料維護人員"]) {
+    includes(shrines, expected, `友宮主檔缺少 ${expected}`);
   }
+  for (const forbidden of ["contactPerson", "phone", "contactMethod", "mainWindow", 'key: "relations"']) {
+    excludes(shrines, forbidden, `友宮主檔不應保留重複或自由文字假關聯 ${forbidden}`);
+  }
+  includes(read("src/lib/domainModel.ts"), "export type ShrineContact", "友宮聯絡人需由多筆模型承接");
+  includes(read("src/lib/domainModel.ts"), "export type ShrineRelatedRecord", "友宮關聯紀錄需由實際紀錄模型承接");
 
   for (const expected of ["來源資料", "發布類別", "發布管道", "可見對象", "公開內容", "內部備註", "發布狀態"]) {
     includes(publishing, expected, `內容發布欄位缺少 ${expected}`);

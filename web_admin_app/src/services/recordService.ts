@@ -6,10 +6,10 @@ import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
 import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
-import type { DevoteeRelatedRecord } from "../lib/domainModel";
+import type { DevoteeRelatedRecord, ShrineContact, ShrineDeityRecord, ShrineRelatedRecord } from "../lib/domainModel";
 import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
-export type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[]>;
+export type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[] | ShrineContact[] | ShrineRelatedRecord[]>;
 export type StatusFilter = "active" | "archived" | "all";
 
 export const apiConnectionErrorMessage = "目前無法連線到資料服務，請稍後再試。";
@@ -123,6 +123,15 @@ const fieldDisplayLabels: Record<string, string> = {
   phone: "聯絡電話",
   address: "地址",
   contactMethod: "聯繫方式",
+  shrineContacts: "友宮聯絡人",
+  shrineRelatedRecords: "友宮相關紀錄",
+  relatedVisitIds: "關聯來訪",
+  relatedInvitationIds: "關聯請帖",
+  relatedEventIds: "關聯活動",
+  relatedDocumentIds: "關聯公文",
+  internalSummary: "歷史補充說明",
+  primaryDeity: "主祀神祇",
+  deities: "供奉神祇",
   relations: "相關紀錄",
   replyStatus: "回覆狀態",
   relatedShrine: "相關友宮",
@@ -155,7 +164,6 @@ const fieldDisplayLabels: Record<string, string> = {
   publishingPlan: "發布整理",
   processStatus: "處理狀態",
   purpose: "需求用途",
-  mainWindow: "主要聯絡窗口",
   lineBinding: "LINE 綁定狀態示意",
   enabled: "是否啟用",
   status: "處理狀態",
@@ -190,6 +198,18 @@ const hiddenDetailFieldKeys = new Set([
   "summary",
   "authorization",
   "relatedRecords",
+  "shrineContacts",
+  "shrineRelatedRecords",
+  "shrineDeities",
+  "relatedVisitIds",
+  "relatedInvitationIds",
+  "relatedEventIds",
+  "relatedDocumentIds",
+  "contactPerson",
+  "phone",
+  "contactMethod",
+  "mainWindow",
+  "relations",
   "date",
   "recordDate",
   "publishDate",
@@ -274,6 +294,30 @@ function relatedRecordSummary(record: ApiRecord, tags: string[]) {
   return Array.from(items).join("、");
 }
 
+function shrineContactSummary(contacts: ShrineContact[]) {
+  const activeContacts = contacts.filter((contact) => contact.isActive);
+  const primaryContact = contacts.find((contact) => contact.isPrimary) ?? activeContacts[0];
+  const primaryMethod = primaryContact?.methods.find((method) => method.isPrimary) ?? primaryContact?.methods[0];
+
+  return {
+    primaryContact: primaryContact?.name ?? "尚未建立",
+    primaryMethod: primaryMethod ? `${primaryMethod.type}：${primaryMethod.value}` : "尚未建立",
+    contactCount: `${contacts.length} 位`,
+  };
+}
+
+function shrineRelationSummary(relatedRecords: ShrineRelatedRecord[]) {
+  const countByType = (type: ShrineRelatedRecord["recordType"]) => relatedRecords.filter((record) => record.recordType === type).length;
+  const items = [
+    ["來訪", countByType("來訪")],
+    ["請帖", countByType("請帖")],
+    ["活動", countByType("活動")],
+    ["公文", countByType("公文")],
+  ].filter(([, count]) => Number(count) > 0);
+
+  return items.map(([label, count]) => `${label} ${count} 筆`).join("、");
+}
+
 function displayNote(record: ApiRecord) {
   return displayValue(record.fields_json.note);
 }
@@ -304,6 +348,17 @@ function listFieldsFor(record: ApiRecord, owner: string) {
     return fields;
   }
 
+  if (record.module_key === "shrines") {
+    const contacts = Array.isArray(record.fields_json.shrineContacts) ? record.fields_json.shrineContacts as ShrineContact[] : [];
+    const relatedRecords = Array.isArray(record.fields_json.shrineRelatedRecords) ? record.fields_json.shrineRelatedRecords as ShrineRelatedRecord[] : [];
+    const contactSummary = shrineContactSummary(contacts);
+    add(fields, "友宮分類", record.category);
+    add(fields, "主要聯絡人", contactSummary.primaryContact);
+    add(fields, "聯絡人數", contactSummary.contactCount);
+    add(fields, "相關紀錄", shrineRelationSummary(relatedRecords));
+    return fields;
+  }
+
   if (record.module_key === "announcements" || record.module_key === "events") {
     add(fields, policy.categoryLabel ?? "發布類別", record.category);
     add(fields, "發布狀態", publishingStatusFor(record));
@@ -329,7 +384,7 @@ function listFieldsFor(record: ApiRecord, owner: string) {
   }
 
   add(fields, policy.categoryLabel ?? "類別", record.category);
-  add(fields, record.module_key === "shrines" ? "聯繫狀態" : "處理狀態", processStatusFor(record));
+  add(fields, "處理狀態", processStatusFor(record));
   if (record.module_key === "visits") add(fields, "回覆狀態", record.fields_json.replyStatus);
   if (record.module_key === "procurements") add(fields, "帳務紀錄", record.fields_json.ledgerHint);
   add(fields, "最近更新", updated);
@@ -350,6 +405,9 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   ).slice(0, 8);
   const displayTags = record.tags_json.filter((tag) => !hasEngineeringTestText(tag));
   const relatedRecords = Array.isArray(record.fields_json.relatedRecords) ? record.fields_json.relatedRecords as DevoteeRelatedRecord[] : [];
+  const shrineContacts = Array.isArray(record.fields_json.shrineContacts) ? record.fields_json.shrineContacts as ShrineContact[] : [];
+  const shrineRelatedRecords = Array.isArray(record.fields_json.shrineRelatedRecords) ? record.fields_json.shrineRelatedRecords as ShrineRelatedRecord[] : [];
+  const shrineDeities = Array.isArray(record.fields_json.shrineDeities) ? record.fields_json.shrineDeities as ShrineDeityRecord[] : [];
   const detailFields = [
     ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
     ...displayFields,
@@ -412,6 +470,9 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     detailFields,
     editFields,
     relatedRecords,
+    shrineContacts,
+    shrineRelatedRecords,
+    shrineDeities,
   };
 }
 

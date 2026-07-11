@@ -1,7 +1,7 @@
 import type { EditField } from "./mockRecords";
 import type { ModuleKey } from "./modules";
 import { masterDataCatalogs } from "./adminSettings";
-import { assigneeSemantics, categorySemantics, publishingSemantics, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { assigneeSemantics, businessRecordOptions, categorySemantics, publishingSemantics, stateSemantics, tagSemantics } from "../lib/domainModel";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -30,18 +30,17 @@ export const newRecordFields: Record<ModuleKey, EditField[]> = {
   ],
   shrines: [
     { key: "name", label: "友宮名稱", type: "text", value: "" },
-    { key: "area", label: "地區", type: "text", value: "" },
-    { key: "contactPerson", label: "聯絡人", type: "text", value: "" },
-    { key: "phone", label: "聯絡電話", type: "text", value: "" },
-    { key: "address", label: "地址", type: "text", value: "" },
-    { key: "contactMethod", label: "聯繫方式", type: "select", value: "電話", options: ["電話", "LINE", "Email", "其他"] },
-    { key: "mainWindow", label: "主要聯絡窗口", type: "text", value: "" },
-    { key: "status", label: "聯繫狀態", type: "select", value: "待聯繫", options: ["待聯繫", "常態往來", "近期來訪", "暫少往來"] },
-    { key: "relatedVisit", label: "關聯來訪 / 請帖", type: "text", value: "" },
-    { key: "relatedEvent", label: "關聯活動", type: "text", value: "" },
-    { key: "relatedDocument", label: "關聯公文", type: "text", value: "" },
-    { key: "handler", label: "關聯承辦人員", type: "select", value: "接待人員 A", options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note },
-    { key: "relations", label: "相關紀錄", type: "textarea", value: "" },
+    { key: "area", label: "地區", type: "select", value: "桃園地區", options: masterDataCatalogs.regionCatalog },
+    { key: "category", label: "友宮分類", type: "select", value: "友宮", options: masterDataCatalogs.shrineTypes, help: categorySemantics.note },
+    { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神"], options: masterDataCatalogs.deityCatalog, help: "可複選主祀與陪祀神祇，主祀神祇另於下方指定。" },
+    { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: masterDataCatalogs.deityCatalog },
+    { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: masterDataCatalogs.relationshipStatuses },
+    { key: "relatedVisitIds", label: "關聯來訪", type: "tags", value: [], options: businessRecordOptions.visits.map((item) => `${item.id}｜${item.title}`) },
+    { key: "relatedInvitationIds", label: "關聯請帖", type: "tags", value: [], options: businessRecordOptions.invitations.map((item) => `${item.id}｜${item.title}`) },
+    { key: "relatedEventIds", label: "關聯活動", type: "tags", value: [], options: businessRecordOptions.events.map((item) => `${item.id}｜${item.title}`) },
+    { key: "relatedDocumentIds", label: "關聯公文", type: "tags", value: [], options: businessRecordOptions.documents.map((item) => `${item.id}｜${item.title}`) },
+    { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note },
+    { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "正式關聯請使用上方實際紀錄；此欄僅補充舊資料或背景說明。" },
     { key: "note", label: "備註", type: "textarea", value: "" },
   ],
   visits: [

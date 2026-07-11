@@ -51,9 +51,9 @@ export const fieldPolicies: Record<ModuleKey, FieldPolicy> = {
   shrines: {
     domainType: "masterData",
     categoryLabel: "友宮分類",
-    ownerLabel: "主要聯絡窗口",
+    ownerLabel: "資料維護人員",
     dateLabel: "建立日期",
-    showAssignee: false,
+    showAssignee: true,
     showDueDate: false,
     showTags: false,
     showCategory: true,
@@ -135,8 +135,8 @@ export const categorySemantics = {
   moduleCategories: {
     "temple-affairs": ["例行廟務", "祭典準備", "場地事務", "對外聯繫", "內部提醒"],
     devotees: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"],
-    shrines: ["友宮", "合作宮廟", "行政單位", "其他"],
-    visits: ["參訪", "進香", "請帖", "祝壽", "聯誼"],
+    shrines: masterDataCatalogs.shrineTypes,
+    visits: masterDataCatalogs.visitTypes,
     announcements: ["一般公告", "行政通知", "發財金提醒", "參拜資訊"],
     events: ["活動消息", "友宮聯誼", "祭典活動", "志工活動"],
     procurements: ["供品", "餐點", "設備", "文具", "活動用品", "其他"],
@@ -145,6 +145,119 @@ export const categorySemantics = {
     ledger: masterDataCatalogs.accountingCategories,
   } satisfies Record<ModuleKey, string[]>,
 };
+
+export type ContactMethod = {
+  id: string;
+  type: string;
+  value: string;
+  isPrimary: boolean;
+  availableTime?: string;
+  note?: string;
+};
+
+export type ShrineContact = {
+  contactId: string;
+  relatedShrineId: string;
+  name: string;
+  title: string;
+  isPrimary: boolean;
+  isActive: boolean;
+  contactStatus: string;
+  note: string;
+  methods: ContactMethod[];
+};
+
+export type ShrineRelatedRecord = {
+  id: string;
+  recordType: "來訪" | "請帖" | "活動" | "公文";
+  recordId: string;
+  title: string;
+  date: string;
+  status: string;
+  module: string;
+};
+
+export type ShrineDeityRecord = {
+  id: string;
+  name: string;
+  role: "主祀" | "陪祀" | "其他";
+};
+
+export const businessRecordOptions = {
+  visits: [
+    { id: "visit-a", title: "進香回覆", date: "2026-07-08" },
+    { id: "visit-b", title: "友宮參訪確認", date: "2026-07-05" },
+  ],
+  invitations: [
+    { id: "invitation-a", title: "活動請帖", date: "2026-06-20" },
+  ],
+  events: [
+    { id: "event-a", title: "平安祈福活動", date: "2026-08-15" },
+    { id: "event-b", title: "友宮參香活動", date: "2026-08-28" },
+  ],
+  documents: [
+    { id: "document-a", title: "區公所通知", date: "2026-06-21" },
+    { id: "document-b", title: "邀請函", date: "2026-06-18" },
+  ],
+};
+
+export const shrineContactExamples: ShrineContact[] = [
+  {
+    contactId: "shrine-a-contact-main",
+    relatedShrineId: "shrine-a",
+    name: "聯絡窗口 A",
+    title: "總幹事",
+    isPrimary: true,
+    isActive: true,
+    contactStatus: "可聯繫",
+    note: "主要對接進香與請帖回覆。",
+    methods: [
+      { id: "shrine-a-contact-main-phone", type: "電話", value: "市話範例", isPrimary: true, availableTime: "白天", note: "" },
+      { id: "shrine-a-contact-main-line", type: "LINE", value: "LINE 聯繫代稱", isPrimary: false, note: "不含真實 LINE ID。" },
+    ],
+  },
+  {
+    contactId: "shrine-a-contact-mobile",
+    relatedShrineId: "shrine-a",
+    name: "聯絡窗口 B",
+    title: "窗口",
+    isPrimary: false,
+    isActive: true,
+    contactStatus: "可聯繫",
+    note: "活動當日可協助聯繫。",
+    methods: [
+      { id: "shrine-a-contact-mobile-phone", type: "手機", value: "手機範例", isPrimary: true, availableTime: "活動期間", note: "" },
+    ],
+  },
+  {
+    contactId: "shrine-a-contact-archived",
+    relatedShrineId: "shrine-a",
+    name: "聯絡窗口 C",
+    title: "前窗口",
+    isPrimary: false,
+    isActive: false,
+    contactStatus: "已封存",
+    note: "舊窗口，保留歷史紀錄。",
+    methods: [
+      { id: "shrine-a-contact-archived-email", type: "Email", value: "email 範例", isPrimary: true, note: "已停用。" },
+    ],
+  },
+];
+
+export const shrineRelatedRecordExamples: ShrineRelatedRecord[] = [
+  { id: "shrine-related-visit-a", recordType: "來訪", recordId: "visit-a", title: "進香回覆", date: "2026-07-08", status: "待回覆", module: "來訪 / 請帖" },
+  { id: "shrine-related-visit-b", recordType: "來訪", recordId: "visit-b", title: "友宮參訪確認", date: "2026-07-05", status: "已確認", module: "來訪 / 請帖" },
+  { id: "shrine-related-invitation-a", recordType: "請帖", recordId: "invitation-a", title: "活動請帖", date: "2026-06-20", status: "已寄送", module: "來訪 / 請帖" },
+  { id: "shrine-related-event-a", recordType: "活動", recordId: "event-a", title: "平安祈福活動", date: "2026-08-15", status: "籌備中", module: "活動消息" },
+  { id: "shrine-related-event-b", recordType: "活動", recordId: "event-b", title: "友宮參香活動", date: "2026-08-28", status: "待確認", module: "活動消息" },
+  { id: "shrine-related-document-a", recordType: "公文", recordId: "document-b", title: "邀請函", date: "2026-06-18", status: "已留存", module: "公文紀錄" },
+];
+
+export const shrineDeityExamples: ShrineDeityRecord[] = [
+  { id: "shrine-a-deity-main", name: "福德正神", role: "主祀" },
+  { id: "shrine-a-deity-second", name: "天上聖母", role: "陪祀" },
+  { id: "shrine-a-deity-other", name: "關聖帝君", role: "陪祀" },
+];
 
 export const tagSemantics = {
   note: "標籤用於輔助整理。",
@@ -333,7 +446,7 @@ export const relationshipFieldSemantics = {
   announcements: ["關聯承辦人員", "關聯通知對象 / 善信", "關聯發布管道", "通知狀態", "回覆狀態"],
   events: ["關聯承辦人員", "關聯活動參與紀錄", "報名狀態", "參與狀態", "服務 / 志工紀錄"],
   documents: ["關聯承辦人員", "關聯善信 / 友宮 / 活動 / 採購 / 帳務", "文件類型", "狀態"],
-  shrines: ["關聯來訪 / 請帖", "關聯活動", "關聯公文", "關聯承辦人員"],
+  shrines: ["友宮聯絡人", "多種聯絡方式", "供奉神祇", "關聯來訪", "關聯請帖", "關聯活動", "關聯公文", "資料維護人員"],
   visits: ["關聯友宮", "關聯活動", "關聯公文", "關聯承辦人員"],
 };
 

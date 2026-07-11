@@ -1,6 +1,15 @@
 import type { ModuleKey } from "./modules";
 import { formatDisplayDate } from "../lib/dateFormat";
-import { devoteeRelatedRecordExamples, type DevoteeRelatedRecord } from "../lib/domainModel";
+import {
+  devoteeRelatedRecordExamples,
+  shrineContactExamples,
+  shrineDeityExamples,
+  shrineRelatedRecordExamples,
+  type DevoteeRelatedRecord,
+  type ShrineContact,
+  type ShrineDeityRecord,
+  type ShrineRelatedRecord,
+} from "../lib/domainModel";
 
 export type EditField =
   | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
@@ -22,6 +31,9 @@ export type MockRecord = {
   detailFields: Array<{ label: string; value: string }>;
   editFields: EditField[];
   relatedRecords?: DevoteeRelatedRecord[];
+  shrineContacts?: ShrineContact[];
+  shrineRelatedRecords?: ShrineRelatedRecord[];
+  shrineDeities?: ShrineDeityRecord[];
 };
 
 export const mockRecords: MockRecord[] = [
@@ -103,36 +115,76 @@ export const mockRecords: MockRecord[] = [
     status: "常態往來",
     statusCategory: "active",
     summary: "友宮主檔、聯絡窗口與互訪摘要。",
-    owner: "聯絡窗口 A",
+    owner: "接待人員 A",
     dateLabel: "2026-06-20",
-    relation: "進香回覆",
+    relation: "來訪 2 筆、請帖 1 筆、活動 2 筆、公文 1 筆",
     note: "用來檢視友宮管理流程。",
     listFields: [
-      { label: "關係", value: "常態往來" },
-      { label: "窗口", value: "聯絡窗口 A" },
+      { label: "地區", value: "桃園地區" },
+      { label: "主要聯絡人", value: "聯絡窗口 A" },
+      { label: "聯絡人數", value: "3 位" },
       { label: "最近互動", value: "6/20 來訪確認" },
     ],
     detailFields: [
-      { label: "宮廟類型", value: "友宮" },
-      { label: "聯絡人", value: "聯絡窗口 A" },
-      { label: "聯絡電話", value: "未填寫" },
-      { label: "地址", value: "未填寫" },
-      { label: "聯繫方式", value: "電話" },
-      { label: "最近來訪", value: "進香回覆" },
-      { label: "聯誼 / 拜訪紀錄", value: "進香回覆" },
+      { label: "友宮分類", value: "友宮" },
+      { label: "地區", value: "桃園地區" },
+      { label: "聯繫狀態", value: "常態往來" },
+      { label: "主祀神祇", value: "福德正神" },
+      { label: "供奉神祇", value: "福德正神、天上聖母、關聖帝君" },
+      { label: "資料維護人員", value: "接待人員 A" },
     ],
     editFields: [
       { key: "name", label: "友宮名稱", type: "text", value: "友宮範例 A" },
-      { key: "area", label: "地區", type: "text", value: "桃園地區" },
-      { key: "relationStatus", label: "互動狀態", type: "select", value: "常態往來", options: ["常態往來", "近期來訪", "待回覆", "暫少往來"] },
-      { key: "contactPerson", label: "聯絡人", type: "text", value: "聯絡窗口 A" },
-      { key: "phone", label: "聯絡電話", type: "text", value: "" },
-      { key: "address", label: "地址", type: "text", value: "" },
-      { key: "contactMethod", label: "聯繫方式", type: "select", value: "電話", options: ["電話", "LINE", "Email", "其他"] },
-      { key: "mainWindow", label: "主要聯絡窗口", type: "text", value: "聯絡窗口 A" },
-      { key: "relations", label: "聯誼 / 拜訪紀錄", type: "textarea", value: "進香回覆" },
+      { key: "area", label: "地區", type: "select", value: "桃園地區", options: ["桃園地區", "中壢地區", "平鎮地區", "新竹地區", "其他地區"] },
+      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: ["友宮", "合作宮廟", "行政單位", "其他"] },
+      { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神", "天上聖母", "關聖帝君"], options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
+      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
+      { key: "status", label: "聯繫狀態", type: "select", value: "常態往來", options: ["常態往來", "近期來訪", "待回覆", "暫少往來", "已封存"] },
+      { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: ["主任委員 A", "總幹事 A", "接待人員 A", "文書人員 A"] },
+      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "進香回覆與接待安排已改由相關紀錄管理。" },
       { key: "note", label: "備註", type: "textarea", value: "確認回覆內容與接待安排" },
     ],
+    shrineContacts: shrineContactExamples,
+    shrineRelatedRecords: shrineRelatedRecordExamples,
+    shrineDeities: shrineDeityExamples,
+  },
+  {
+    id: "shrine-b",
+    moduleKey: "shrines",
+    title: "友宮範例 B",
+    status: "待確認",
+    statusCategory: "active",
+    summary: "尚未建立聯絡人與相關紀錄的友宮主檔。",
+    owner: "接待人員 A",
+    dateLabel: "2026-06-25",
+    relation: "",
+    note: "可先建立友宮基本資料，後續再補聯絡人與往來紀錄。",
+    listFields: [
+      { label: "地區", value: "中壢地區" },
+      { label: "主要聯絡人", value: "尚未建立" },
+      { label: "聯絡人數", value: "0 位" },
+      { label: "最近互動", value: "尚無紀錄" },
+    ],
+    detailFields: [
+      { label: "友宮分類", value: "友宮" },
+      { label: "地區", value: "中壢地區" },
+      { label: "聯繫狀態", value: "待確認" },
+      { label: "資料維護人員", value: "接待人員 A" },
+    ],
+    editFields: [
+      { key: "name", label: "友宮名稱", type: "text", value: "友宮範例 B" },
+      { key: "area", label: "地區", type: "select", value: "中壢地區", options: ["桃園地區", "中壢地區", "平鎮地區", "新竹地區", "其他地區"] },
+      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: ["友宮", "合作宮廟", "行政單位", "其他"] },
+      { key: "deities", label: "供奉神祇", type: "tags", value: [], options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
+      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
+      { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: ["常態往來", "近期來訪", "待回覆", "暫少往來", "已封存"] },
+      { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: ["主任委員 A", "總幹事 A", "接待人員 A", "文書人員 A"] },
+      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "" },
+      { key: "note", label: "備註", type: "textarea", value: "可先建立友宮基本資料，後續再補聯絡人與往來紀錄。" },
+    ],
+    shrineContacts: [],
+    shrineRelatedRecords: [],
+    shrineDeities: [],
   },
   {
     id: "visit-a",

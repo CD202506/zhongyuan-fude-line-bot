@@ -6,9 +6,16 @@ import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
-import { devoteeRelatedRecordExamples, type DevoteeRelatedRecord } from "../lib/domainModel";
+import {
+  devoteeRelatedRecordExamples,
+  shrineContactExamples,
+  shrineRelatedRecordExamples,
+  type DevoteeRelatedRecord,
+  type ShrineContact,
+  type ShrineRelatedRecord,
+} from "../lib/domainModel";
 
-type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[]>;
+type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[] | ShrineContact[] | ShrineRelatedRecord[]>;
 type NewRecordState = "editing" | "draft" | "submitted";
 type PendingAction = "draft" | "submit" | null;
 
@@ -48,6 +55,8 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [devoteeRelatedRecords, setDevoteeRelatedRecords] = useState<DevoteeRelatedRecord[]>([]);
+  const [shrineContacts, setShrineContacts] = useState<ShrineContact[]>([]);
+  const [shrineRelatedRecords, setShrineRelatedRecords] = useState<ShrineRelatedRecord[]>([]);
   const needsAdminConfirm = role !== "admin" && adminConfirmModules.includes(moduleItem.key);
 
   const updateField = (key: string, value: string | string[]) => {
@@ -163,7 +172,12 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       setPendingAction(null);
       setIsSubmitting(true);
       try {
-        await onSubmitRecord?.(moduleItem.key === "devotees" ? { ...values, relatedRecords: devoteeRelatedRecords } : values);
+        const payloadValues = moduleItem.key === "devotees"
+          ? { ...values, relatedRecords: devoteeRelatedRecords }
+          : moduleItem.key === "shrines"
+            ? { ...values, shrineContacts, shrineRelatedRecords }
+            : values;
+        await onSubmitRecord?.(payloadValues);
         setState("submitted");
         onComplete();
       } catch (error) {
@@ -260,6 +274,88 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
             </div>
           ) : (
             <div className="empty-inline-state">目前尚無相關紀錄，可先只建立善信基本資料。</div>
+          )}
+        </div>
+      ) : null}
+
+      {moduleItem.key === "shrines" ? (
+        <div className="related-record-editor">
+          <div className="section-heading compact-heading">
+            <div>
+              <h4>友宮聯絡人</h4>
+              <span>聯絡人可新增多位；主要聯絡人由清單中指定，不另外填自由文字欄位。</span>
+            </div>
+            <button
+              type="button"
+              className="secondary-inline-action"
+              onClick={() => {
+                const nextContact = shrineContactExamples[shrineContacts.length % shrineContactExamples.length];
+                setShrineContacts((current) => {
+                  const nextId = `${nextContact.contactId}-${current.length + 1}`;
+                  return [...current, { ...nextContact, contactId: nextId, isPrimary: current.length === 0 }];
+                });
+              }}
+            >
+              新增聯絡人
+            </button>
+          </div>
+          {shrineContacts.length > 0 ? (
+            <div className="related-record-table">
+              {shrineContacts.map((contact) => (
+                <article key={contact.contactId}>
+                  <strong>{contact.name}｜{contact.title}{contact.isPrimary ? "｜主要聯絡人" : ""}</strong>
+                  <span>{contact.contactStatus}｜{contact.isActive ? "使用中" : "已封存"}</span>
+                  <span>{contact.methods.map((method) => `${method.type}${method.isPrimary ? "（主要）" : ""}：${method.value}`).join("、")}</span>
+                  <div className="inline-action-row">
+                    <button
+                      type="button"
+                      className="secondary-inline-action"
+                      onClick={() => setShrineContacts((current) => current.map((item) => ({ ...item, isPrimary: item.contactId === contact.contactId })))}
+                    >
+                      設為主要聯絡人
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-inline-action"
+                      onClick={() => setShrineContacts((current) => current.map((item) => item.contactId === contact.contactId ? { ...item, isActive: !item.isActive, contactStatus: item.isActive ? "已封存" : "可聯繫" } : item))}
+                    >
+                      {contact.isActive ? "封存聯絡人" : "還原聯絡人"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-inline-state">目前尚無聯絡人，可先只建立友宮基本資料。</div>
+          )}
+          <div className="section-heading compact-heading">
+            <div>
+              <h4>友宮相關紀錄</h4>
+              <span>來訪、請帖、活動與公文需指向實際紀錄，不使用自由文字假關聯。</span>
+            </div>
+            <button
+              type="button"
+              className="secondary-inline-action"
+              onClick={() => {
+                const nextRecord = shrineRelatedRecordExamples[shrineRelatedRecords.length % shrineRelatedRecordExamples.length];
+                setShrineRelatedRecords((current) => [...current, { ...nextRecord, id: `${nextRecord.id}-${current.length + 1}` }]);
+              }}
+            >
+              新增相關紀錄
+            </button>
+          </div>
+          {shrineRelatedRecords.length > 0 ? (
+            <div className="related-record-table">
+              {shrineRelatedRecords.map((record) => (
+                <article key={record.id}>
+                  <strong>{record.recordType}｜{record.title}</strong>
+                  <span>{formatDisplayDate(record.date)}｜{record.status}｜對應：{record.module}</span>
+                  <span>紀錄代碼：{record.recordId}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-inline-state">目前尚無來訪、請帖、活動或公文關聯。</div>
           )}
         </div>
       ) : null}
