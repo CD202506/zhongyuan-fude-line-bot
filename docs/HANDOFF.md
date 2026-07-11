@@ -225,6 +225,18 @@
 - Render Web Admin API / PostgreSQL staging 仍為 Web Admin 測試資料服務；正式 V1 LINE Bot / Google Sheets / AppSheet 未受本輪影響。
 - 暫停點：使用者需先人工確認 A26.11 最新畫面是否 OK。若畫面仍有 UX / IA / 文字 / RWD 問題，先修前端；確認後再決定是否進入 A27。
 - 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。
+
+# 0.8.0A-26.17 handoff update
+
+- A26.17 configurable custom fields and shrine form source clarification 已完成並部署，最新 code commit：`7733caf fix: add configurable fields and clarify shrine form sources`。
+- 既有 Vercel Web Admin test deployment 已確認 HTTP 200，production browser smoke test 通過；本輪只透過 `main` push 觸發既有 Git deployment。
+- 本階段完成：管理者自訂欄位模型、欄位與表單設定入口、多模組動態自訂欄位語意、友宮選項來源集中、供奉神祇與主祀神祇連動、關聯日期來自實際紀錄、關聯 chip 使用民國日期、系統摘要唯讀，以及歷史補充說明與日常備註分工。
+- 自訂欄位目前為前端設定工作區語意，支援文字、長文字、數字、日期、單選、多選與勾選；不取代友宮名稱、聯絡人、神祇、相關紀錄等核心固定欄位。
+- 友宮表單選項來源已集中：友宮分類、地區、供奉神祇、關係狀態與可指派團隊成員都由管理者設定 / domain model 來源提供；主祀神祇只可從已選供奉神祇中選擇。
+- 驗證已通過：`npm run lint`、`npm run build`、A23 remote API smoke、A23 production browser smoke、A24～A26.17 audits、`python -m compileall web_admin_api/app`、`python -m compileall web_admin_api/scripts`。
+- 新增 audit：`web_admin_app/scripts/a2617_custom_field_catalog_and_shrine_guidance_audit.js`。
+- 本階段未修改：`web_admin_api`、DB schema / migrations、Render / Vercel env、正式 LINE Bot runtime / webhook、Google Sheets、AppSheet、`web_admin_mvp/`、`.env`；未新增 DELETE，未部署 Render。
+- 暫停點：停在 A26.17 checkpoint，等待使用者與額度恢復後從實際 Web Admin 測試畫面繼續驗收；不要自行進入 A26.18 或 A27。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

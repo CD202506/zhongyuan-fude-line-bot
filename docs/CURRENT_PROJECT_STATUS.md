@@ -55,6 +55,7 @@
 - `0.8.0A-26.5` Cross-module field model and publishing boundary refinement 已完成並推送：建立 `web_admin_app/src/lib/domainModel.ts`，將 Web Admin 前端語意收斂為資料主檔、內部作業、內容發布、權限治理；清理資料主檔不適合的預計完成日、通用標籤與承辦欄位；公告 / 活動改以內容發布、來源資料、發布類別、發布管道與可見對象表達；管理者設定補強類別、標籤、承辦權限、發布管道與可見權限。新增 `web_admin_app/scripts/a265_domain_model_audit.js`。最新 commit：`2271be2 feat: refine web admin domain field model`。
 - `0.8.0A-26.9` Pre-A27 Web Admin stabilization checkpoint 已完成並部署：A26.6～A26.9 已完成左側選單 SOP 分類、全域 IA / CTA / placeholder 清理、管理者設定可操作子頁、settings 子頁 active state 修正，以及 sidebar section 展開 / 收合。最新 commit：`37f3266 fix: add collapsible sidebar sections`，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已確認 HTTP 200。使用者將先人工確認最新版畫面，確認後才決定是否進入 A27。
 - `0.8.0A-26.11` Detail edit, list/detail semantics, related records, and ROC date display 已完成並部署：A26.10～A26.11 已完成列表 / 詳情欄位語意去重、本人資料授權與相關紀錄命名統一、頁首降噪、民國年月日顯示、詳情編輯模式去重、相關紀錄查詢語意、善信選填欄位與廟方人員日常欄位編輯規則。最新 commit：`ad32378 fix: refine web admin detail edit and related record semantics`，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已確認 HTTP 200，最新前端資產為 `assets/index-BBEg4m_N.css`、`assets/index-DAM3GX21.js`。本階段只更新 Web Admin 前端，不修改 Web Admin API、DB schema / migrations、Render / Vercel env、LINE Bot、Google Sheets、AppSheet、docs 以外設定或 `.env`。
+- `0.8.0A-26.17` Configurable custom fields and shrine form source clarification 已完成並部署：A26.17 已完成管理者自訂欄位模型、欄位與表單設定入口、多模組動態自訂欄位語意、友宮選項來源集中、供奉神祇與主祀神祇連動、關聯日期來自實際紀錄、關聯 chip 使用民國日期、系統摘要唯讀，以及歷史補充說明與日常備註分工。最新 code commit：`7733caf fix: add configurable fields and clarify shrine form sources`，既有 Vercel Web Admin test deployment 已確認 HTTP 200 且 production browser smoke test 通過。本階段只更新 `web_admin_app/`，未修改 Web Admin API、DB schema / migrations、Render / Vercel env、LINE Bot、Google Sheets、AppSheet、`web_admin_mvp/` 或 `.env`。
 
 ## A26.5 cross-module field model completed / paused checkpoint
 
@@ -110,6 +111,16 @@
 - 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
 - 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`、`web_admin_app/scripts/a2610_detail_field_semantics_audit.js`、`web_admin_app/scripts/a2611_detail_edit_flow_audit.js`。
 - 暫停點：目前停在 A26.11 completed / paused checkpoint，等待使用者人工確認 A26.11 最新畫面。確認後才決定是否進入 A27；若畫面仍有 UX / IA / 文字 / RWD 問題，先處理前端修正，不急著接 LINE。
+
+## A26.17 Web Admin checkpoint
+
+- 最新 code commit：`7733caf fix: add configurable fields and clarify shrine form sources`。
+- 狀態：A26.17 已完成、已 push `main`，既有 Vercel Web Admin test deployment 已確認 Ready / HTTP 200；未部署 Render，未修改 DB schema / migrations，未修改 Render / Vercel env，未碰 LINE Bot / Google Sheets / AppSheet。
+- 本階段完成：管理者自訂欄位模型、欄位與表單設定入口、多模組動態自訂欄位語意、友宮選項來源集中、供奉神祇與主祀神祇連動、關聯日期來自實際紀錄、關聯 chip 使用民國日期、系統摘要唯讀、歷史補充說明與日常備註分工。
+- 固定限制：正式 LINE Bot / Google Sheets / AppSheet 不可修改；DB schema 尚未進入正式設計；不新增 DELETE；未經明確指示不得改 env；後續問題仍需同步全域檢查。
+- 驗證：`npm run lint`、`npm run build`、A23 remote API smoke、A23 production browser smoke、A24～A26.17 audits、`compileall` 均已通過。
+- 回復點：A26.17 code checkpoint 使用 `7733caf`；本文件 checkpoint 使用後續 docs commit。
+- 暫停點：停在 A26.17，不進 A26.18 或 A27；等待額度恢復與使用者提供下一步畫面 / 問題，後續優先從實際 Vercel 畫面驗收繼續。
 
 ## Current data source roles
 
@@ -177,10 +188,10 @@
 
 ## Pause point
 
-- 目前暫停在 `0.8.0A-26.11 Detail edit, list/detail semantics, related records, and ROC date display completed / paused checkpoint` 已完成並部署後，等待使用者人工確認最新版 Web Admin 畫面。
-- 最新狀態標記 commit：`ad32378 fix: refine web admin detail edit and related record semantics`。
+- 目前暫停在 `0.8.0A-26.17 Configurable custom fields and shrine form source clarification` 已完成並部署後，等待使用者人工確認最新版 Web Admin 畫面。
+- 最新狀態標記 code commit：`7733caf fix: add configurable fields and clarify shrine form sources`。
 - 固定 Vercel Web Admin 測試站已更新並維持 API mode；資料寫入 Render Web Admin API / PostgreSQL staging。
-- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估；但開始前需先確認 A26.11 最新畫面是否 OK。若仍有 UX / IA / 文字 / RWD 問題，先修前端，不急著接 LINE。
+- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估；但開始前需先確認 A26.17 最新畫面是否 OK。若仍有 UX / IA / 文字 / RWD 問題，先修前端，不急著接 LINE。
 - 不要修改正式 Google Sheets、AppSheet、Render / Vercel env、LINE Developers 設定、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署，除非使用者明確要求。
 
