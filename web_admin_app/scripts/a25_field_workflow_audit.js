@@ -62,7 +62,7 @@ function auditNewRecordFields() {
 
   includes(devotees, "建立日期", "善信新增需有建立日期");
   includes(devotees, "stateSemantics.notes.authorization", "本人資料授權需引用集中用途說明");
-  includes(domainModel, "用於確認是否可查詢本人相關服務紀錄。", "本人資料授權需有用途說明");
+  includes(domainModel, "確認本人相關紀錄查詢範圍。", "本人資料授權需有簡短用途說明");
   for (const expected of ["是否領取發財金", "領取日期", "是否繳回", "繳回日期", "發財金備註", "相關紀錄"]) {
     includes(devotees, expected, `善信新增缺少 ${expected}`);
   }

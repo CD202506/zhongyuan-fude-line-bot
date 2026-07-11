@@ -4,6 +4,7 @@ import type { EditField, MockRecord } from "../data/mockRecords";
 import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
+import { newRecordFields } from "../data/newRecordFields";
 import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
 import { formatDisplayDate } from "../lib/dateFormat";
 
@@ -134,7 +135,8 @@ const fieldDisplayLabels: Record<string, string> = {
   fortuneMoneyReturnedDate: "繳回日期",
   fortuneMoneyNote: "發財金備註",
   gender: "性別",
-  ageRange: "年齡區間",
+  ageRange: "年齡級距",
+  birthMonthDay: "出生月 / 日",
   quantity: "數量",
   itemName: "品項",
   sourceRecord: "來源資料",
@@ -329,6 +331,34 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     ...displayFields,
   ];
   const categoryOptions = categorySemantics.moduleCategories[record.module_key];
+  const standardEditKeys = new Set([
+    "title",
+    "name",
+    "summary",
+    "date",
+    "publishDate",
+    "recordDate",
+    "dueDate",
+    "handler",
+    "owner",
+    "group",
+    "responsible",
+    "type",
+    "category",
+    "cashType",
+    "documentType",
+    "note",
+  ]);
+  const customEditFields: EditField[] = newRecordFields[record.module_key]
+    .filter((field) => !standardEditKeys.has(field.key))
+    .map((field) => {
+      const rawValue = record.fields_json[field.key];
+      const value = rawValue === undefined || rawValue === null ? field.value : rawValue;
+      return {
+        ...field,
+        value: Array.isArray(field.value) ? (Array.isArray(value) ? value : []) : String(value),
+      } as EditField;
+    });
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
     { key: "summary", label: "摘要", type: "textarea", value: record.summary },
@@ -338,6 +368,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     ...(policy.showAssignee ? [{ key: "responsible", label: policy.ownerLabel, type: "select" as const, value: owner, options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note }] : []),
     ...(policy.showCategory ? [{ key: "category", label: policy.categoryLabel ?? "類別", type: "select" as const, value: record.category || categoryOptions[0], options: categoryOptions, help: categorySemantics.note }] : []),
     ...(policy.showTags ? [{ key: "tags", label: "輔助標籤", type: "tags" as const, value: displayTags, options: Array.from(new Set([...displayTags, ...tagSemantics.commonTags])), help: tagSemantics.note }] : []),
+    ...customEditFields,
     { key: "note", label: "備註", type: "textarea", value: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
   ];
   const listFields = listFieldsFor(record, owner);

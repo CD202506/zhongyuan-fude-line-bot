@@ -5,7 +5,7 @@ import type { UserRole } from "../data/mockUser";
 import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { formatDisplayDate } from "../lib/dateFormat";
+import { formatDisplayDate, rocDateInputHint } from "../lib/dateFormat";
 
 type FormValues = Record<string, string | string[]>;
 type NewRecordState = "editing" | "draft" | "submitted";
@@ -61,6 +61,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
 
   const renderField = (field: EditField) => {
     const value = values[field.key] ?? field.value;
+    const textPlaceholder = field.key === "birthMonthDay" ? "月/日" : field.label.includes("電話") ? "請輸入電話" : "請輸入內容";
 
     if (field.type === "textarea") {
       return (
@@ -113,10 +114,11 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           {field.help ? <small>{field.help}</small> : null}
           <input
             type="date"
+            aria-label={`${field.label}，${rocDateInputHint}`}
             value={String(value)}
             onChange={(event) => updateField(field.key, event.target.value)}
           />
-          <small>目前顯示：{formatDisplayDate(String(value))}</small>
+          <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
         </label>
       );
     }
@@ -129,7 +131,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           type={field.type}
           value={String(value)}
           onChange={(event) => updateField(field.key, event.target.value)}
-          placeholder={field.type === "number" ? "請輸入金額" : "請輸入名稱"}
+          placeholder={field.type === "number" ? "請輸入數字" : textPlaceholder}
         />
       </label>
     );

@@ -35,10 +35,10 @@ function auditDomainModel() {
   for (const expected of ["masterData", "internalWork", "publishing", "governance"]) {
     includes(domainModel, expected, `跨模組模型缺少 ${expected}`);
   }
-  for (const expected of ["類別由管理者在基礎資料設定中定義", "標籤可輔助整理資料", "後台可治理、合併與停用", "承辦人員來自具備該模組權限的團隊成員"]) {
+  for (const expected of ["類別可由管理者設定", "標籤用於輔助整理", "從可指派團隊成員中選擇"]) {
     includes(domainModel, expected, `domain model 缺少語意：${expected}`);
   }
-  for (const expected of ["發布類別", "發布管道", "可見對象", "來源資料可由承辦人員整理", "不代表來源資料會自動公開"]) {
+  for (const expected of ["發布類別", "發布管道", "可見對象", "可由來源資料整理發布內容"]) {
     includes(domainModel, expected, `發布模型缺少語意：${expected}`);
   }
   for (const expected of ["使用中", "已封存", "作廢", "待確認", "處理中", "已完成", "暫緩", "草稿", "已發布", "已授權", "未授權", "取消授權"]) {

@@ -131,7 +131,7 @@ export const fieldPolicies: Record<ModuleKey, FieldPolicy> = {
 };
 
 export const categorySemantics = {
-  note: "類別由管理者在基礎資料設定中定義，不同模組使用不同類別集合。",
+  note: "類別可由管理者設定。",
   moduleCategories: {
     "temple-affairs": ["例行廟務", "祭典準備", "場地事務", "對外聯繫", "內部提醒"],
     devotees: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"],
@@ -147,17 +147,17 @@ export const categorySemantics = {
 };
 
 export const tagSemantics = {
-  note: "標籤可輔助整理資料，後台可治理、合併與停用；標籤不是資料狀態，也不是處理狀態。",
+  note: "標籤用於輔助整理。",
   commonTags: ["待整理", "需追蹤", "可發布摘要", "帳務關聯", "內部備查"],
 };
 
 export const assigneeSemantics = {
-  note: "承辦人員來自具備該模組權限的團隊成員；資料主檔只在有資料維護語意時顯示。",
+  note: "從可指派團隊成員中選擇。",
   eligibleMembers: assignableTeamMemberNames,
 };
 
 export const publishingSemantics = {
-  sourceNote: "來源資料可由承辦人員整理，抽取部分或全部內容建立發布草稿；不代表來源資料會自動公開。",
+  sourceNote: "可由來源資料整理發布內容。",
   categoryLabel: "發布類別",
   channelLabel: "發布管道",
   audienceLabel: "可見對象",
@@ -173,10 +173,10 @@ export const stateSemantics = {
   publishingStatuses: ["草稿", "待確認", "已發布", "已封存"],
   authorizationStatuses: ["待確認", "已授權", "未授權", "取消授權"],
   notes: {
-    dataStatus: "資料狀態由管理者或具封存權限的廟方人員調整。",
-    processStatus: "處理狀態由承辦人員、覆核者或管理者依作業進度調整。",
-    publishingStatus: "發布狀態由具發布、覆核或核准權限的人員調整。",
-    authorization: "用於確認是否可查詢本人相關服務紀錄。",
+    dataStatus: "資料狀態由管理者調整。",
+    processStatus: "依作業進度調整。",
+    publishingStatus: "依發布進度調整。",
+    authorization: "確認本人相關紀錄查詢範圍。",
   },
 };
 

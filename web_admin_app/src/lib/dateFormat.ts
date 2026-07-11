@@ -16,3 +16,5 @@ export function formatDisplayDate(value: string | null | undefined) {
   if (!value) return "";
   return formatTaiwanDate(value);
 }
+
+export const rocDateInputHint = "日期輸入：年/月/日；例：114/07/11";

@@ -8,7 +8,7 @@ import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
 import { fieldPolicyFor } from "../lib/domainModel";
-import { formatDisplayDate } from "../lib/dateFormat";
+import { formatDisplayDate, rocDateInputHint } from "../lib/dateFormat";
 
 type EditValues = Record<string, string | string[]>;
 type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
@@ -255,6 +255,7 @@ export function ModuleDetailPage() {
   const renderEditField = (field: EditField) => {
     const value = editValues[field.key] ?? field.value;
     const readonly = field.readonly || (field.key === "systemRole" && role !== "admin");
+    const textPlaceholder = field.key === "birthMonthDay" ? "月/日" : field.label.includes("電話") ? "請輸入電話" : "請輸入內容";
 
     if (readonly) {
       return (
@@ -318,10 +319,11 @@ export function ModuleDetailPage() {
           {field.help ? <small>{field.help}</small> : null}
           <input
             type="date"
+            aria-label={`${field.label}，${rocDateInputHint}`}
             value={String(value)}
             onChange={(event) => updateField(field.key, event.target.value)}
           />
-          <small>目前顯示：{formatDisplayDate(String(value))}</small>
+          <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
         </label>
       );
     }
@@ -334,6 +336,7 @@ export function ModuleDetailPage() {
           type={field.type}
           value={String(value)}
           onChange={(event) => updateField(field.key, event.target.value)}
+          placeholder={field.type === "number" ? "請輸入數字" : textPlaceholder}
         />
       </label>
     );

@@ -86,19 +86,20 @@ function auditDevoteeOptionalFields() {
   const devoteesEnd = newRecordFields.indexOf("  shrines: [", devoteesStart);
   const devotees = newRecordFields.slice(devoteesStart, devoteesEnd);
 
-  for (const expected of ["手機號碼", "地址", "性別", "年齡區間"]) {
+  for (const expected of ["手機號碼", "地址", "性別", "年齡級距", "出生月 / 日"]) {
     includes(devotees, expected, `善信新增表單缺少 ${expected}`);
     includes(mockRecords, expected, `善信編輯表單缺少 ${expected}`);
     includes(recordService, expected, `API 顯示 mapping 缺少 ${expected}`);
   }
 
   for (const expected of ["未填寫", "14 以下", "15～24", "25～34", "35～44", "45～54", "55～64", "65 以上"]) {
-    includes(devotees, expected, `年齡區間缺少 ${expected}`);
+    includes(devotees, expected, `年齡級距缺少 ${expected}`);
   }
 
   includes(devotees, "value: []", "善信服務紀錄預設不應硬塞相關紀錄");
   excludes(listPage, "手機號碼", "列表頁不應顯示手機號碼");
   excludes(listPage, "地址", "列表頁不應顯示地址");
+  excludes(listPage, "出生月 / 日", "列表頁不應顯示出生月 / 日");
 }
 
 function auditRelatedFinanceRecords() {

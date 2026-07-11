@@ -1,6 +1,6 @@
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
-import { canEditDailyWork, canUseRiskAction, permissionLabel } from "../lib/permissions";
+import { canEditDailyWork, canUseRiskAction } from "../lib/permissions";
 
 export type DetailActionMode = "view" | "edit" | "draft" | "submitted" | "riskPending" | "riskSubmitted" | "staffRisk";
 
@@ -55,7 +55,6 @@ export function DetailActionPanel({
     <aside className="detail-actions">
       <div>
         <h3>操作確認</h3>
-        <p>目前身份：{permissionLabel(role)}</p>
       </div>
 
       {mode === "edit" ? (
@@ -99,7 +98,7 @@ export function DetailActionPanel({
       )}
 
       <div className="confirm-note">
-        {canRisk ? "送出前請先確認資料是否正確。作廢或封存後，資料仍保留於紀錄中，可供日後查詢。" : "可查看，部分操作需管理者確認。"}
+        {canRisk ? "送出前請先確認內容；封存後仍保留紀錄。" : "日常資料可處理，高風險操作需管理者確認。"}
       </div>
     </aside>
   );

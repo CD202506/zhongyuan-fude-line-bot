@@ -83,7 +83,7 @@ function auditFormSemantics() {
 
   includes(devotees, "本人資料授權", "善信表單需使用本人資料授權");
   includes(devotees, "stateSemantics.notes.authorization", "本人資料授權需有用途說明");
-  includes(devotees, "善信類型由管理者設定中的基礎資料設定維護。", "善信類型需標示來源");
+  includes(devotees, "可由管理者設定。", "善信類型需有簡短來源提示");
   includes(ledger, "相關紀錄", "帳務表單需使用相關紀錄");
   excludes(fields, "授權狀態", "新增表單不應再使用授權狀態");
   excludes(fields, "關聯紀錄", "新增表單不應再使用關聯紀錄");
@@ -93,7 +93,7 @@ function auditStateSemantics() {
   const domainModel = read("src/lib/domainModel.ts");
   const adminSettings = read("src/data/adminSettings.ts");
 
-  for (const expected of ["dataStatuses", "processStatuses", "publishingStatuses", "authorizationStatuses", "資料狀態由管理者或具封存權限的廟方人員調整", "處理狀態由承辦人員、覆核者或管理者", "發布狀態由具發布、覆核或核准權限的人員調整", "用於確認是否可查詢本人相關服務紀錄"]) {
+  for (const expected of ["dataStatuses", "processStatuses", "publishingStatuses", "authorizationStatuses", "資料狀態由管理者調整", "依作業進度調整", "依發布進度調整", "確認本人相關紀錄查詢範圍"]) {
     includes(domainModel, expected, `狀態語意缺少 ${expected}`);
   }
 
