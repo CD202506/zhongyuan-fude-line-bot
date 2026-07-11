@@ -1,5 +1,6 @@
 import type { ModuleKey } from "./modules";
 import { formatDisplayDate } from "../lib/dateFormat";
+import { assignableTeamMemberOptions, masterDataCatalogs } from "./adminSettings";
 import {
   devoteeRelatedRecordExamples,
   fieldOptionLabel,
@@ -14,7 +15,7 @@ import {
 } from "../lib/domainModel";
 
 export type EditField =
-  | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
+  | { key: string; label: string; type: "text" | "textarea" | "date" | "number" | "checkbox"; value: string; readonly?: boolean; help?: string }
   | { key: string; label: string; type: "select"; value: string; options: FieldOption[]; readonly?: boolean; help?: string }
   | { key: string; label: string; type: "tags"; value: string[]; options: FieldOption[]; readonly?: boolean; help?: string };
 
@@ -137,14 +138,14 @@ export const mockRecords: MockRecord[] = [
     ],
     editFields: [
       { key: "name", label: "友宮名稱", type: "text", value: "友宮範例 A" },
-      { key: "area", label: "地區", type: "select", value: "桃園地區", options: ["桃園地區", "中壢地區", "平鎮地區", "新竹地區", "其他地區"] },
-      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: ["友宮", "合作宮廟", "行政單位", "其他"] },
-      { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神", "天上聖母", "關聖帝君"], options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
-      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
-      { key: "status", label: "聯繫狀態", type: "select", value: "常態往來", options: ["常態往來", "近期來訪", "待回覆", "暫少往來", "已封存"] },
-      { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: ["主任委員 A", "總幹事 A", "接待人員 A", "文書人員 A"] },
-      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "進香回覆與接待安排已改由相關紀錄管理。" },
-      { key: "note", label: "備註", type: "textarea", value: "確認回覆內容與接待安排" },
+      { key: "area", label: "地區", type: "select", value: "桃園地區", options: masterDataCatalogs.regionCatalog, help: "由管理者設定的地區選項。" },
+      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: masterDataCatalogs.shrineTypes, help: "由管理者設定的友宮分類。" },
+      { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神", "天上聖母", "關聖帝君"], options: masterDataCatalogs.deityCatalog, help: "先選擇供奉神祇，再指定主祀神祇。" },
+      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神", "天上聖母", "關聖帝君"], help: "主祀神祇須先包含於供奉神祇。" },
+      { key: "status", label: "聯繫狀態", type: "select", value: "常態往來", options: masterDataCatalogs.relationshipStatuses, help: "友宮主檔關係狀態；聯絡人個別狀態另用聯絡人狀態。" },
+      { key: "handler", label: "資料維護人員", type: "select", value: "team-接待人員 A", options: assignableTeamMemberOptions, help: "從目前有效的團隊成員中選擇。" },
+      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "進香回覆與接待安排已改由相關紀錄管理。", help: "非日常使用；僅填寫舊紙本、舊系統或尚無法拆分為結構化紀錄的歷史資料。" },
+      { key: "note", label: "備註", type: "textarea", value: "確認回覆內容與接待安排", help: "填寫目前需注意的聯繫方式、稱呼或其他日常補充事項。" },
     ],
     shrineContacts: shrineContactExamples,
     shrineRelatedRecords: shrineRelatedRecordExamples,
@@ -175,14 +176,14 @@ export const mockRecords: MockRecord[] = [
     ],
     editFields: [
       { key: "name", label: "友宮名稱", type: "text", value: "友宮範例 B" },
-      { key: "area", label: "地區", type: "select", value: "中壢地區", options: ["桃園地區", "中壢地區", "平鎮地區", "新竹地區", "其他地區"] },
-      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: ["友宮", "合作宮廟", "行政單位", "其他"] },
-      { key: "deities", label: "供奉神祇", type: "tags", value: [], options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
-      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神", "天上聖母", "玄天上帝", "關聖帝君", "保生大帝", "觀音佛祖", "其他神祇"] },
-      { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: ["常態往來", "近期來訪", "待回覆", "暫少往來", "已封存"] },
-      { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: ["主任委員 A", "總幹事 A", "接待人員 A", "文書人員 A"] },
-      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "" },
-      { key: "note", label: "備註", type: "textarea", value: "可先建立友宮基本資料，後續再補聯絡人與往來紀錄。" },
+      { key: "area", label: "地區", type: "select", value: "中壢地區", options: masterDataCatalogs.regionCatalog, help: "由管理者設定的地區選項。" },
+      { key: "category", label: "友宮分類", type: "select", value: "友宮", options: masterDataCatalogs.shrineTypes, help: "由管理者設定的友宮分類。" },
+      { key: "deities", label: "供奉神祇", type: "tags", value: [], options: masterDataCatalogs.deityCatalog, help: "先選擇供奉神祇，再指定主祀神祇。" },
+      { key: "primaryDeity", label: "主祀神祇", type: "select", value: "", options: [], help: "主祀神祇須先包含於供奉神祇。" },
+      { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: masterDataCatalogs.relationshipStatuses, help: "友宮主檔關係狀態；聯絡人個別狀態另用聯絡人狀態。" },
+      { key: "handler", label: "資料維護人員", type: "select", value: "team-接待人員 A", options: assignableTeamMemberOptions, help: "從目前有效的團隊成員中選擇。" },
+      { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "非日常使用；僅填寫舊紙本、舊系統或尚無法拆分為結構化紀錄的歷史資料。" },
+      { key: "note", label: "備註", type: "textarea", value: "可先建立友宮基本資料，後續再補聯絡人與往來紀錄。", help: "填寫目前需注意的聯繫方式、稱呼或其他日常補充事項。" },
     ],
     shrineContacts: [],
     shrineRelatedRecords: [],

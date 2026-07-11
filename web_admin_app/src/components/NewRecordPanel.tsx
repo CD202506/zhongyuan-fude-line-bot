@@ -3,10 +3,12 @@ import type { EditField } from "../data/mockRecords";
 import type { ModuleConfig } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { ApiRequestError } from "../api/webAdminApi";
+import { activeCustomFieldsForModule } from "../data/adminSettings";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 import {
+  customFieldToEditField,
   devoteeRelatedRecordExamples,
   fieldOptionLabel,
   fieldOptionValue,
@@ -45,7 +47,12 @@ function submitErrorMessage(error: unknown) {
 }
 
 export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmitRecord }: NewRecordPanelProps) {
-  const fields = newRecordFields[moduleItem.key];
+  const fields = useMemo(() => {
+    const configuredFields = activeCustomFieldsForModule(moduleItem.key, "create")
+      .filter((field) => field.editableRoles.includes(role))
+      .map(customFieldToEditField);
+    return [...newRecordFields[moduleItem.key], ...configuredFields];
+  }, [moduleItem.key, role]);
   const initialValues = useMemo(() => {
     return fields.reduce<FormValues>((values, field) => {
       values[field.key] = field.value;
@@ -71,6 +78,11 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     const selected = Array.isArray(currentValue) ? currentValue.filter((item): item is string => typeof item === "string") : [];
     const nextValue = selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option];
     updateField(field.key, nextValue);
+    if (moduleItem.key === "shrines" && field.key === "deities") {
+      const currentPrimary = String(values.primaryDeity ?? "");
+      const nextPrimary = nextValue.includes(currentPrimary) ? currentPrimary : nextValue[0] ?? "";
+      updateField("primaryDeity", nextPrimary);
+    }
   };
 
   const displayValueForField = (field: EditField, value: string | string[]) => {
@@ -86,13 +98,34 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
   const renderField = (field: EditField) => {
     const value = values[field.key] ?? field.value;
     const textPlaceholder = field.key === "birthMonthDay" ? "月/日" : field.label.includes("電話") ? "請輸入電話" : "請輸入內容";
+    const effectiveOptions = moduleItem.key === "shrines" && field.key === "primaryDeity"
+      ? (Array.isArray(values.deities) && values.deities.every((item) => typeof item === "string") ? values.deities : field.value ? [String(field.value)] : [])
+      : field.type === "select" || field.type === "tags"
+        ? field.options
+        : [];
 
     if (field.type === "textarea") {
+      const textareaPlaceholder = field.key === "internalSummary"
+        ? "僅填寫舊紙本、舊系統或尚無法拆分為結構化紀錄的歷史資料"
+        : field.key === "note"
+          ? "填寫目前需注意的聯繫方式、稱呼或其他日常補充事項"
+          : "請輸入內容";
+      if (field.key === "internalSummary") {
+        return (
+          <details key={field.key} className="edit-field wide collapsible-field">
+            <summary>{field.label}（非日常使用）</summary>
+            <label>
+              {field.help ? <small>{field.help}</small> : null}
+              <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder={textareaPlaceholder} />
+            </label>
+          </details>
+        );
+      }
       return (
         <label key={field.key} className="edit-field wide">
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
-          <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder="請輸入備註" />
+          <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder={textareaPlaceholder} />
         </label>
       );
     }
@@ -103,7 +136,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
-            {field.options.map((option) => (
+            {effectiveOptions.map((option) => (
               <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
                 {fieldOptionLabel(option)}
               </option>
@@ -121,7 +154,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
-            {field.options.map((option) => (
+            {effectiveOptions.map((option) => (
               <button
                 key={fieldOptionValue(option)}
                 type="button"
@@ -149,6 +182,20 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
             placeholder="年/月/日"
           />
           <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
+        </label>
+      );
+    }
+
+    if (field.type === "checkbox") {
+      return (
+        <label key={field.key} className="edit-field checkbox-field">
+          <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
+          <input
+            type="checkbox"
+            checked={String(value) === "是"}
+            onChange={(event) => updateField(field.key, event.target.checked ? "是" : "否")}
+          />
         </label>
       );
     }

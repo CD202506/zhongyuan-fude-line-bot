@@ -64,6 +64,28 @@ export type AuditLogSetting = {
   note: string;
 };
 
+export type CustomFieldType = "text" | "textarea" | "number" | "date" | "select" | "multiSelect" | "checkbox";
+
+export type CustomFieldDefinition = {
+  id: string;
+  moduleKey: string;
+  label: string;
+  description: string;
+  fieldType: CustomFieldType;
+  required: boolean;
+  active: boolean;
+  archived: boolean;
+  sortOrder: number;
+  placeholder: string;
+  options: string[];
+  visibility: "內部作業" | "管理者" | "全角色";
+  editableRoles: Array<"admin" | "staff" | "viewer">;
+  showInList: boolean;
+  showInDetail: boolean;
+  showInCreate: boolean;
+  showInEdit: boolean;
+};
+
 export const masterDataCatalogs = {
   devoteeTypes: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"],
   shrineTypes: ["友宮", "合作宮廟", "行政單位", "其他"],
@@ -303,6 +325,67 @@ export const teamSettings: TeamSetting[] = [
 ];
 
 export const assignableTeamMemberNames = teamSettings.filter((member) => member.assignable && member.state === "使用中").map((member) => member.name);
+
+export const assignableTeamMemberOptions = teamSettings
+  .filter((member) => member.assignable && member.state === "使用中")
+  .map((member) => ({
+    value: `team-${member.name}`,
+    label: `${member.name}｜${member.title}`,
+  }));
+
+export const customFieldDefinitions: CustomFieldDefinition[] = [
+  {
+    id: "custom-shrine-parking-note",
+    moduleKey: "shrines",
+    label: "接待注意事項",
+    description: "補充友宮來訪時的接待、停車或動線注意事項，不取代聯絡人或相關紀錄。",
+    fieldType: "textarea",
+    required: false,
+    active: true,
+    archived: false,
+    sortOrder: 10,
+    placeholder: "例如停車位置、接待動線或特殊稱呼。",
+    options: [],
+    visibility: "內部作業",
+    editableRoles: ["admin", "staff"],
+    showInList: false,
+    showInDetail: true,
+    showInCreate: true,
+    showInEdit: true,
+  },
+  {
+    id: "custom-shrine-reception-level",
+    moduleKey: "shrines",
+    label: "接待提醒等級",
+    description: "協助廟方標記接待準備層級，選項由管理者維護。",
+    fieldType: "select",
+    required: false,
+    active: true,
+    archived: false,
+    sortOrder: 20,
+    placeholder: "請選擇提醒等級",
+    options: ["一般", "需提前確認", "需主任委員確認"],
+    visibility: "內部作業",
+    editableRoles: ["admin", "staff"],
+    showInList: true,
+    showInDetail: true,
+    showInCreate: true,
+    showInEdit: true,
+  },
+];
+
+export function activeCustomFieldsForModule(moduleKey: string, location: "list" | "detail" | "create" | "edit") {
+  const visibilityKey = {
+    list: "showInList",
+    detail: "showInDetail",
+    create: "showInCreate",
+    edit: "showInEdit",
+  } as const;
+
+  return customFieldDefinitions
+    .filter((field) => field.moduleKey === moduleKey && field.active && !field.archived && field[visibilityKey[location]])
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+}
 
 export const auditLogSettings: AuditLogSetting[] = [
   { time: "115 年 7 月 8 日 09:20", actor: "主任委員 A", action: "調整權限標記", module: "權限設定", state: "已完成", note: "新增總幹事覆核權限。" },

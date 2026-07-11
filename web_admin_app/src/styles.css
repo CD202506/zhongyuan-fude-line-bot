@@ -813,6 +813,45 @@ button {
   color: #7a5700;
 }
 
+.collapsible-field {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.collapsible-field summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  border: 1px solid #d7cbb6;
+  border-radius: 8px;
+  background: #f7f1e5;
+  font-weight: 800;
+}
+
+.collapsible-field label {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkbox-field {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.inline-select-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+
+.inline-select-control select {
+  min-width: 180px;
+}
+
 .process-panel {
   border: 1px solid #d5c28d;
   background: #fff8d8;

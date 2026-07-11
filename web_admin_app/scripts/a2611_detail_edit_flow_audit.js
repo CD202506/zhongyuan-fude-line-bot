@@ -64,7 +64,8 @@ function auditTeamAssigneeSource() {
   includes(adminSettings, "assignableTeamMemberNames", "團隊管理需匯出可指派成員名單");
   includes(domainModel, "eligibleMembers: assignableTeamMemberNames", "承辦 / 維護人員需來自團隊管理可指派名單");
   includes(newRecordFields, "assigneeSemantics.eligibleMembers", "新增表單承辦欄位需使用團隊可指派名單");
-  includes(recordService, "options: assigneeSemantics.eligibleMembers", "API mode 編輯承辦欄位需使用團隊可指派名單");
+  includes(recordService, "assigneeSemantics.eligibleMembers", "API mode 編輯承辦欄位需保留團隊可指派名單");
+  includes(recordService, "assignableTeamMemberOptions", "API mode 友宮資料維護人員需支援團隊成員 value / label 選項");
 }
 
 function auditHeaderAndRoleNoise() {

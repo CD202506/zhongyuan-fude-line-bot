@@ -1,6 +1,6 @@
 import type { EditField } from "./mockRecords";
 import type { ModuleKey } from "./modules";
-import { masterDataCatalogs } from "./adminSettings";
+import { assignableTeamMemberOptions, masterDataCatalogs } from "./adminSettings";
 import { assigneeSemantics, businessRecordFieldOption, businessRecordOptions, categorySemantics, publishingSemantics, stateSemantics, tagSemantics } from "../lib/domainModel";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -30,18 +30,18 @@ export const newRecordFields: Record<ModuleKey, EditField[]> = {
   ],
   shrines: [
     { key: "name", label: "友宮名稱", type: "text", value: "" },
-    { key: "area", label: "地區", type: "select", value: "桃園地區", options: masterDataCatalogs.regionCatalog },
-    { key: "category", label: "友宮分類", type: "select", value: "友宮", options: masterDataCatalogs.shrineTypes, help: categorySemantics.note },
+    { key: "area", label: "地區", type: "select", value: "桃園地區", options: masterDataCatalogs.regionCatalog, help: "由管理者設定的地區選項。" },
+    { key: "category", label: "友宮分類", type: "select", value: "友宮", options: masterDataCatalogs.shrineTypes, help: "由管理者設定的友宮分類。" },
     { key: "deities", label: "供奉神祇", type: "tags", value: ["福德正神"], options: masterDataCatalogs.deityCatalog, help: "可複選主祀與陪祀神祇，主祀神祇另於下方指定。" },
-    { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: masterDataCatalogs.deityCatalog },
-    { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: masterDataCatalogs.relationshipStatuses },
+    { key: "primaryDeity", label: "主祀神祇", type: "select", value: "福德正神", options: ["福德正神"], help: "主祀神祇須先包含於供奉神祇。" },
+    { key: "status", label: "聯繫狀態", type: "select", value: "待確認", options: masterDataCatalogs.relationshipStatuses, help: "友宮主檔關係狀態；聯絡人個別狀態另用聯絡人狀態。" },
     { key: "relatedVisitIds", label: "關聯來訪", type: "tags", value: [], options: businessRecordOptions.visits.map(businessRecordFieldOption) },
     { key: "relatedInvitationIds", label: "關聯請帖", type: "tags", value: [], options: businessRecordOptions.invitations.map(businessRecordFieldOption) },
     { key: "relatedEventIds", label: "關聯活動", type: "tags", value: [], options: businessRecordOptions.events.map(businessRecordFieldOption) },
     { key: "relatedDocumentIds", label: "關聯公文", type: "tags", value: [], options: businessRecordOptions.documents.map(businessRecordFieldOption) },
-    { key: "handler", label: "資料維護人員", type: "select", value: "接待人員 A", options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note },
-    { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "非日常使用；僅補充舊紙本或舊系統轉入且無法拆分的背景。" },
-    { key: "note", label: "備註", type: "textarea", value: "" },
+    { key: "handler", label: "資料維護人員", type: "select", value: "team-接待人員 A", options: assignableTeamMemberOptions, help: "從目前有效的團隊成員中選擇。" },
+    { key: "internalSummary", label: "歷史補充說明", type: "textarea", value: "", help: "非日常使用；僅填寫舊紙本、舊系統或尚無法拆分為結構化紀錄的歷史資料。" },
+    { key: "note", label: "備註", type: "textarea", value: "", help: "填寫目前需注意的聯繫方式、稱呼或其他日常補充事項。" },
   ],
   visits: [
     { key: "name", label: "來訪或請帖名稱", type: "text", value: "" },

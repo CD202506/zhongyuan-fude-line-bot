@@ -1,5 +1,7 @@
 import type { ModuleKey } from "../data/modules";
-import { assignableTeamMemberNames, masterDataCatalogs } from "../data/adminSettings";
+import type { EditField } from "../data/mockRecords";
+import { assignableTeamMemberNames, masterDataCatalogs, type CustomFieldDefinition } from "../data/adminSettings";
+import { formatDisplayDate } from "./dateFormat";
 
 export type ModuleDomainType = "masterData" | "internalWork" | "publishing" | "governance";
 
@@ -209,13 +211,36 @@ export function businessRecordFieldOption(record: BusinessRecordOption): FieldOp
   return {
     value: record.id,
     label: record.title || "未命名相關紀錄",
-    meta: record.date,
+    meta: formatDisplayDate(record.date),
   };
 }
 
 export function shrineRelatedRecordLabel(record: ShrineRelatedRecord) {
   const title = record.title || `未命名${record.recordType}紀錄`;
   return `${record.recordType}｜${title}`;
+}
+
+export function customFieldToEditField(field: CustomFieldDefinition): EditField {
+  const base = {
+    key: `custom_${field.id}`,
+    label: field.label,
+    value: field.fieldType === "multiSelect" ? [] : field.fieldType === "checkbox" ? "否" : "",
+    help: `${field.description}${field.required ? " 必填。" : ""}`,
+  };
+
+  if (field.fieldType === "select") {
+    return { ...base, type: "select", value: field.options[0] ?? "", options: field.options };
+  }
+
+  if (field.fieldType === "multiSelect") {
+    return { ...base, type: "tags", value: [], options: field.options };
+  }
+
+  if (field.fieldType === "checkbox") {
+    return { ...base, type: "checkbox", value: "否" };
+  }
+
+  return { ...base, type: field.fieldType, value: "" } as EditField;
 }
 
 export function shrineSystemSummary(input: {
@@ -236,7 +261,7 @@ export function shrineSystemSummary(input: {
   const areaText = input.area ? `${input.area}友宮` : "友宮";
   const deityText = input.primaryDeity ? `，主祀${input.primaryDeity}` : "";
   const contactText = `；目前有 ${activeContacts.length} 位有效聯絡人${primaryContact ? `，主要聯絡人為${primaryContact.name}` : ""}`;
-  const visitText = latestVisit ? `，最近一筆來訪為 ${latestVisit.date}` : "，目前尚無來訪紀錄";
+  const visitText = latestVisit ? `，最近一筆來訪為 ${formatDisplayDate(latestVisit.date)}` : "，目前尚無來訪紀錄";
   const relationText = eventCount || documentCount ? `；關聯活動 ${eventCount} 筆、公文 ${documentCount} 筆` : "";
 
   return `${areaText}${deityText}${contactText}${visitText}${relationText}。`;

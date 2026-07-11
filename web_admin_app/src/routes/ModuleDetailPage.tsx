@@ -2,12 +2,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { modules } from "../data/modules";
 import { EditField, type MockRecord } from "../data/mockRecords";
+import { activeCustomFieldsForModule } from "../data/adminSettings";
 import { DetailActionMode, DetailActionPanel } from "../components/DetailActionPanel";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
-import { fieldOptionLabel, fieldOptionValue, fieldPolicyFor, shrineRelatedRecordLabel, shrineSystemSummary } from "../lib/domainModel";
+import { customFieldToEditField, fieldOptionLabel, fieldOptionValue, fieldPolicyFor, shrineRelatedRecordLabel, shrineSystemSummary } from "../lib/domainModel";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 
 type EditValues = Record<string, string | string[]>;
@@ -32,8 +33,15 @@ export function ModuleDetailPage() {
   const isEditing = actionMode === "edit";
   const visibleEditFields = useMemo(() => {
     if (!record) return [];
-    return record.editFields.filter((field) => role === "admin" || field.key !== "dataStatus");
+    const configuredFields = activeCustomFieldsForModule(record.moduleKey, "edit")
+      .filter((field) => field.editableRoles.includes(role))
+      .map(customFieldToEditField);
+    return [...record.editFields, ...configuredFields].filter((field) => role === "admin" || field.key !== "dataStatus");
   }, [record, role]);
+  const detailCustomFields = useMemo(() => {
+    if (!record) return [];
+    return activeCustomFieldsForModule(record.moduleKey, "detail");
+  }, [record]);
   const relatedRecordItems = useMemo(() => {
     if (record?.relatedRecords && record.relatedRecords.length > 0) return record.relatedRecords.map((item) => item.id);
     if (record?.shrineRelatedRecords && record.shrineRelatedRecords.length > 0) return record.shrineRelatedRecords.map((item) => item.id);
@@ -291,6 +299,11 @@ export function ModuleDetailPage() {
     const selected = Array.isArray(currentValue) ? currentValue : [];
     const nextValue = selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option];
     updateField(field.key, nextValue);
+    if (record?.moduleKey === "shrines" && field.key === "deities") {
+      const currentPrimary = String(editValues.primaryDeity ?? "");
+      const nextPrimary = nextValue.includes(currentPrimary) ? currentPrimary : nextValue[0] ?? "";
+      updateField("primaryDeity", nextPrimary);
+    }
   };
 
   const displayValueForField = (field: EditField, value: string | string[]) => {
@@ -307,6 +320,11 @@ export function ModuleDetailPage() {
     const value = editValues[field.key] ?? field.value;
     const readonly = field.readonly || (field.key === "systemRole" && role !== "admin");
     const textPlaceholder = field.key === "birthMonthDay" ? "月/日" : field.label.includes("電話") ? "請輸入電話" : "請輸入內容";
+    const effectiveOptions = record?.moduleKey === "shrines" && field.key === "primaryDeity"
+      ? (Array.isArray(editValues.deities) && editValues.deities.every((item) => typeof item === "string") ? editValues.deities : field.value ? [String(field.value)] : [])
+      : field.type === "select" || field.type === "tags"
+        ? field.options
+        : [];
 
     if (readonly) {
       return (
@@ -320,11 +338,27 @@ export function ModuleDetailPage() {
     }
 
     if (field.type === "textarea") {
+      const textareaPlaceholder = field.key === "internalSummary"
+        ? "僅填寫舊紙本、舊系統或尚無法拆分為結構化紀錄的歷史資料"
+        : field.key === "note"
+          ? "填寫目前需注意的聯繫方式、稱呼或其他日常補充事項"
+          : "請輸入內容";
+      if (field.key === "internalSummary") {
+        return (
+          <details key={field.key} className="edit-field wide collapsible-field">
+            <summary>{field.label}（非日常使用）</summary>
+            <label>
+              {field.help ? <small>{field.help}</small> : null}
+              <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder={textareaPlaceholder} />
+            </label>
+          </details>
+        );
+      }
       return (
         <label key={field.key} className="edit-field wide">
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
-          <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} />
+          <textarea value={String(value)} onChange={(event) => updateField(field.key, event.target.value)} placeholder={textareaPlaceholder} />
         </label>
       );
     }
@@ -335,7 +369,7 @@ export function ModuleDetailPage() {
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
-            {field.options.map((option) => (
+            {effectiveOptions.map((option) => (
               <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
                 {fieldOptionLabel(option)}
               </option>
@@ -353,7 +387,7 @@ export function ModuleDetailPage() {
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
           <div className="tag-toggle-group">
-            {field.options.map((option) => (
+            {effectiveOptions.map((option) => (
               <button
                 key={fieldOptionValue(option)}
                 type="button"
@@ -381,6 +415,20 @@ export function ModuleDetailPage() {
             placeholder="年/月/日"
           />
           <small>{rocDateInputHint}；目前顯示：{formatDisplayDate(String(value))}</small>
+        </label>
+      );
+    }
+
+    if (field.type === "checkbox") {
+      return (
+        <label key={field.key} className="edit-field checkbox-field">
+          <span>{field.label}</span>
+          {field.help ? <small>{field.help}</small> : null}
+          <input
+            type="checkbox"
+            checked={String(value) === "是"}
+            onChange={(event) => updateField(field.key, event.target.checked ? "是" : "否")}
+          />
         </label>
       );
     }
@@ -476,7 +524,7 @@ export function ModuleDetailPage() {
           <h3>資料摘要</h3>
           {record.moduleKey === "shrines" ? (
             <div className="system-summary-strip">
-              <strong>系統摘要</strong>
+              <strong>系統摘要（系統自動產生）</strong>
               <span>
                 {shrineSystemSummary({
                   title: record.title,
@@ -498,11 +546,26 @@ export function ModuleDetailPage() {
               <div><span>{fieldPolicy?.dateLabel ?? "日期"}</span><strong>{record.dateLabel}</strong></div>
               {fieldPolicy?.showAssignee ? <div><span>{fieldPolicy.ownerLabel}</span><strong>{record.owner}</strong></div> : null}
               <div><span>作業分類</span><strong>{moduleItem.boundary}</strong></div>
-              {record.detailFields.map((field) => (
+              {record.detailFields
+                .filter((field) => record.moduleKey !== "shrines" || !["主祀神祇", "供奉神祇"].includes(field.label))
+                .map((field) => (
                 <div key={`${field.label}-${field.value}`}><span>{field.label}</span><strong>{field.value}</strong></div>
               ))}
             </div>
           )}
+          {!isEditing && detailCustomFields.length > 0 ? (
+            <div className="note-panel">
+              <strong>自訂欄位</strong>
+              <div className="info-grid">
+                {detailCustomFields.map((field) => (
+                  <div key={field.id}>
+                    <span>{field.label}</span>
+                    <strong>尚未填寫</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {(actionMode === "draft" || actionMode === "submitted") && draftEntries && draftEntries.length > 0 ? (
             <div className="draft-summary">
               <strong>{actionMode === "draft" ? "目前草稿內容" : "本次送出內容"}</strong>
@@ -539,12 +602,16 @@ export function ModuleDetailPage() {
               <strong>供奉神祇</strong>
               {record.shrineDeities && record.shrineDeities.length > 0 ? (
                 <div className="related-record-table">
-                  {record.shrineDeities.map((deity) => (
+                  {record.shrineDeities.filter((deity) => deity.role === "主祀").map((deity) => (
                     <article key={deity.id}>
-                      <strong>{deity.name}</strong>
-                      <span>{deity.role}</span>
+                      <strong>主祀：{deity.name}</strong>
+                      <span>主祀神祇須包含於供奉神祇清單。</span>
                     </article>
                   ))}
+                  <article>
+                    <strong>其他供奉</strong>
+                    <span>{record.shrineDeities.filter((deity) => deity.role !== "主祀").map((deity) => deity.name).join("、") || "目前尚無其他供奉神祇。"}</span>
+                  </article>
                 </div>
               ) : (
                 <div className="empty-inline-state">目前尚無供奉神祇紀錄。</div>

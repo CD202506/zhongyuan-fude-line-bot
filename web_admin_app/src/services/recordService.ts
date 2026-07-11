@@ -1,11 +1,12 @@
 import { webAdminApi, type ApiRecord, type ApiRecordPayload } from "../api/webAdminApi";
 import { isApiMode } from "../config/runtimeMode";
+import { activeCustomFieldsForModule, assignableTeamMemberOptions } from "../data/adminSettings";
 import type { EditField, MockRecord } from "../data/mockRecords";
 import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
-import { assigneeSemantics, categorySemantics, fieldPolicyFor, shrineSystemSummary, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { assigneeSemantics, categorySemantics, customFieldToEditField, fieldOptionLabel, fieldPolicyFor, shrineSystemSummary, stateSemantics, tagSemantics } from "../lib/domainModel";
 import type { DevoteeRelatedRecord, ShrineContact, ShrineDeityRecord, ShrineRelatedRecord } from "../lib/domainModel";
 import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
@@ -239,6 +240,8 @@ function displayValue(value: unknown): string {
     return "";
   }
   const text = hasEngineeringTestText(value) ? "第三方測試用匿名資料" : stringValue(value);
+  const teamMember = assignableTeamMemberOptions.find((option) => option.value === text);
+  if (teamMember) return fieldOptionLabel(teamMember);
   if (emptyFieldValues.has(text.trim())) return "";
   return formatDisplayDate(text);
 }
@@ -344,6 +347,12 @@ function displayNote(record: ApiRecord) {
   return displayValue(record.fields_json.note);
 }
 
+function teamMemberDisplayName(value: unknown) {
+  const text = stringValue(value);
+  const option = assignableTeamMemberOptions.find((item) => item.value === text);
+  return option ? fieldOptionLabel(option) : text;
+}
+
 function processStatusFor(record: ApiRecord) {
   return displayValue(record.fields_json.processStatus ?? record.fields_json.status);
 }
@@ -430,6 +439,9 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const shrineContacts = Array.isArray(record.fields_json.shrineContacts) ? record.fields_json.shrineContacts as ShrineContact[] : [];
   const shrineRelatedRecords = Array.isArray(record.fields_json.shrineRelatedRecords) ? record.fields_json.shrineRelatedRecords as ShrineRelatedRecord[] : [];
   const shrineDeities = Array.isArray(record.fields_json.shrineDeities) ? record.fields_json.shrineDeities as ShrineDeityRecord[] : [];
+  const customDetailFields = activeCustomFieldsForModule(record.module_key, "detail")
+    .map((field) => ({ label: field.label, value: displayValue(record.fields_json[`custom_${field.id}`]) }))
+    .filter((field) => field.value);
   const derivedShrineSummary = record.module_key === "shrines"
     ? shrineSystemSummary({
         title,
@@ -443,6 +455,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const detailFields = [
     ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
     ...displayFields,
+    ...customDetailFields,
   ];
   const categoryOptions = categorySemantics.moduleCategories[record.module_key];
   const standardEditKeys = new Set([
@@ -473,6 +486,13 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
         value: Array.isArray(field.value) ? (Array.isArray(value) ? value : []) : String(value),
       } as EditField;
     });
+  const configuredCustomEditFields: EditField[] = activeCustomFieldsForModule(record.module_key, "edit")
+    .map(customFieldToEditField)
+    .map((field) => {
+      const rawValue = record.fields_json[field.key];
+      if (rawValue === undefined || rawValue === null) return field;
+      return { ...field, value: Array.isArray(field.value) ? (Array.isArray(rawValue) ? rawValue : []) : String(rawValue) } as EditField;
+    });
   const summaryEditField = editableSummaryField(record);
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
@@ -480,10 +500,11 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     { key: "dataStatus", label: "資料狀態", type: "select", value: statusLabel(record), options: stateSemantics.dataStatuses, help: "資料狀態由管理者或具封存權限的廟方人員調整。" },
     { key: "recordDate", label: policy.dateLabel, type: "date", value: record.record_date ?? "" },
     ...(policy.showDueDate ? [{ key: "dueDate", label: "預計完成日", type: "date" as const, value: record.due_date ?? "" }] : []),
-    ...(policy.showAssignee ? [{ key: "responsible", label: policy.ownerLabel, type: "select" as const, value: owner, options: assigneeSemantics.eligibleMembers, help: assigneeSemantics.note }] : []),
+    ...(policy.showAssignee ? [{ key: "responsible", label: policy.ownerLabel, type: "select" as const, value: record.responsible || owner, options: record.module_key === "shrines" ? assignableTeamMemberOptions : assigneeSemantics.eligibleMembers, help: record.module_key === "shrines" ? "從目前有效的團隊成員中選擇。" : assigneeSemantics.note }] : []),
     ...(policy.showCategory ? [{ key: "category", label: policy.categoryLabel ?? "類別", type: "select" as const, value: record.category || categoryOptions[0], options: categoryOptions, help: categorySemantics.note }] : []),
     ...(policy.showTags ? [{ key: "tags", label: "輔助標籤", type: "tags" as const, value: displayTags, options: Array.from(new Set([...displayTags, ...tagSemantics.commonTags])), help: tagSemantics.note }] : []),
     ...customEditFields,
+    ...configuredCustomEditFields,
     { key: "note", label: "備註", type: "textarea", value: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
   ];
   const listFields = listFieldsFor(record, owner);
@@ -566,7 +587,7 @@ function valuesToPayload(moduleKey: ModuleKey, values: FormValues, role: UserRol
     status: resolveSystemStatus(values.dataStatus),
     record_date: toIsoDateValue(String(values.date || values.publishDate || values.recordDate || "")),
     due_date: toIsoDateValue(String(values.dueDate || "")),
-    responsible: String(values.handler || values.owner || values.group || values.responsible || ""),
+    responsible: teamMemberDisplayName(values.handler || values.owner || values.group || values.responsible || ""),
     category: String(values.type || values.category || values.cashType || values.documentType || ""),
     fields_json: values,
     tags_json: tags,
