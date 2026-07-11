@@ -96,33 +96,34 @@ function auditDevoteeInteractionModel() {
   const mockRecords = read("src/data/mockRecords.ts");
   const recordService = read("src/services/recordService.ts");
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
+  const domainModel = read("src/lib/domainModel.ts");
+  const adminSettings = read("src/data/adminSettings.ts");
+  const newRecordPanel = read("src/components/NewRecordPanel.tsx");
   const devotees = sectionBetween(fields, "  devotees: [", "  shrines: [");
+  const relatedModelSources = `${domainModel}\n${adminSettings}`;
 
-  for (const expected of ["往來分類", "往來類型", "有返還需求的財務往來", "不需返還的財務紀錄", "非財務物資往來"]) {
-    includes(devotees, expected, `善信往來紀錄缺少分類語意 ${expected}`);
+  for (const forbidden of ["往來分類", "往來類型", "有返還需求的財務往來", "不需返還的財務紀錄", "非財務物資往來", "返還狀態"]) {
+    excludes(devotees, forbidden, `善信主檔不應直接填寫往來紀錄欄位 ${forbidden}`);
   }
 
-  for (const expected of ["發財金", "平安龜", "返還狀態", "返還提醒", "待返還", "已返還", "逾期提醒"]) {
-    includes(devotees, expected, `有返還需求財務往來缺少 ${expected}`);
+  for (const expected of ["財務往來", "物資往來", "公告通知", "活動參與", "服務 / 聯繫紀錄", "其他廟務關聯"]) {
+    includes(relatedModelSources, expected, `善信相關紀錄模型缺少分類語意 ${expected}`);
   }
 
-  for (const expected of ["善信捐款", "香油錢", "金牌"]) {
-    includes(devotees, expected, `不需返還財務紀錄缺少 ${expected}`);
+  for (const expected of ["發財金", "平安龜", "香油錢", "善信捐款", "金牌", "物資捐贈", "供品捐贈", "待返還", "已結清"]) {
+    includes(relatedModelSources, expected, `善信相關紀錄模型缺少 ${expected}`);
   }
 
-  for (const expected of ["物資捐贈", "供品捐贈"]) {
-    includes(devotees, expected, `非財務物資往來缺少 ${expected}`);
+  for (const expected of ["善信相關紀錄", "新增相關紀錄", "目前尚無相關紀錄時，可先只建立善信基本資料。"]) {
+    includes(newRecordPanel, expected, `新增善信頁缺少 ${expected}`);
   }
 
   excludes(devotees, "發財金與服務紀錄", "善信往來紀錄不應再稱為發財金與服務紀錄");
   excludes(devotees, "還金提醒", "還金提醒不應作為往來類型");
   excludes(devotees, "活動通知", "活動通知不應作為往來類型");
-  includes(devotees, "沒有往來紀錄", "無往來紀錄需可選且不強迫填寫");
-  includes(mockRecords, "沒有往來紀錄", "mock 需支援無往來紀錄");
-  includes(recordService, "fields.interactionCategory !== \"沒有往來紀錄\"", "無往來紀錄時不應產生空相關紀錄");
-  includes(recordService, "平安龜：1 筆", "相關紀錄需支援平安龜");
-  includes(recordService, "待返還：1 筆", "相關紀錄需支援待返還摘要");
-  includes(recordService, "物資捐贈：1 筆", "相關紀錄需支援物資捐贈");
+  includes(mockRecords, "relatedRecords", "mock 需支援多筆相關紀錄");
+  includes(recordService, "相關紀錄：", "相關紀錄需支援多筆摘要");
+  includes(recordService, "待結清：", "相關紀錄需支援待結清摘要");
   includes(detailPage, "查看帳務紀錄", "金流類相關紀錄需可查詢帳務管理");
   includes(detailPage, "查看物資紀錄", "物資類相關紀錄需可查詢");
 }

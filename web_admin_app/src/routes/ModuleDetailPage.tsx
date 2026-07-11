@@ -35,11 +35,27 @@ export function ModuleDetailPage() {
     return record.editFields.filter((field) => role === "admin" || field.key !== "dataStatus");
   }, [record, role]);
   const relatedRecordItems = useMemo(() => {
+    if (record?.relatedRecords && record.relatedRecords.length > 0) return record.relatedRecords.map((item) => item.id);
     if (!record?.relation) return [];
     return record.relation.split("、").map((item) => item.trim()).filter(Boolean);
-  }, [record?.relation]);
+  }, [record?.relation, record?.relatedRecords]);
   const relatedRecordDetail = useMemo(() => {
     if (!activeRelatedRecord || !record) return null;
+    const detailedRecord = record.relatedRecords?.find((item) => item.id === activeRelatedRecord);
+    if (detailedRecord) {
+      const financeRelated = detailedRecord.category === "財務往來";
+      const materialRelated = detailedRecord.category === "物資往來";
+      return {
+        type: `${detailedRecord.category}｜${detailedRecord.type}`,
+        date: formatDisplayDate(detailedRecord.date),
+        state: detailedRecord.status,
+        module: detailedRecord.relatedModule,
+        action: financeRelated ? "查看帳務紀錄" : materialRelated ? "查看物資紀錄" : "查看相關紀錄",
+        item: `${detailedRecord.action}｜${detailedRecord.item} ${detailedRecord.quantity}${detailedRecord.unit}`,
+        amount: detailedRecord.amount ? `${detailedRecord.amount} 元` : "",
+        note: detailedRecord.differenceHandling || detailedRecord.note,
+      };
+    }
     const financeRelated = ["發財金", "平安龜", "香油錢", "捐款", "金牌", "帳務", "待返還", "已返還"].some((keyword) => activeRelatedRecord.includes(keyword));
     if (financeRelated) {
       return {
@@ -69,6 +85,11 @@ export function ModuleDetailPage() {
 
     return { type: activeRelatedRecord.replace(/：.*$/, ""), date: record.dateLabel, state: "待確認", module: moduleItem?.title ?? "相關模組", action: "查看相關紀錄" };
   }, [activeRelatedRecord, moduleItem?.title, record]);
+
+  const relatedButtonLabel = (item: string) => {
+    const detailedRecord = record?.relatedRecords?.find((recordItem) => recordItem.id === item);
+    return detailedRecord ? `${detailedRecord.category}｜${detailedRecord.type}` : item;
+  };
 
   useEffect(() => {
     let active = true;
@@ -129,7 +150,7 @@ export function ModuleDetailPage() {
       },
       riskPending: {
         title: "作廢 / 封存確認",
-        body: "這是重要操作。若為輸錯或測試資料，可作廢或封存後不列入日常使用。",
+        body: "這是重要操作。若為輸錯或暫存資料，可作廢或封存後不列入日常使用。",
         tone: "warning",
       },
       riskSubmitted: {
@@ -461,7 +482,7 @@ export function ModuleDetailPage() {
                       setRelatedActionMessage("");
                     }}
                   >
-                    查詢{item}
+                    查詢{relatedButtonLabel(item)}
                   </button>
                 ))}
               </div>
@@ -473,6 +494,9 @@ export function ModuleDetailPage() {
                     <div><dt>日期</dt><dd>{relatedRecordDetail.date}</dd></div>
                     <div><dt>狀態</dt><dd>{relatedRecordDetail.state}</dd></div>
                     <div><dt>對應模組</dt><dd>{relatedRecordDetail.module}</dd></div>
+                    {relatedRecordDetail.item ? <div><dt>品項</dt><dd>{relatedRecordDetail.item}</dd></div> : null}
+                    {relatedRecordDetail.amount ? <div><dt>金額</dt><dd>{relatedRecordDetail.amount}</dd></div> : null}
+                    {relatedRecordDetail.note ? <div><dt>備註</dt><dd>{relatedRecordDetail.note}</dd></div> : null}
                   </dl>
                   <button type="button" className="secondary-inline-action" onClick={() => setRelatedActionMessage(`已準備前往${relatedRecordDetail.module}查詢 ${relatedRecordDetail.type}。`)}>
                     {relatedRecordDetail.action}

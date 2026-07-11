@@ -96,7 +96,7 @@ function auditDevoteeOptionalFields() {
     includes(devotees, expected, `年齡級距缺少 ${expected}`);
   }
 
-  includes(devotees, "沒有往來紀錄", "善信往來紀錄預設不應強迫填寫");
+  includes(read("src/components/NewRecordPanel.tsx"), "目前尚無相關紀錄時，可先只建立善信基本資料。", "善信往來紀錄預設不應強迫填寫");
   excludes(listPage, "手機號碼", "列表頁不應顯示手機號碼");
   excludes(listPage, "地址", "列表頁不應顯示地址");
   excludes(listPage, "出生月 / 日", "列表頁不應顯示出生月 / 日");
@@ -105,12 +105,17 @@ function auditDevoteeOptionalFields() {
 function auditRelatedFinanceRecords() {
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
   const recordService = read("src/services/recordService.ts");
+  const domainModel = read("src/lib/domainModel.ts");
+  const adminSettings = read("src/data/adminSettings.ts");
+  const relatedModelSources = `${domainModel}\n${adminSettings}`;
 
-  for (const expected of ["發財金", "平安龜", "待返還", "香油錢", "捐款", "帳務紀錄", "往來紀錄"]) {
-    includes(recordService, expected, `相關紀錄需支援 ${expected}`);
+  for (const expected of ["發財金", "平安龜", "待返還", "香油錢", "善信捐款", "帳務管理", "財務往來"]) {
+    includes(relatedModelSources, expected, `相關紀錄模型需支援 ${expected}`);
   }
+  includes(recordService, "相關紀錄：", "列表摘要需支援多筆相關紀錄");
+  includes(recordService, "待結清：", "列表摘要需支援待結清相關紀錄");
 
-  includes(detailPage, "financeRelated", "金流類相關紀錄需有判斷");
+  includes(detailPage, 'detailedRecord.category === "財務往來"', "金流類相關紀錄需有判斷");
   includes(detailPage, 'module: "帳務管理"', "金流類相關紀錄需指向帳務管理");
   includes(detailPage, "查看帳務紀錄", "金流類相關紀錄需有查看帳務紀錄 action");
   includes(detailPage, "<dl>", "相關紀錄查詢面板需顯示結構化欄位");

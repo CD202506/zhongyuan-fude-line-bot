@@ -58,10 +58,14 @@ function auditNewRecordFields() {
   const documents = sectionBetween(fields, "  documents: [", "  team: [");
   const team = sectionBetween(fields, "  team: [", "  ledger: [");
   const ledger = sectionBetween(fields, "  ledger: [", "};");
+  const adminSettings = read("src/data/adminSettings.ts");
 
   includes(devotees, "建立日期", "善信新增需有建立日期");
-  for (const expected of ["往來分類", "往來類型", "返還狀態", "返還提醒", "相關紀錄"]) {
+  for (const expected of ["善信類型", "手機號碼", "地址", "性別", "年齡級距", "出生月 / 日", "資料維護人員"]) {
     includes(devotees, expected, `善信新增缺少 ${expected}`);
+  }
+  for (const forbidden of ["往來分類", "往來類型", "返還狀態", "返還提醒"]) {
+    excludes(devotees, forbidden, `善信主檔新增不應直接包含 ${forbidden}`);
   }
   excludes(devotees, "預計完成日", "善信新增不應有期限或預計完成日");
   excludes(devotees, "dueDate", "善信新增不應送出 dueDate");
@@ -81,20 +85,25 @@ function auditNewRecordFields() {
   includes(documents, "文件日期", "公文紀錄需有文件日期");
 
   for (const expected of ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員", "其他"]) {
-    includes(team, expected, `團隊管理職稱缺少 ${expected}`);
+    includes(adminSettings, expected, `團隊管理職稱主檔缺少 ${expected}`);
   }
+  includes(team, "masterDataCatalogs.teamRoles", "團隊管理職稱需由設定主檔提供");
 }
 
 function auditMockAndApiDisplay() {
   const mockRecords = read("src/data/mockRecords.ts");
   const recordService = read("src/services/recordService.ts");
+  const newRecordPanel = read("src/components/NewRecordPanel.tsx");
+  const domainModel = read("src/lib/domainModel.ts");
 
-  for (const expected of ["承辦人員", "建立日期", "往來分類", "聯絡電話", "帳務日期", "付款狀態"]) {
+  for (const expected of ["承辦人員", "建立日期", "手機號碼", "聯絡電話", "帳務日期", "付款狀態"]) {
     includes(mockRecords, expected, `demo / 詳情資料缺少 ${expected}`);
   }
 
+  includes(newRecordPanel, "善信相關紀錄", "新增善信頁需提供相關紀錄區塊");
+  includes(domainModel, "devoteeRelatedRecordExamples", "善信往來資料需由相關紀錄模型承接");
   includes(recordService, "policy.showDueDate", "API mode 需依模組 policy 決定是否顯示預計完成日");
-  includes(recordService, 'label: "資料狀態"', "API mode 列表應顯示資料狀態");
+  includes(recordService, 'key: "dataStatus"', "API mode 編輯頁需保留資料狀態控制");
   for (const expected of ["fortuneMoneyReceived", "fortuneMoneyReturned", "contactMethod", "quantity", "itemName"]) {
     includes(recordService, expected, `API mode 欄位中文轉換缺少 ${expected}`);
   }

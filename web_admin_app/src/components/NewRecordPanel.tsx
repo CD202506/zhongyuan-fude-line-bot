@@ -6,8 +6,9 @@ import { ApiRequestError } from "../api/webAdminApi";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
+import { devoteeRelatedRecordExamples, type DevoteeRelatedRecord } from "../lib/domainModel";
 
-type FormValues = Record<string, string | string[]>;
+type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[]>;
 type NewRecordState = "editing" | "draft" | "submitted";
 type PendingAction = "draft" | "submit" | null;
 
@@ -22,12 +23,12 @@ type NewRecordPanelProps = {
 function submitErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.status === 422) return "資料格式未通過，請確認必填資料。";
-    if (error.status >= 500) return "測試資料服務暫時無法處理，請稍後再試。";
+    if (error.status >= 500) return "資料服務暫時無法處理，請稍後再試。";
     return "資料服務回應失敗，請稍後再試。";
   }
 
   if (error instanceof TypeError) {
-    return "測試資料服務無法連線，或請求被瀏覽器阻擋。";
+    return "資料服務無法連線，或請求被瀏覽器阻擋。";
   }
 
   return "資料送出失敗，請稍後再試。";
@@ -46,6 +47,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [devoteeRelatedRecords, setDevoteeRelatedRecords] = useState<DevoteeRelatedRecord[]>([]);
   const needsAdminConfirm = role !== "admin" && adminConfirmModules.includes(moduleItem.key);
 
   const updateField = (key: string, value: string | string[]) => {
@@ -54,7 +56,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
 
   const toggleTag = (field: Extract<EditField, { type: "tags" }>, option: string) => {
     const currentValue = values[field.key] ?? field.value;
-    const selected = Array.isArray(currentValue) ? currentValue : [];
+    const selected = Array.isArray(currentValue) ? currentValue.filter((item): item is string => typeof item === "string") : [];
     const nextValue = selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option];
     updateField(field.key, nextValue);
   };
@@ -90,7 +92,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     }
 
     if (field.type === "tags") {
-      const selected = Array.isArray(value) ? value : [];
+      const selected = Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
       return (
         <div key={field.key} className="edit-field wide">
@@ -161,7 +163,7 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       setPendingAction(null);
       setIsSubmitting(true);
       try {
-        await onSubmitRecord?.(values);
+        await onSubmitRecord?.(moduleItem.key === "devotees" ? { ...values, relatedRecords: devoteeRelatedRecords } : values);
         setState("submitted");
         onComplete();
       } catch (error) {
@@ -227,6 +229,40 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
       <div className="edit-form-grid">
         {fields.map((field) => renderField(field))}
       </div>
+
+      {moduleItem.key === "devotees" ? (
+        <div className="related-record-editor">
+          <div className="section-heading compact-heading">
+            <div>
+              <h4>善信相關紀錄</h4>
+              <span>目前尚無相關紀錄時，可先只建立善信基本資料。</span>
+            </div>
+            <button
+              type="button"
+              className="secondary-inline-action"
+              onClick={() => {
+                const nextRecord = devoteeRelatedRecordExamples[devoteeRelatedRecords.length % devoteeRelatedRecordExamples.length];
+                setDevoteeRelatedRecords((current) => [...current, { ...nextRecord, id: `${nextRecord.id}-${current.length + 1}` }]);
+              }}
+            >
+              新增相關紀錄
+            </button>
+          </div>
+          {devoteeRelatedRecords.length > 0 ? (
+            <div className="related-record-table">
+              {devoteeRelatedRecords.map((item) => (
+                <article key={item.id}>
+                  <strong>{item.category}｜{item.type}</strong>
+                  <span>{formatDisplayDate(item.date)}｜{item.action}｜{item.item} {item.quantity}{item.unit}</span>
+                  <span>{item.amount ? `金額 ${item.amount} 元｜` : ""}{item.status}｜對應：{item.relatedModule}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-inline-state">目前尚無相關紀錄，可先只建立善信基本資料。</div>
+          )}
+        </div>
+      ) : null}
 
       {entries.length > 0 ? (
         <div className="draft-summary">

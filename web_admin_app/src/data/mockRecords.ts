@@ -1,5 +1,6 @@
 import type { ModuleKey } from "./modules";
 import { formatDisplayDate } from "../lib/dateFormat";
+import { devoteeRelatedRecordExamples, type DevoteeRelatedRecord } from "../lib/domainModel";
 
 export type EditField =
   | { key: string; label: string; type: "text" | "textarea" | "date" | "number"; value: string; readonly?: boolean; help?: string }
@@ -20,6 +21,7 @@ export type MockRecord = {
   listFields: Array<{ label: string; value: string }>;
   detailFields: Array<{ label: string; value: string }>;
   editFields: EditField[];
+  relatedRecords?: DevoteeRelatedRecord[];
 };
 
 export const mockRecords: MockRecord[] = [
@@ -66,19 +68,18 @@ export const mockRecords: MockRecord[] = [
     summary: "善信基本資料與往來紀錄摘要。",
     owner: "櫃檯人員 A",
     dateLabel: "2026-06-18",
-    relation: "發財金領取 / 繳回紀錄、帳務草稿",
+    relation: "相關紀錄：7 筆、待結清：1 筆、今日紀錄：7 筆",
     note: "不含真實電話、地址或 LINE 識別資料。",
     listFields: [
       { label: "服務", value: "發財金領取 / 繳回" },
-      { label: "往來紀錄", value: "待返還：1 筆" },
+      { label: "相關紀錄", value: "7 筆" },
+      { label: "待結清", value: "1 筆" },
+      { label: "今日紀錄", value: "7 筆" },
       { label: "最近", value: "6/18 櫃檯登記" },
     ],
     detailFields: [
       { label: "善信類型", value: "一般善信" },
       { label: "建立日期", value: "2026-06-18" },
-      { label: "往來分類", value: "有返還需求的財務往來" },
-      { label: "往來類型", value: "發財金" },
-      { label: "返還狀態", value: "待返還" },
       { label: "資料維護人員", value: "櫃檯人員 A" },
     ],
     editFields: [
@@ -90,19 +91,10 @@ export const mockRecords: MockRecord[] = [
       { key: "gender", label: "性別", type: "select", value: "未填寫", options: ["未填寫", "男", "女", "其他 / 不便透露"] },
       { key: "ageRange", label: "年齡級距", type: "select", value: "未填寫", options: ["未填寫", "14 以下", "15～24", "25～34", "35～44", "45～54", "55～64", "65 以上"], help: "只記錄級距，不填實際年齡。" },
       { key: "birthMonthDay", label: "出生月 / 日", type: "text", value: "", help: "非必填，只填月 / 日；農曆或國曆可另於備註說明。" },
-      { key: "interactionCategory", label: "往來分類", type: "select", value: "有返還需求的財務往來", options: ["沒有往來紀錄", "有返還需求的財務往來", "不需返還的財務紀錄", "非財務物資往來"] },
-      { key: "interactionType", label: "往來類型", type: "select", value: "發財金", options: ["未填寫", "發財金", "平安龜", "善信捐款", "香油錢", "金牌", "物資捐贈", "供品捐贈", "其他"] },
-      { key: "interactionDate", label: "往來日期", type: "date", value: "2026-06-18" },
-      { key: "returnStatus", label: "返還狀態", type: "select", value: "待返還", options: ["不需返還", "待返還", "已返還", "逾期提醒"] },
-      { key: "returnDate", label: "返還日期", type: "date", value: "2026-06-18" },
-      { key: "returnReminder", label: "返還提醒", type: "select", value: "需要提醒", options: ["不提醒", "需要提醒", "已提醒"] },
-      { key: "amountOrItem", label: "金額 / 品項", type: "text", value: "發財金" },
-      { key: "quantityNote", label: "數量 / 備註", type: "text", value: "待返還確認" },
-      { key: "receiver", label: "登錄 / 接收人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"] },
       { key: "handler", label: "資料維護人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"], help: "從可指派團隊成員中選擇。" },
-      { key: "relations", label: "相關紀錄", type: "textarea", value: "發財金、待返還" },
       { key: "note", label: "備註", type: "textarea", value: "不含真實電話、地址或 LINE 識別資料。" },
     ],
+    relatedRecords: devoteeRelatedRecordExamples,
   },
   {
     id: "shrine-a",
@@ -391,7 +383,7 @@ export const mockRecords: MockRecord[] = [
     summary: "舊年度服務紀錄已封存，仍保留於紀錄中。",
     owner: "櫃檯人員 A",
     dateLabel: "2025-12-20",
-    relation: "舊年度服務紀錄",
+    relation: "",
     note: "封存後不在日常列表優先顯示。",
     listFields: [
       { label: "服務", value: "舊年度紀錄" },
@@ -401,7 +393,6 @@ export const mockRecords: MockRecord[] = [
     detailFields: [
       { label: "善信類型", value: "一般善信" },
       { label: "服務紀錄", value: "舊年度服務" },
-      { label: "往來紀錄", value: "舊年度服務" },
       { label: "資料維護人員", value: "櫃檯人員 A" },
     ],
     editFields: [
@@ -413,8 +404,6 @@ export const mockRecords: MockRecord[] = [
       { key: "gender", label: "性別", type: "select", value: "未填寫", options: ["未填寫", "男", "女", "其他 / 不便透露"] },
       { key: "ageRange", label: "年齡級距", type: "select", value: "未填寫", options: ["未填寫", "14 以下", "15～24", "25～34", "35～44", "45～54", "55～64", "65 以上"] },
       { key: "birthMonthDay", label: "出生月 / 日", type: "text", value: "" },
-      { key: "interactionCategory", label: "往來分類", type: "select", value: "沒有往來紀錄", options: ["沒有往來紀錄", "有返還需求的財務往來", "不需返還的財務紀錄", "非財務物資往來"] },
-      { key: "interactionType", label: "往來類型", type: "select", value: "未填寫", options: ["未填寫", "發財金", "平安龜", "善信捐款", "香油錢", "金牌", "物資捐贈", "供品捐贈", "其他"] },
       { key: "handler", label: "資料維護人員", type: "select", value: "櫃檯人員 A", options: ["櫃檯人員 A", "值勤人員 A", "總幹事 A"], help: "從可指派團隊成員中選擇。" },
       { key: "note", label: "備註", type: "textarea", value: "封存後不在日常列表優先顯示。" },
     ],

@@ -78,11 +78,19 @@ function auditDetailPage() {
 
 function auditFormSemantics() {
   const fields = read("src/data/newRecordFields.ts");
+  const domainModel = read("src/lib/domainModel.ts");
+  const newRecordPanel = read("src/components/NewRecordPanel.tsx");
   const devotees = sectionBetween(fields, "  devotees: [", "  shrines: [");
   const ledger = sectionBetween(fields, "  ledger: [", "};");
 
-  includes(devotees, "往來分類", "善信表單需使用往來分類");
-  includes(devotees, "往來類型", "善信表單需使用往來類型");
+  for (const expected of ["善信類型", "手機號碼", "地址", "年齡級距", "資料維護人員"]) {
+    includes(devotees, expected, `善信主檔表單需保留 ${expected}`);
+  }
+  for (const forbidden of ["往來分類", "往來類型", "返還狀態"]) {
+    excludes(devotees, forbidden, `善信主檔表單不應直接填寫 ${forbidden}`);
+  }
+  includes(domainModel, "devoteeRelatedRecordExamples", "善信往來資料需改由相關紀錄模型承接");
+  includes(newRecordPanel, "善信相關紀錄", "新增善信頁需提供相關紀錄區塊");
   includes(devotees, "可由管理者設定。", "善信類型需有簡短來源提示");
   includes(ledger, "相關紀錄", "帳務表單需使用相關紀錄");
   excludes(fields, "授權狀態", "新增表單不應再使用授權狀態");

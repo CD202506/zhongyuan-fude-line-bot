@@ -32,6 +32,7 @@ export type PublishingChannelSetting = {
 export type PermissionSetting = {
   member: string;
   title: string;
+  linkedTeamMember: string;
   modules: string[];
   review: boolean;
   verify: boolean;
@@ -45,6 +46,7 @@ export type PermissionSetting = {
 
 export type TeamSetting = {
   name: string;
+  linkedDevotee: string;
   title: string;
   term: string;
   state: SettingItemState;
@@ -62,15 +64,30 @@ export type AuditLogSetting = {
   note: string;
 };
 
+export const masterDataCatalogs = {
+  devoteeTypes: ["一般善信", "委員 / 志工相關", "友宮聯絡人", "其他"],
+  teamRoles: ["主任委員", "副主任委員", "總幹事", "財務", "會計", "出納", "委員", "志工", "系統管理者", "一般工作人員", "其他"],
+  permissionTypes: ["管理者", "承辦", "覆核", "核准", "封存", "發布", "設定"],
+  templeWorkCategories: ["例行廟務", "祭典準備", "場地事務", "對外聯繫", "內部提醒"],
+  interactionCategories: ["財務往來", "物資往來", "公告通知", "活動參與", "服務 / 聯繫紀錄", "其他廟務關聯"],
+  interactionTypes: ["發財金", "平安龜", "香油錢", "善信捐款", "金牌", "物資捐贈", "供品捐贈", "公告通知", "活動報名", "活動參與", "電話聯繫", "現場洽詢"],
+  itemCatalog: ["鮮花", "金紙", "供品", "平安龜", "金牌", "白米", "香品", "其他物資"],
+  unitCatalog: ["元", "個", "盆", "箱", "包", "斤", "份", "則", "件", "組"],
+  accountingCategories: ["發財金借出", "發財金返還", "香油錢", "善信捐款", "金牌收入", "活動收入", "採購支出", "其他收入", "其他支出"],
+  notificationTypes: ["公告通知", "活動提醒", "行政通知", "服務聯繫"],
+  notificationStatuses: ["待通知", "已通知", "已回覆", "未回覆"],
+  activityTypes: ["祭典活動", "志工活動", "友宮聯誼", "一般活動"],
+  activityStatuses: ["待報名", "已報名", "已參與", "未出席"],
+  documentTypes: ["公文紀錄", "內部行政", "通知發布", "會議紀錄"],
+  recordStatuses: ["使用中", "已封存", "作廢"],
+};
+
 export const basicDataGroups: BasicDataGroup[] = [
   {
     title: "善信類型",
     scope: "善信管理",
     options: [
-      { name: "一般善信", state: "使用中" },
-      { name: "委員 / 志工相關", state: "使用中" },
-      { name: "友宮聯絡人", state: "使用中" },
-      { name: "其他", state: "使用中" },
+      ...masterDataCatalogs.devoteeTypes.map((name) => ({ name, state: "使用中" as const })),
     ],
   },
   {
@@ -114,6 +131,31 @@ export const basicDataGroups: BasicDataGroup[] = [
       { name: "已封存", state: "使用中" },
       { name: "作廢", state: "使用中" },
     ],
+  },
+  {
+    title: "往來分類",
+    scope: "善信管理",
+    options: masterDataCatalogs.interactionCategories.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "往來類型",
+    scope: "善信管理",
+    options: masterDataCatalogs.interactionTypes.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "品項主檔",
+    scope: "採購 / 帳務 / 善信相關紀錄",
+    options: masterDataCatalogs.itemCatalog.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "單位主檔",
+    scope: "採購 / 帳務 / 善信相關紀錄",
+    options: masterDataCatalogs.unitCatalog.map((name) => ({ name, state: "使用中" as const })),
+  },
+  {
+    title: "帳務類別",
+    scope: "帳務管理",
+    options: masterDataCatalogs.accountingCategories.map((name) => ({ name, state: "使用中" as const })),
   },
   {
     title: "處理狀態",
@@ -164,6 +206,7 @@ export const permissionSettings: PermissionSetting[] = [
   {
     member: "主任委員 A",
     title: "主任委員",
+    linkedTeamMember: "主任委員 A",
     modules: ["全部模組"],
     review: true,
     verify: true,
@@ -177,6 +220,7 @@ export const permissionSettings: PermissionSetting[] = [
   {
     member: "總幹事 A",
     title: "總幹事",
+    linkedTeamMember: "總幹事 A",
     modules: ["善信管理", "友宮管理", "來訪 / 請帖", "公文紀錄"],
     review: true,
     verify: true,
@@ -190,6 +234,7 @@ export const permissionSettings: PermissionSetting[] = [
   {
     member: "財務 A",
     title: "財務",
+    linkedTeamMember: "財務 A",
     modules: ["採購管理", "帳務管理"],
     review: true,
     verify: true,
@@ -203,6 +248,7 @@ export const permissionSettings: PermissionSetting[] = [
   {
     member: "志工 A",
     title: "志工",
+    linkedTeamMember: "志工 A",
     modules: ["善信管理", "活動消息"],
     review: true,
     verify: false,
@@ -216,15 +262,15 @@ export const permissionSettings: PermissionSetting[] = [
 ];
 
 export const teamSettings: TeamSetting[] = [
-  { name: "主任委員 A", title: "主任委員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "管理者、核准", accountState: "已連結" },
-  { name: "總幹事 A", title: "總幹事", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "日常作業、覆核", accountState: "已連結" },
-  { name: "財務 A", title: "財務", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購與帳務", accountState: "待確認" },
-  { name: "志工 A", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "活動協助", accountState: "未連結" },
-  { name: "櫃檯人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "善信資料維護", accountState: "待確認" },
-  { name: "接待人員 A", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "來訪與請帖接待", accountState: "待確認" },
-  { name: "文書人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "公文紀錄", accountState: "待確認" },
-  { name: "採購人員 A", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購管理", accountState: "待確認" },
-  { name: "帳務人員 A", title: "會計", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "帳務管理", accountState: "待確認" },
+  { name: "主任委員 A", linkedDevotee: "善信範例 A", title: "主任委員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "管理者、核准", accountState: "已連結" },
+  { name: "總幹事 A", linkedDevotee: "善信範例 B", title: "總幹事", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "日常作業、覆核", accountState: "已連結" },
+  { name: "財務 A", linkedDevotee: "善信範例 C", title: "財務", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購與帳務", accountState: "待確認" },
+  { name: "志工 A", linkedDevotee: "善信範例 D", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "活動協助", accountState: "未連結" },
+  { name: "櫃檯人員 A", linkedDevotee: "善信範例 E", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "善信資料維護", accountState: "待確認" },
+  { name: "接待人員 A", linkedDevotee: "善信範例 F", title: "志工", term: "活動期間", state: "使用中", assignable: true, permissionSummary: "來訪與請帖接待", accountState: "待確認" },
+  { name: "文書人員 A", linkedDevotee: "善信範例 G", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "公文紀錄", accountState: "待確認" },
+  { name: "採購人員 A", linkedDevotee: "善信範例 H", title: "一般工作人員", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "採購管理", accountState: "待確認" },
+  { name: "帳務人員 A", linkedDevotee: "善信範例 I", title: "會計", term: "114 年度", state: "使用中", assignable: true, permissionSummary: "帳務管理", accountState: "待確認" },
 ];
 
 export const assignableTeamMemberNames = teamSettings.filter((member) => member.assignable && member.state === "使用中").map((member) => member.name);

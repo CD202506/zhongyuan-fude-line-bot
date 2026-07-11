@@ -719,6 +719,46 @@ button {
   font-weight: 800;
 }
 
+.related-record-editor {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e1d6c0;
+}
+
+.compact-heading {
+  align-items: center;
+  gap: 12px;
+}
+
+.related-record-table {
+  display: grid;
+  gap: 8px;
+}
+
+.related-record-table article {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #e1d6c0;
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.related-record-table span,
+.empty-inline-state {
+  color: #4c5a4b;
+  font-weight: 700;
+}
+
+.empty-inline-state {
+  padding: 10px 12px;
+  border: 1px dashed #cbbfaa;
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
 .detail-actions {
   align-self: start;
   display: grid;

@@ -117,17 +117,17 @@ function auditEditConsistency() {
 function auditRelatedRecords() {
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
   const recordService = read("src/services/recordService.ts");
+  const domainModel = read("src/lib/domainModel.ts");
 
   includes(detailPage, "related-record-actions", "相關紀錄需是可操作按鈕");
   includes(detailPage, "related-result-panel", "相關紀錄點擊後需展開查詢結果");
   includes(detailPage, "setRelatedActionMessage", "相關紀錄查詢需有可見回饋");
   includes(detailPage, "查看帳務紀錄", "金流類相關紀錄需指向帳務管理查詢");
-  includes(recordService, "發財金：1 筆", "善信相關紀錄需支援發財金");
-  includes(recordService, "平安龜：1 筆", "善信相關紀錄需支援平安龜");
-  includes(recordService, "待返還：1 筆", "善信相關紀錄需支援返還狀態");
-  includes(recordService, "香油錢：1 筆", "善信相關紀錄需支援香油錢");
-  includes(recordService, "捐款：1 筆", "善信相關紀錄需支援捐款");
-  includes(recordService, "帳務紀錄：1 筆", "善信相關紀錄需支援帳務紀錄");
+  includes(recordService, "相關紀錄：", "善信列表需支援多筆相關紀錄摘要");
+  includes(recordService, "待結清：", "善信相關紀錄需支援待結清摘要");
+  for (const expected of ["發財金", "香油錢", "物資捐贈", "活動報名", "公告通知"]) {
+    includes(domainModel, expected, `善信相關紀錄模型需支援 ${expected}`);
+  }
   excludes(detailPage, "關聯：", "不應顯示不清楚的關聯文字");
 }
 

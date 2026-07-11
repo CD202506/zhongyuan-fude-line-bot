@@ -63,9 +63,13 @@ function auditFieldBoundaries() {
   for (const forbidden of ["預計完成日", "關聯標籤", "工程式 tag"]) {
     excludes(devotees, forbidden, `善信管理不應出現 ${forbidden}`);
   }
-  for (const expected of ["善信類型", "往來分類", "往來類型", "資料維護人員", "相關紀錄"]) {
+  for (const expected of ["善信類型", "資料維護人員", "手機號碼", "地址", "年齡級距"]) {
     includes(devotees, expected, `善信管理缺少 ${expected}`);
   }
+  for (const forbidden of ["往來分類", "往來類型", "返還狀態"]) {
+    excludes(devotees, forbidden, `善信主檔不應直接出現 ${forbidden}`);
+  }
+  includes(read("src/lib/domainModel.ts"), "devoteeRelatedRecordExamples", "善信相關紀錄需由獨立紀錄模型承接");
 
   for (const forbidden of ["預計完成日", "關聯標籤"]) {
     excludes(shrines, forbidden, `友宮管理不應出現 ${forbidden}`);

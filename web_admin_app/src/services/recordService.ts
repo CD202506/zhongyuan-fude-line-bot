@@ -6,12 +6,13 @@ import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
 import { assigneeSemantics, categorySemantics, fieldPolicyFor, stateSemantics, tagSemantics } from "../lib/domainModel";
+import type { DevoteeRelatedRecord } from "../lib/domainModel";
 import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
-export type FormValues = Record<string, string | string[]>;
+export type FormValues = Record<string, string | string[] | DevoteeRelatedRecord[]>;
 export type StatusFilter = "active" | "archived" | "all";
 
-export const apiConnectionErrorMessage = "目前無法連線到測試資料服務，請稍後再試。";
+export const apiConnectionErrorMessage = "目前無法連線到資料服務，請稍後再試。";
 
 type ListRecordsOptions = {
   keyword?: string;
@@ -188,6 +189,7 @@ const hiddenDetailFieldKeys = new Set([
   "name",
   "summary",
   "authorization",
+  "relatedRecords",
   "date",
   "recordDate",
   "publishDate",
@@ -237,6 +239,12 @@ function relatedRecordSummary(record: ApiRecord, tags: string[]) {
   };
 
   if (record.module_key === "devotees") {
+    const relatedRecords = Array.isArray(fields.relatedRecords) ? fields.relatedRecords as DevoteeRelatedRecord[] : [];
+    const pendingReturnCount = relatedRecords.filter((item) => item.status.includes("待返還") || item.status.includes("待結清")).length;
+    if (relatedRecords.length > 0) {
+      items.add(`相關紀錄：${relatedRecords.length} 筆`);
+      if (pendingReturnCount > 0) items.add(`待結清：${pendingReturnCount} 筆`);
+    }
     const relationText = String(fields.relations ?? "");
     const interactionText = [fields.interactionCategory, fields.interactionType, fields.returnStatus, fields.returnReminder].map(String).join(" ");
     add("發財金：1 筆", interactionText.includes("發財金") || fields.fortuneMoneyReceived || fields.fortuneMoneyReturned || tags.includes("發財金") || relationText.includes("發財金"));
@@ -341,6 +349,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
       .map(([label, value]) => ({ label: displayFieldLabel(label, record.module_key), value: displayValue(value) }))
   ).slice(0, 8);
   const displayTags = record.tags_json.filter((tag) => !hasEngineeringTestText(tag));
+  const relatedRecords = Array.isArray(record.fields_json.relatedRecords) ? record.fields_json.relatedRecords as DevoteeRelatedRecord[] : [];
   const detailFields = [
     ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
     ...displayFields,
@@ -402,6 +411,7 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     listFields,
     detailFields,
     editFields,
+    relatedRecords,
   };
 }
 
@@ -453,7 +463,7 @@ function valuesToPayload(moduleKey: ModuleKey, values: FormValues, role: UserRol
   const actor = actorForRole(role);
   const title = String(values.title || values.name || values.role || "未命名資料");
   const summary = String(values.summary || values.note || `${title} 待確認`);
-  const tags = Object.values(values).flatMap((value) => (Array.isArray(value) ? value : []));
+  const tags = Object.values(values).flatMap((value) => (Array.isArray(value) && value.every((item) => typeof item === "string") ? value : []));
 
   return {
     module_key: moduleKey,
