@@ -34,7 +34,7 @@ export const modules: ModuleConfig[] = [
     key: "devotees",
     title: "善信管理",
     shortTitle: "善信",
-    description: "維護善信基本資料、授權狀態、發財金領取 / 繳回與相關紀錄。",
+    description: "維護善信基本資料、本人資料授權、發財金領取 / 繳回與相關紀錄。",
     route: "/devotees",
     addLabel: "新增善信",
     boundary: "日常作業",

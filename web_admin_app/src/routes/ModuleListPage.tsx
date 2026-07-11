@@ -6,7 +6,6 @@ import { useRole } from "../lib/roleContext";
 import type { ModuleKey } from "../data/modules";
 import { apiConnectionErrorMessage, listRecords, type StatusFilter } from "../services/recordService";
 import type { MockRecord } from "../data/mockRecords";
-import { fieldPolicyFor } from "../lib/domainModel";
 
 type ListRouteState = {
   notice?: string;
@@ -25,6 +24,19 @@ const searchLabels: Record<ModuleKey, string> = {
   ledger: "搜尋帳務資料",
 };
 
+const listHints: Record<ModuleKey, string> = {
+  "temple-affairs": "請先確認廟務內容，再更新處理狀態或封存紀錄。",
+  devotees: "查看詳情後，可維護本人資料授權、發財金或基本資料。",
+  shrines: "查看詳情後，可維護聯絡窗口與相關往來紀錄。",
+  visits: "查看詳情後，可確認來訪、請帖回覆與承辦進度。",
+  announcements: "查看詳情後，可整理發布內容、管道與可見對象。",
+  events: "查看詳情後，可整理活動消息、發布管道與參與紀錄。",
+  procurements: "查看詳情後，可確認採購內容與帳務紀錄。",
+  documents: "查看詳情後，可整理文件內容與後續通知。",
+  team: "查看詳情後，可維護職稱、任期與權限標記。",
+  ledger: "查看詳情後，可確認帳務分類、金額與相關採購紀錄。",
+};
+
 export function ModuleListPage() {
   const location = useLocation();
   const { role } = useRole();
@@ -34,7 +46,6 @@ export function ModuleListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const moduleItem = modules.find((item) => item.route === location.pathname) ?? modules[0];
-  const fieldPolicy = fieldPolicyFor(moduleItem.key);
   const effectiveStatusFilter = role === "viewer" ? "active" : statusFilter;
   const routeState = location.state as ListRouteState | null;
 
@@ -67,7 +78,7 @@ export function ModuleListPage() {
       <section className="content-panel">
         <div className="section-heading">
           <h3>搜尋與列表</h3>
-          <span>先查看詳情，再處理資料</span>
+          <span>{listHints[moduleItem.key]}</span>
         </div>
         <label className="search-field">
           <span>{searchLabels[moduleItem.key]}</span>
@@ -123,15 +134,11 @@ export function ModuleListPage() {
                 <p>{record.summary}</p>
               </div>
               <div className="record-fields">
-                {record.listFields.slice(0, 3).map((field) => (
+                {record.listFields.slice(0, 4).map((field) => (
                   <span key={field.label}>
                     <b>{field.label}</b>{field.value}
                   </span>
                 ))}
-                <span>
-                  <b>{fieldPolicy.dateLabel}{fieldPolicy.showAssignee ? ` / ${fieldPolicy.ownerLabel}` : ""}</b>
-                  {record.dateLabel}{fieldPolicy.showAssignee ? ` / ${record.owner}` : ""}
-                </span>
               </div>
               <Link to={`${moduleItem.route}/${record.id}`} className="detail-link">
                 查看詳情

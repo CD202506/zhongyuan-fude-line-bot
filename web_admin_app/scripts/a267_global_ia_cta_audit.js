@@ -144,7 +144,8 @@ function auditVisibleWording() {
     excludes(combined, forbidden, `使用者畫面不應包含 ${forbidden}`);
   }
 
-  includes(combined, "身份檢視", "角色切換需降為低干擾身份檢視");
+  includes(combined, "目前角色：", "角色切換需降為低干擾目前角色工具");
+  excludes(combined, "身份檢視", "主要畫面不應顯示身份檢視大卡片標題");
 }
 
 function auditCtas() {

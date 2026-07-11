@@ -288,20 +288,15 @@ button {
 }
 
 .topbar-role {
-  padding: 8px;
+  align-self: start;
+  padding: 6px 8px;
   border: 1px solid #ded4bf;
   border-radius: 8px;
-  background: #fffdf7;
+  background: rgba(255, 253, 247, 0.72);
 }
 
 .preview-role-panel {
-  border-style: dashed;
-  background: #f7f3ea;
-}
-
-.preview-role-panel strong {
-  color: #7d5d10;
-  font-size: 0.92rem;
+  gap: 6px;
 }
 
 .topbar-role span {

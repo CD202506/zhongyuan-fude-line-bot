@@ -41,7 +41,8 @@ function verifyFrontendPayloadLogic() {
 
   assert(serviceSource.includes('const systemStatuses = new Set(["active", "pending", "draft", "disabled", "archived"])'), "system status allow-list is missing");
   assert(serviceSource.includes('return systemStatuses.has(status) ? status : "active";'), "non-system status should fall back to active");
-  assert(serviceSource.includes("status: resolveSystemStatus(values.status)"), "payload status should use resolveSystemStatus");
+  assert(serviceSource.includes("status: resolveSystemStatus(values.dataStatus)"), "payload status should use the dedicated data status field");
+  assert(!serviceSource.includes("status: resolveSystemStatus(values.status)"), "payload status should not mix module flow status");
   assert(!serviceSource.includes("values.replyStatus || values.authorization || values.termStatus"), "payload status still mixes flow fields");
   assert(serviceSource.includes("fields_json: values"), "flow fields should remain in fields_json");
   assert(newPageSource.includes("onComplete={() => navigate(moduleItem.route)}"), "create flow should return to module route");
@@ -106,7 +107,7 @@ async function main() {
       fields_json: {
         ...detail.fields_json,
         name: updatedTitle,
-        authorization: "已確認",
+        authorization: "已授權",
         note: "第三方測試用匿名資料",
         automatedTest: true,
         testRun: timestamp,

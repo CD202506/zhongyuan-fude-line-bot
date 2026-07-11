@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { findModuleByKey, modules } from "../data/modules";
 import { mockUser, roleOptions, type UserRole } from "../data/mockUser";
-import { canEditDailyWork, canUseAdminSettings, permissionLabel, roleHelpText } from "../lib/permissions";
+import { canEditDailyWork, canUseAdminSettings, permissionLabel } from "../lib/permissions";
 import { moduleKeysForRole, navGroupsForRole } from "../lib/navigation";
 import { RoleContext } from "../lib/roleContext";
 
@@ -140,11 +140,8 @@ export function AppShell() {
               ) : null}
             </div>
             <div className="topbar-role preview-role-panel">
-              <strong>身份檢視</strong>
-              <span>切換不同身份，查看各角色可見畫面。</span>
-              <span>目前：{permissionLabel(role)}</span>
-              <span>{roleHelpText(role)}</span>
-              <div className="role-switch" aria-label="身份檢視切換">
+              <span>目前角色：{permissionLabel(role)}</span>
+              <div className="role-switch" aria-label="角色切換">
                 {roleOptions.map((option) => (
                   <button key={option} type="button" className={role === option ? "active" : ""} onClick={() => setRole(option)}>
                     {permissionLabel(option)}

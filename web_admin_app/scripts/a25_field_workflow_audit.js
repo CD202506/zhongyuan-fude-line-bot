@@ -52,6 +52,7 @@ function auditVisibleWording() {
 
 function auditNewRecordFields() {
   const fields = read("src/data/newRecordFields.ts");
+  const domainModel = read("src/lib/domainModel.ts");
   const templeAffairs = sectionBetween(fields, '"temple-affairs": [', "  devotees: [");
   const devotees = sectionBetween(fields, "  devotees: [", "  shrines: [");
   const shrines = sectionBetween(fields, "  shrines: [", "  visits: [");
@@ -60,7 +61,8 @@ function auditNewRecordFields() {
   const ledger = sectionBetween(fields, "  ledger: [", "};");
 
   includes(devotees, "建立日期", "善信新增需有建立日期");
-  includes(devotees, "標記善信是否可查詢本人相關紀錄。", "善信授權狀態需有用途說明");
+  includes(devotees, "stateSemantics.notes.authorization", "本人資料授權需引用集中用途說明");
+  includes(domainModel, "用於確認是否可查詢本人相關服務紀錄。", "本人資料授權需有用途說明");
   for (const expected of ["是否領取發財金", "領取日期", "是否繳回", "繳回日期", "發財金備註", "相關紀錄"]) {
     includes(devotees, expected, `善信新增缺少 ${expected}`);
   }
@@ -90,7 +92,7 @@ function auditMockAndApiDisplay() {
   const mockRecords = read("src/data/mockRecords.ts");
   const recordService = read("src/services/recordService.ts");
 
-  for (const expected of ["承辦人員", "建立日期", "授權狀態", "發財金狀態", "聯絡電話", "帳務日期", "付款狀態"]) {
+  for (const expected of ["承辦人員", "建立日期", "本人資料授權", "發財金狀態", "聯絡電話", "帳務日期", "付款狀態"]) {
     includes(mockRecords, expected, `demo / 詳情資料缺少 ${expected}`);
   }
 

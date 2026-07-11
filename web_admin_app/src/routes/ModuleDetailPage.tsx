@@ -366,12 +366,12 @@ export function ModuleDetailPage() {
             </div>
           ) : (
             <div className="info-grid">
-              <div><span>狀態</span><strong className={actionMode === "draft" ? "inline-state" : ""}>{actionMode === "draft" ? "草稿暫存" : record.status}</strong></div>
+              <div><span>資料狀態</span><strong className={actionMode === "draft" ? "inline-state" : ""}>{actionMode === "draft" ? "草稿暫存" : record.status}</strong></div>
               <div><span>{fieldPolicy?.dateLabel ?? "日期"}</span><strong>{record.dateLabel}</strong></div>
               {fieldPolicy?.showAssignee ? <div><span>{fieldPolicy.ownerLabel}</span><strong>{record.owner}</strong></div> : null}
               <div><span>作業分類</span><strong>{moduleItem.boundary}</strong></div>
               {record.detailFields.map((field) => (
-                <div key={field.label}><span>{field.label}</span><strong>{field.value}</strong></div>
+                <div key={`${field.label}-${field.value}`}><span>{field.label}</span><strong>{field.value}</strong></div>
               ))}
             </div>
           )}
@@ -387,14 +387,18 @@ export function ModuleDetailPage() {
               </div>
             </div>
           ) : null}
-          <div className="note-panel">
-            <strong>關聯資訊</strong>
-            <p>{record.relation}</p>
-          </div>
-          <div className="note-panel">
-            <strong>備註</strong>
-            <p>{record.note}</p>
-          </div>
+          {record.relation ? (
+            <div className="note-panel">
+              <strong>相關紀錄</strong>
+              <p>{record.relation}</p>
+            </div>
+          ) : null}
+          {record.note ? (
+            <div className="note-panel">
+              <strong>備註</strong>
+              <p>{record.note}</p>
+            </div>
+          ) : null}
         </article>
         {role !== "viewer" ? (
           <DetailActionPanel

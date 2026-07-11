@@ -41,7 +41,7 @@ function auditDomainModel() {
   for (const expected of ["發布類別", "發布管道", "可見對象", "來源資料可由承辦人員整理", "不代表來源資料會自動公開"]) {
     includes(domainModel, expected, `發布模型缺少語意：${expected}`);
   }
-  for (const expected of ["使用中", "已封存", "作廢", "待確認", "處理中", "已完成", "暫緩", "草稿", "已發布", "可查詢本人紀錄", "尚未授權"]) {
+  for (const expected of ["使用中", "已封存", "作廢", "待確認", "處理中", "已完成", "暫緩", "草稿", "已發布", "已授權", "未授權", "取消授權"]) {
     includes(domainModel, expected, `狀態語意缺少 ${expected}`);
   }
 }
@@ -63,14 +63,14 @@ function auditFieldBoundaries() {
   for (const forbidden of ["預計完成日", "關聯標籤", "工程式 tag"]) {
     excludes(devotees, forbidden, `善信管理不應出現 ${forbidden}`);
   }
-  for (const expected of ["善信類型", "授權狀態", "發財金與服務紀錄", "資料維護人員", "相關紀錄"]) {
+  for (const expected of ["善信類型", "本人資料授權", "發財金與服務紀錄", "資料維護人員", "相關紀錄"]) {
     includes(devotees, expected, `善信管理缺少 ${expected}`);
   }
 
   for (const forbidden of ["預計完成日", "關聯標籤"]) {
     excludes(shrines, forbidden, `友宮管理不應出現 ${forbidden}`);
   }
-  for (const expected of ["聯絡人", "聯絡電話", "地址", "主要聯絡窗口", "聯誼 / 拜訪紀錄"]) {
+  for (const expected of ["聯絡人", "聯絡電話", "地址", "主要聯絡窗口", "相關紀錄"]) {
     includes(shrines, expected, `友宮管理缺少 ${expected}`);
   }
 

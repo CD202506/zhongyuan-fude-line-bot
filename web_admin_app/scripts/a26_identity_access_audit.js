@@ -55,14 +55,14 @@ function auditRoleSwitchWording() {
   const appShell = read("src/components/AppShell.tsx");
   const identity = read("src/lib/identity.ts");
 
-  includes(appShell, "身份檢視", "右上角色工具需以低干擾身份檢視呈現");
-  includes(appShell, "切換不同身份，查看各角色可見畫面。", "需說明身份檢視用途");
+  includes(appShell, "目前角色：", "右上角色工具需以低干擾目前角色呈現");
   includes(identity, "正式版將依登入帳號與權限顯示，不能自行切換。", "需說明正式版不能自行切換");
-  includes(appShell, "aria-label=\"身份檢視切換\"", "角色切換輔助標籤需是身份檢視語意");
+  includes(appShell, "aria-label=\"角色切換\"", "角色切換輔助標籤需是低干擾角色語意");
   excludes(appShell, "測試角色切換", "右上不應使用過度突出的測試角色切換文字");
   excludes(appShell, "目前測試身份", "右上不應使用目前測試身份文字");
   excludes(appShell, "LINE 綁定示意", "右上不應顯示 LINE 綁定示意");
-  excludes(appShell, "目前角色：", "右上不應再像正式角色顯示");
+  excludes(appShell, "身份檢視", "右上不應使用大面積身份檢視標題");
+  excludes(appShell, "切換不同身份，查看各角色可見畫面。", "右上不應顯示測試工具說明");
 }
 
 function auditAdminSettings() {

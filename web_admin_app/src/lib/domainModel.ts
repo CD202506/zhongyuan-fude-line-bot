@@ -170,7 +170,13 @@ export const stateSemantics = {
   dataStatuses: ["使用中", "已封存", "作廢"],
   processStatuses: ["待確認", "處理中", "已完成", "暫緩"],
   publishingStatuses: ["草稿", "待確認", "已發布", "已封存"],
-  authorizationStatuses: ["可查詢本人紀錄", "尚未授權"],
+  authorizationStatuses: ["待確認", "已授權", "未授權", "取消授權"],
+  notes: {
+    dataStatus: "資料狀態由管理者或具封存權限的廟方人員調整。",
+    processStatus: "處理狀態由承辦人員、覆核者或管理者依作業進度調整。",
+    publishingStatus: "發布狀態由具發布、覆核或核准權限的人員調整。",
+    authorization: "用於確認是否可查詢本人相關服務紀錄。",
+  },
 };
 
 export function fieldPolicyFor(moduleKey: ModuleKey) {
