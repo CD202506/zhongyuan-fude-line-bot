@@ -208,6 +208,23 @@
 - 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
 - 暫停點：使用者需先人工確認 A26.9 最新畫面是否 OK。若畫面仍有 UX / IA / 文字 / RWD 問題，先修前端；確認後再決定是否進入 A27。
 - 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。
+
+# 0.8.0A-26.11 handoff update
+
+- A26.11 detail edit, list/detail semantics, related records, and ROC date display 已完成並部署，最新 commit：`ad32378 fix: refine web admin detail edit and related record semantics`。
+- 固定 Web Admin 測試網址：`https://zhongyuan-fude-web-admin-test.vercel.app`。
+- 最新線上資產：`assets/index-BBEg4m_N.css`、`assets/index-DAM3GX21.js`。
+- 線上已確認 HTTP 200；線上 bundle 已包含民國日期顯示邏輯、善信選填欄位、年齡區間、相關紀錄查詢語意，以及發財金 / 還金 / 香油錢 / 捐款等相關紀錄語意。
+- A26.10 已完成列表頁與詳情頁欄位語意清理：移除重複欄位與工程欄位；「授權狀態」改為「本人資料授權」；「關聯資訊 / 關聯紀錄」統一為「相關紀錄」；無相關紀錄時不顯示；列表頁資料狀態不再重複；身份檢視降為低干擾目前角色。
+- A26.11 已完成頁首降噪、民國年月日顯示、詳情編輯模式去重、資料維護人員 / 承辦人員來源改為管理者設定中的可指派團隊成員，以及相關紀錄可展開查詢結果。
+- 善信新增非必填欄位：手機號碼、地址、性別、年齡區間；年齡使用區間，不記錄精確生日或實際年齡。目前只做前端欄位準備與 mock / 空值語意，未使用真實個資。
+- 畫面語意已區分善信本人、廟方人員、管理者：本人資料查詢、日常資料維護、高風險管理操作。廟方人員可編輯日常欄位，但資料狀態等高風險欄位保留給管理者或具權限角色。
+- 新增 / 更新 audit：`web_admin_app/scripts/a2610_detail_field_semantics_audit.js`、`web_admin_app/scripts/a2611_detail_edit_flow_audit.js`。
+- 自動驗證腳本清單：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`、`web_admin_app/scripts/a2610_detail_field_semantics_audit.js`、`web_admin_app/scripts/a2611_detail_edit_flow_audit.js`。
+- 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
+- Render Web Admin API / PostgreSQL staging 仍為 Web Admin 測試資料服務；正式 V1 LINE Bot / Google Sheets / AppSheet 未受本輪影響。
+- 暫停點：使用者需先人工確認 A26.11 最新畫面是否 OK。若畫面仍有 UX / IA / 文字 / RWD 問題，先修前端；確認後再決定是否進入 A27。
+- 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。
 - 已改善 CTA 點擊後的流程回饋：編輯檢視、草稿暫存、送出確認、停用 / 作廢確認都有明顯狀態區塊。
 - 管理者停用 / 作廢採二段確認；廟方人員高風險操作顯示需管理者確認。
 - 本輪仍未串 API、未部署、未修改 V1、未修改 `web_admin_mvp/`。

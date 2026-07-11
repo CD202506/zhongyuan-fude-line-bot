@@ -54,6 +54,7 @@
 - `0.8.0A-26` Identity-aware access preparation 已完成並暫停：右上角角色切換已改為明確「測試角色切換」；`web_admin_app/` 已建立 identity-aware 前端 mock model，預留 userId、團隊成員、善信、LINE 綁定、模組權限與初審 / 覆核 / 核准標記；管理者設定補強「先團隊成員，再授權」語意。LINE 綁定目前只做前端示意，未做真實登入、LINE Login、LIFF 或 OAuth，未接正式 LINE Bot。最新 commit：`44a7ee3 feat: add identity-aware access preparation`。
 - `0.8.0A-26.5` Cross-module field model and publishing boundary refinement 已完成並推送：建立 `web_admin_app/src/lib/domainModel.ts`，將 Web Admin 前端語意收斂為資料主檔、內部作業、內容發布、權限治理；清理資料主檔不適合的預計完成日、通用標籤與承辦欄位；公告 / 活動改以內容發布、來源資料、發布類別、發布管道與可見對象表達；管理者設定補強類別、標籤、承辦權限、發布管道與可見權限。新增 `web_admin_app/scripts/a265_domain_model_audit.js`。最新 commit：`2271be2 feat: refine web admin domain field model`。
 - `0.8.0A-26.9` Pre-A27 Web Admin stabilization checkpoint 已完成並部署：A26.6～A26.9 已完成左側選單 SOP 分類、全域 IA / CTA / placeholder 清理、管理者設定可操作子頁、settings 子頁 active state 修正，以及 sidebar section 展開 / 收合。最新 commit：`37f3266 fix: add collapsible sidebar sections`，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已確認 HTTP 200。使用者將先人工確認最新版畫面，確認後才決定是否進入 A27。
+- `0.8.0A-26.11` Detail edit, list/detail semantics, related records, and ROC date display 已完成並部署：A26.10～A26.11 已完成列表 / 詳情欄位語意去重、本人資料授權與相關紀錄命名統一、頁首降噪、民國年月日顯示、詳情編輯模式去重、相關紀錄查詢語意、善信選填欄位與廟方人員日常欄位編輯規則。最新 commit：`ad32378 fix: refine web admin detail edit and related record semantics`，固定測試網址 `https://zhongyuan-fude-web-admin-test.vercel.app` 已確認 HTTP 200，最新前端資產為 `assets/index-BBEg4m_N.css`、`assets/index-DAM3GX21.js`。本階段只更新 Web Admin 前端，不修改 Web Admin API、DB schema / migrations、Render / Vercel env、LINE Bot、Google Sheets、AppSheet、docs 以外設定或 `.env`。
 
 ## A26.5 cross-module field model completed / paused checkpoint
 
@@ -93,6 +94,22 @@
 - 下一階段仍暫定 A27：LINE 帳號綁定流程設計與測試環境串接評估。開始 A27 前，使用者需先確認 A26.9 最新畫面是否 OK；若畫面仍有 UX / IA / 文字 / RWD 問題，應先處理前端修正，不要急著接 LINE。
 - 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`。
 - 暫停點：目前停在 A26.9 pre-A27 Web Admin stabilization checkpoint，等待使用者人工確認最新版畫面後再決定下一步。
+
+## A26.11 detail edit, list/detail semantics, related records, and ROC date display completed / paused checkpoint
+
+- 最新 commit：`ad32378 fix: refine web admin detail edit and related record semantics`。
+- 固定 Vercel Web Admin 測試站：`https://zhongyuan-fude-web-admin-test.vercel.app`。
+- 最新前端資產：`assets/index-BBEg4m_N.css`、`assets/index-DAM3GX21.js`。
+- 線上已確認 HTTP 200；線上 bundle 已包含 A26.11 相關內容：民國日期顯示邏輯、善信選填欄位、年齡區間語意、相關紀錄查詢語意，以及發財金 / 還金 / 香油錢 / 捐款等相關紀錄語意。
+- A26.10：全域清理列表頁與詳情頁欄位語意；移除重複欄位與工程欄位，例如 `testRun`、`automatedTest`、`fields_json`、`tags_json`、`module_key`；「授權狀態」改為「本人資料授權」；「關聯資訊 / 關聯紀錄」統一為「相關紀錄」；無相關紀錄時不顯示區塊；列表頁資料狀態不再重複顯示；列表提示依模組語意調整；身份檢視降為低干擾目前角色。
+- A26.11：頁首降噪，移除重複後台標題與模組邊界文字；日期顯示改為民國年月日格式，內部仍可保留 ISO date；編輯模式中避免備註 / 相關紀錄與輸入欄位重複；資料維護人員 / 承辦人員來源改為管理者設定中的可指派團隊成員；相關紀錄可展開查詢結果，並呈現未來對應模組，例如帳務管理、活動紀錄、服務紀錄。
+- A26.11 善信欄位：新增非必填欄位手機號碼、地址、性別、年齡區間；年齡使用區間，不記錄精確生日或實際年齡。目前只做前端欄位準備與 mock / 空值語意，未使用真實個資。
+- A26.11 角色語意：善信本人、廟方人員、管理者在畫面上區分為本人資料查詢、日常資料維護、高風險管理操作；廟方人員可編輯日常欄位，但資料狀態等高風險欄位保留給管理者或具權限角色。
+- 新增 / 更新 audit：`web_admin_app/scripts/a2610_detail_field_semantics_audit.js`、`web_admin_app/scripts/a2611_detail_edit_flow_audit.js`。
+- 目前 Web Admin 線上狀態：Render Web Admin API / PostgreSQL staging 仍為測試資料服務；V1 LINE Bot / Google Sheets / AppSheet 未受 A26.10～A26.11 影響。
+- 目前仍未做：真實登入、LINE Login / LIFF / OAuth、正式 LINE Bot runtime / webhook 修改、Google Sheets / AppSheet 修改、DB schema / migrations 修改、Render / Vercel env 修改、DELETE、真正發布到 LINE / VOOM / Facebook、後端權限 enforcement。
+- 已建立 / 使用自動驗證腳本：`web_admin_app/scripts/a23_remote_api_smoke_test.js`、`web_admin_app/scripts/a23_production_browser_submit_test.js`、`web_admin_app/scripts/a24_role_ux_audit.js`、`web_admin_app/scripts/a25_field_workflow_audit.js`、`web_admin_app/scripts/a25_display_layout_audit.js`、`web_admin_app/scripts/a26_identity_access_audit.js`、`web_admin_app/scripts/a265_domain_model_audit.js`、`web_admin_app/scripts/a266_navigation_ia_audit.js`、`web_admin_app/scripts/a267_global_ia_cta_audit.js`、`web_admin_app/scripts/a268_admin_settings_functional_audit.js`、`web_admin_app/scripts/a268_settings_nav_active_audit.js`、`web_admin_app/scripts/a269_sidebar_section_toggle_audit.js`、`web_admin_app/scripts/a2610_detail_field_semantics_audit.js`、`web_admin_app/scripts/a2611_detail_edit_flow_audit.js`。
+- 暫停點：目前停在 A26.11 completed / paused checkpoint，等待使用者人工確認 A26.11 最新畫面。確認後才決定是否進入 A27；若畫面仍有 UX / IA / 文字 / RWD 問題，先處理前端修正，不急著接 LINE。
 
 ## Current data source roles
 
@@ -160,10 +177,10 @@
 
 ## Pause point
 
-- 目前暫停在 `0.8.0A-26.9 Pre-A27 Web Admin stabilization checkpoint` 已完成並部署後，等待使用者人工確認最新版 Web Admin 畫面。
-- 最新狀態標記 commit：`37f3266 fix: add collapsible sidebar sections`。
+- 目前暫停在 `0.8.0A-26.11 Detail edit, list/detail semantics, related records, and ROC date display completed / paused checkpoint` 已完成並部署後，等待使用者人工確認最新版 Web Admin 畫面。
+- 最新狀態標記 commit：`ad32378 fix: refine web admin detail edit and related record semantics`。
 - 固定 Vercel Web Admin 測試站已更新並維持 API mode；資料寫入 Render Web Admin API / PostgreSQL staging。
-- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估；但開始前需先確認 A26.9 最新畫面是否 OK。若仍有 UX / IA / 文字 / RWD 問題，先修前端，不急著接 LINE。
+- 下一階段建議 A27：LINE 帳號綁定流程設計與測試環境串接評估；但開始前需先確認 A26.11 最新畫面是否 OK。若仍有 UX / IA / 文字 / RWD 問題，先修前端，不急著接 LINE。
 - 不要修改正式 Google Sheets、AppSheet、Render / Vercel env、LINE Developers 設定、正式 LINE Bot runtime、`.env`、`.env.local` 或 secret。
 - 不要部署，除非使用者明確要求。
 
