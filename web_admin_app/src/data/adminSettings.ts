@@ -333,58 +333,12 @@ export const assignableTeamMemberOptions = teamSettings
     label: `${member.name}｜${member.title}`,
   }));
 
-export const customFieldDefinitions: CustomFieldDefinition[] = [
-  {
-    id: "custom-shrine-parking-note",
-    moduleKey: "shrines",
-    label: "接待注意事項",
-    description: "補充友宮來訪時的接待、停車或動線注意事項，不取代聯絡人或相關紀錄。",
-    fieldType: "textarea",
-    required: false,
-    active: true,
-    archived: false,
-    sortOrder: 10,
-    placeholder: "例如停車位置、接待動線或特殊稱呼。",
-    options: [],
-    visibility: "內部作業",
-    editableRoles: ["admin", "staff"],
-    showInList: false,
-    showInDetail: true,
-    showInCreate: true,
-    showInEdit: true,
-  },
-  {
-    id: "custom-shrine-reception-level",
-    moduleKey: "shrines",
-    label: "接待提醒等級",
-    description: "協助廟方標記接待準備層級，選項由管理者維護。",
-    fieldType: "select",
-    required: false,
-    active: true,
-    archived: false,
-    sortOrder: 20,
-    placeholder: "請選擇提醒等級",
-    options: ["一般", "需提前確認", "需主任委員確認"],
-    visibility: "內部作業",
-    editableRoles: ["admin", "staff"],
-    showInList: true,
-    showInDetail: true,
-    showInCreate: true,
-    showInEdit: true,
-  },
-];
+export const customFieldDefinitions: CustomFieldDefinition[] = [];
 
 export function activeCustomFieldsForModule(moduleKey: string, location: "list" | "detail" | "create" | "edit") {
-  const visibilityKey = {
-    list: "showInList",
-    detail: "showInDetail",
-    create: "showInCreate",
-    edit: "showInEdit",
-  } as const;
-
-  return customFieldDefinitions
-    .filter((field) => field.moduleKey === moduleKey && field.active && !field.archived && field[visibilityKey[location]])
-    .sort((left, right) => left.sortOrder - right.sortOrder);
+  void moduleKey;
+  void location;
+  return [];
 }
 
 export const auditLogSettings: AuditLogSetting[] = [

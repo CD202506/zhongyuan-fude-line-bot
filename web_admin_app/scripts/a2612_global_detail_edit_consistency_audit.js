@@ -52,7 +52,7 @@ function auditVisibleWording() {
     excludes(visibleSources, forbidden, `使用者主畫面不應顯示 ${forbidden}`);
   }
 
-  includes(visibleSources, "目前角色：", "角色工具需維持低干擾目前角色");
+  includes(visibleSources, "目前身分", "角色工具需維持低干擾目前身分");
 }
 
 function auditDateInputs() {
@@ -109,7 +109,7 @@ function auditEditConsistency() {
   includes(detailPage, "field.key !== \"dataStatus\"", "非管理者編輯時不應顯示資料狀態欄位");
   includes(detailPage, "!isEditing && record.note", "編輯模式不應重複顯示備註面板");
   includes(detailPage, "!isEditing && relatedRecordItems.length > 0", "編輯模式不應重複顯示相關紀錄面板");
-  excludes(detailActionPanel, "permissionLabel", "操作面板不應重複顯示目前角色");
+  excludes(detailActionPanel, "permissionLabel", "操作面板不應重複顯示目前身分");
   includes(recordService, "standardEditKeys", "API mode 編輯欄位需去除通用欄位重複");
   includes(recordService, "customEditFields", "API mode 需補上各模組自訂編輯欄位");
 }

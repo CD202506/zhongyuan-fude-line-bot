@@ -12,16 +12,20 @@ export type ModulePermission = {
 };
 
 export type MockIdentity = {
-  userId: string;
+  identityId: string;
   displayName: string;
-  role: UserRole;
-  staffMemberId?: string;
-  devoteeId?: string;
+  displayRole: UserRole;
+  devoteeId: string;
+  teamMemberId?: string;
   linkedLineUser: LineBindingStatus;
   permissionSet: string;
+  permissionGrants: string[];
   modulePermissions: ModulePermission[];
   isTestMode: boolean;
   isLineLinked: boolean;
+  isActive: boolean;
+  description: string;
+  allowedScope: string;
 };
 
 export const identityRuntime = {
@@ -33,12 +37,14 @@ export const identityRuntime = {
 
 export const mockIdentities: Record<UserRole, MockIdentity> = {
   admin: {
-    userId: "TEST-ADMIN-001",
-    displayName: "系統管理者 A",
-    role: "admin",
-    staffMemberId: "STAFF-ADMIN-001",
+    identityId: "mock-admin",
+    displayName: "王主委",
+    displayRole: "admin",
+    devoteeId: "mock-devotee-admin",
+    teamMemberId: "mock-team-admin",
     linkedLineUser: "linked-to-staff",
     permissionSet: "管理者完整權限",
+    permissionGrants: ["view", "create", "edit", "archive", "restore", "review", "approve", "settings"],
     modulePermissions: [
       { moduleKey: "team", level: "approve", reviewMarks: ["初審", "覆核", "核准"] },
       { moduleKey: "devotees", level: "approve", reviewMarks: ["初審", "覆核", "核准"] },
@@ -46,14 +52,19 @@ export const mockIdentities: Record<UserRole, MockIdentity> = {
     ],
     isTestMode: true,
     isLineLinked: true,
+    isActive: true,
+    description: "主任委員身分，可檢視管理者設定與高風險操作。",
+    allowedScope: "可管理團隊、權限、目錄、發布管道與日常資料。",
   },
   staff: {
-    userId: "TEST-STAFF-001",
-    displayName: "廟方人員 A",
-    role: "staff",
-    staffMemberId: "STAFF-DAILY-001",
+    identityId: "mock-staff",
+    displayName: "陳幹事",
+    displayRole: "staff",
+    devoteeId: "mock-devotee-staff",
+    teamMemberId: "mock-team-staff",
     linkedLineUser: "linked-to-staff",
     permissionSet: "日常作業權限",
+    permissionGrants: ["view", "create", "edit", "archive-request"],
     modulePermissions: [
       { moduleKey: "devotees", level: "daily-work", reviewMarks: ["初審"] },
       { moduleKey: "visits", level: "daily-work", reviewMarks: ["初審"] },
@@ -61,14 +72,18 @@ export const mockIdentities: Record<UserRole, MockIdentity> = {
     ],
     isTestMode: true,
     isLineLinked: true,
+    isActive: true,
+    description: "廟方日常作業人員，可新增與維護被授權的業務資料。",
+    allowedScope: "可處理善信、友宮、來訪、採購、帳務、公告與活動等日常作業。",
   },
   viewer: {
-    userId: "TEST-DEVOTEE-001",
-    displayName: "善信 A",
-    role: "viewer",
-    devoteeId: "DEVOTEE-001",
+    identityId: "mock-devotee",
+    displayName: "林善信",
+    displayRole: "viewer",
+    devoteeId: "mock-devotee-viewer",
     linkedLineUser: "linked-to-devotee",
     permissionSet: "對外資訊與本人紀錄",
+    permissionGrants: ["view"],
     modulePermissions: [
       { moduleKey: "announcements", level: "view", reviewMarks: [] },
       { moduleKey: "events", level: "view", reviewMarks: [] },
@@ -76,6 +91,9 @@ export const mockIdentities: Record<UserRole, MockIdentity> = {
     ],
     isTestMode: true,
     isLineLinked: true,
+    isActive: true,
+    description: "善信測試身分，只能瀏覽被授權的公開資訊與本人相關資料。",
+    allowedScope: "可查詢公告、活動與本人資料，不可新增、編輯、封存或進入設定。",
   },
 };
 

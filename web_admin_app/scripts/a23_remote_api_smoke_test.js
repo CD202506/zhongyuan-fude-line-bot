@@ -46,7 +46,8 @@ function verifyFrontendPayloadLogic() {
   assert(!serviceSource.includes("values.replyStatus || values.authorization || values.termStatus"), "payload status still mixes flow fields");
   assert(serviceSource.includes("fields_json: values"), "flow fields should remain in fields_json");
   assert(newPageSource.includes("onComplete={() => navigate(moduleItem.route)}"), "create flow should return to module route");
-  assert(detailPageSource.includes("await updateRecord(record.id, record.moduleKey, editValues, role)"), "edit flow should call updateRecord");
+  assert(detailPageSource.includes("await updateRecord(record.id, record.moduleKey"), "edit flow should call updateRecord");
+  assert(detailPageSource.includes("shrineContacts: shrineContactDrafts"), "shrine edit flow should preserve contact drafts in update payload");
   assert(detailPageSource.includes("navigate(moduleItem.route"), "edit success should return to module route");
   assert(detailPageSource.includes("資料更新失敗，請稍後再試。"), "edit failure should show an inline error");
 }

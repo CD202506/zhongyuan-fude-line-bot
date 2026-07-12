@@ -1,6 +1,5 @@
 import type { ModuleKey } from "../data/modules";
-import type { EditField } from "../data/mockRecords";
-import { assignableTeamMemberNames, masterDataCatalogs, type CustomFieldDefinition } from "../data/adminSettings";
+import { assignableTeamMemberNames, masterDataCatalogs } from "../data/adminSettings";
 import { formatDisplayDate } from "./dateFormat";
 
 export type ModuleDomainType = "masterData" | "internalWork" | "publishing" | "governance";
@@ -150,11 +149,16 @@ export const categorySemantics = {
 
 export type ContactMethod = {
   id: string;
+  methodId?: string;
+  contactId?: string;
   type: string;
   value: string;
   isPrimary: boolean;
+  isActive?: boolean;
+  preferredTime?: string;
   availableTime?: string;
   note?: string;
+  status?: string;
 };
 
 export type ShrineContact = {
@@ -220,29 +224,6 @@ export function shrineRelatedRecordLabel(record: ShrineRelatedRecord) {
   return `${record.recordType}｜${title}`;
 }
 
-export function customFieldToEditField(field: CustomFieldDefinition): EditField {
-  const base = {
-    key: `custom_${field.id}`,
-    label: field.label,
-    value: field.fieldType === "multiSelect" ? [] : field.fieldType === "checkbox" ? "否" : "",
-    help: `${field.description}${field.required ? " 必填。" : ""}`,
-  };
-
-  if (field.fieldType === "select") {
-    return { ...base, type: "select", value: field.options[0] ?? "", options: field.options };
-  }
-
-  if (field.fieldType === "multiSelect") {
-    return { ...base, type: "tags", value: [], options: field.options };
-  }
-
-  if (field.fieldType === "checkbox") {
-    return { ...base, type: "checkbox", value: "否" };
-  }
-
-  return { ...base, type: field.fieldType, value: "" } as EditField;
-}
-
 export function shrineSystemSummary(input: {
   title: string;
   area?: string;
@@ -251,7 +232,7 @@ export function shrineSystemSummary(input: {
   contacts?: ShrineContact[];
   relatedRecords?: ShrineRelatedRecord[];
 }) {
-  const activeContacts = input.contacts?.filter((contact) => contact.isActive) ?? [];
+  const activeContacts = input.contacts?.filter((contact) => contact.isActive && contact.contactStatus !== "已封存") ?? [];
   const primaryContact = input.contacts?.find((contact) => contact.isPrimary && contact.isActive) ?? activeContacts[0];
   const latestVisit = input.relatedRecords
     ?.filter((record) => record.recordType === "來訪")
@@ -296,8 +277,8 @@ export const shrineContactExamples: ShrineContact[] = [
     contactStatus: "可聯繫",
     note: "主要對接進香與請帖回覆。",
     methods: [
-      { id: "shrine-a-contact-main-phone", type: "電話", value: "市話範例", isPrimary: true, availableTime: "白天", note: "" },
-      { id: "shrine-a-contact-main-line", type: "LINE", value: "LINE 聯繫代稱", isPrimary: false, note: "不含真實 LINE ID。" },
+      { id: "shrine-a-contact-main-phone", methodId: "shrine-a-contact-main-phone", contactId: "shrine-a-contact-main", type: "電話", value: "市話範例", isPrimary: true, isActive: true, preferredTime: "白天", availableTime: "白天", note: "", status: "使用中" },
+      { id: "shrine-a-contact-main-line", methodId: "shrine-a-contact-main-line", contactId: "shrine-a-contact-main", type: "LINE", value: "LINE 聯繫代稱", isPrimary: false, isActive: true, note: "不含真實 LINE ID。", status: "使用中" },
     ],
   },
   {
@@ -310,7 +291,8 @@ export const shrineContactExamples: ShrineContact[] = [
     contactStatus: "可聯繫",
     note: "活動當日可協助聯繫。",
     methods: [
-      { id: "shrine-a-contact-mobile-phone", type: "手機", value: "手機範例", isPrimary: true, availableTime: "活動期間", note: "" },
+      { id: "shrine-a-contact-mobile-phone", methodId: "shrine-a-contact-mobile-phone", contactId: "shrine-a-contact-mobile", type: "手機", value: "手機範例", isPrimary: true, isActive: true, preferredTime: "活動期間", availableTime: "活動期間", note: "", status: "使用中" },
+      { id: "shrine-a-contact-mobile-email", methodId: "shrine-a-contact-mobile-email", contactId: "shrine-a-contact-mobile", type: "Email", value: "email 範例", isPrimary: false, isActive: true, note: "", status: "使用中" },
     ],
   },
   {
@@ -323,7 +305,7 @@ export const shrineContactExamples: ShrineContact[] = [
     contactStatus: "已封存",
     note: "舊窗口，保留歷史紀錄。",
     methods: [
-      { id: "shrine-a-contact-archived-email", type: "Email", value: "email 範例", isPrimary: true, note: "已停用。" },
+      { id: "shrine-a-contact-archived-email", methodId: "shrine-a-contact-archived-email", contactId: "shrine-a-contact-archived", type: "Email", value: "email 範例", isPrimary: false, isActive: false, note: "已停用。", status: "已封存" },
     ],
   },
 ];

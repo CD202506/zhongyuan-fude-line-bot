@@ -30,7 +30,7 @@ function sectionBetween(source, startMarker, endMarker) {
   return source.slice(start, end);
 }
 
-function auditCustomFieldModelAndSettings() {
+function auditRoleBoundaryForFields() {
   const adminSettings = read("src/data/adminSettings.ts");
   const settingsPage = read("src/routes/SettingsPage.tsx");
   const navigation = read("src/lib/navigation.ts");
@@ -39,29 +39,24 @@ function auditCustomFieldModelAndSettings() {
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
   const recordService = read("src/services/recordService.ts");
 
-  includes(adminSettings, "export type CustomFieldDefinition", "需有 CustomFieldDefinition 模型");
-  for (const expected of ["moduleKey", "fieldType", "required", "active", "archived", "sortOrder", "placeholder", "options", "editableRoles", "showInList", "showInDetail", "showInCreate", "showInEdit"]) {
-    includes(adminSettings, expected, `自訂欄位模型缺少 ${expected}`);
+  includes(adminSettings, "export type CustomFieldDefinition", "可保留內部欄位型別作為未來系統開發使用");
+  includes(adminSettings, "export const customFieldDefinitions: CustomFieldDefinition[] = []", "本階段不得啟用管理者自訂欄位");
+  includes(adminSettings, "return []", "activeCustomFieldsForModule 本階段應固定不回傳欄位");
+
+  for (const forbidden of [
+    "CustomFieldsPanel",
+    "新增自訂欄位",
+    "欄位與表單設定",
+    "自訂欄位管理",
+    'route: "/settings?section=custom-fields"',
+    "customFieldToEditField",
+    "activeCustomFieldsForModule(moduleItem.key",
+    "activeCustomFieldsForModule(record.moduleKey",
+    "detailCustomFields",
+    "activeCustomFieldsForModule(record.module_key",
+  ]) {
+    excludes(settingsPage + navigation + domainModel + newRecordPanel + detailPage + recordService, forbidden, `不得保留正式自訂欄位 UI 或動態渲染：${forbidden}`);
   }
-  for (const type of ["text", "textarea", "number", "date", "select", "multiSelect", "checkbox"]) {
-    includes(adminSettings, `"${type}"`, `自訂欄位需支援 ${type}`);
-  }
-  includes(settingsPage, "CustomFieldsPanel", "管理者設定需有自訂欄位管理工作區");
-  includes(settingsPage, "新增自訂欄位", "需有新增自訂欄位入口");
-  includes(settingsPage, "適用模組", "自訂欄位需可選擇適用模組");
-  includes(settingsPage, "封存 / 還原", "自訂欄位需支援封存 / 還原");
-  includes(settingsPage, "上移", "自訂欄位需支援排序上移");
-  includes(settingsPage, "下移", "自訂欄位需支援排序下移");
-  includes(navigation, 'route: "/settings?section=custom-fields"', "左側管理者設定需有欄位與表單設定入口");
-  excludes(settingsPage, "刪除", "本輪不得新增真正刪除");
-  excludes(settingsPage, "DELETE", "本輪不得新增 DELETE");
-  includes(domainModel, "customFieldToEditField", "自訂欄位需轉為可渲染表單欄位");
-  includes(newRecordPanel, "activeCustomFieldsForModule(moduleItem.key, \"create\")", "新增頁需動態渲染啟用自訂欄位");
-  includes(detailPage, "activeCustomFieldsForModule(record.moduleKey, \"edit\")", "編輯頁需動態渲染啟用自訂欄位");
-  includes(detailPage, "detailCustomFields", "詳情頁需動態顯示自訂欄位");
-  includes(recordService, "activeCustomFieldsForModule(record.module_key, \"edit\")", "API mode edit mapping 需帶入自訂欄位");
-  includes(recordService, "activeCustomFieldsForModule(record.module_key, \"detail\")", "API mode detail mapping 需帶入自訂欄位");
-  includes(adminSettings, "不取代聯絡人或相關紀錄", "自訂欄位不得取代核心關聯模型");
 }
 
 function auditCatalogProvenance() {
@@ -89,7 +84,7 @@ function auditCatalogProvenance() {
   includes(shrines, "從目前有效的團隊成員中選擇", "需有團隊成員來源提示");
 }
 
-function auditShrineDeityDependencyAndRelatedDates() {
+function auditShrineContactAndDeityGuidance() {
   const fields = read("src/data/newRecordFields.ts");
   const newRecordPanel = read("src/components/NewRecordPanel.tsx");
   const detailPage = read("src/routes/ModuleDetailPage.tsx");
@@ -101,13 +96,14 @@ function auditShrineDeityDependencyAndRelatedDates() {
   includes(newRecordPanel, 'field.key === "primaryDeity"', "主祀神祇選項需依已選供奉神祇產生");
   includes(detailPage, 'field.key === "deities"', "詳情編輯供奉神祇變更需檢查主祀神祇");
   includes(detailPage, 'field.key === "primaryDeity"', "詳情編輯主祀神祇選項需依已選供奉神祇產生");
-  includes(detailPage, "主祀：", "詳情頁需明確顯示主祀");
-  includes(detailPage, "其他供奉", "詳情頁需將主祀與其他供奉分開");
-  includes(domainModel, "businessRecordFieldOption", "關聯選項需由實際紀錄產生");
-  includes(domainModel, "formatDisplayDate(record.date)", "關聯 chip 日期需由實際紀錄日期轉為民國日期");
-  excludes(newRecordPanel, "2026-07-08", "新增頁不應直接顯示 ISO 日期");
-  excludes(detailPage, "2026-07-08", "詳情頁不應直接顯示 ISO 日期");
-  excludes(domainModel, "自動建立關聯", "不得以日期自動建立關聯");
+  includes(newRecordPanel, "setPrimaryShrineContact", "新增頁需支援主要聯絡人");
+  includes(newRecordPanel, "setPrimaryShrineMethod", "新增頁需支援主要聯絡方式");
+  includes(newRecordPanel, "toggleShrineContactArchived", "新增頁聯絡人需支援封存 / 還原");
+  includes(detailPage, "setPrimaryShrineContact", "詳情編輯需支援主要聯絡人");
+  includes(detailPage, "setPrimaryShrineMethod", "詳情編輯需支援主要聯絡方式");
+  includes(detailPage, "toggleShrineContactArchived", "詳情編輯聯絡人需支援封存 / 還原");
+  includes(domainModel, "shrineSystemSummary", "友宮系統摘要需由結構化資料產生");
+  includes(domainModel, "contactStatus !== \"已封存\"", "系統摘要需排除已封存聯絡人");
 }
 
 function auditSummaryHistoryNoteGuidance() {
@@ -141,24 +137,24 @@ function auditGlobalNoRegression() {
   for (const expected of ["relatedShrine", "relatedLedger", "relatedTeamMember", "sourceRecord", "reviewer", "handler"]) {
     assert(fields.includes(expected) || recordService.includes(expected), `需保留全域關聯或承辦欄位：${expected}`);
   }
-  for (const forbidden of ["聯絡人自訂文字", "活動關聯自訂文字", "帳務關聯自訂文字", "來訪關聯自訂文字", "公文關聯自訂文字"]) {
-    excludes(settingsPage + fields, forbidden, `自訂欄位不得取代核心關聯：${forbidden}`);
+  for (const forbidden of ["接待注意事項", "接待提醒等級", "聯絡人自訂文字", "活動關聯自訂文字", "帳務關聯自訂文字", "來訪關聯自訂文字", "公文關聯自訂文字"]) {
+    excludes(settingsPage + fields, forbidden, `不得保留未核准欄位或以自訂欄位取代核心關聯：${forbidden}`);
   }
 }
 
 function main() {
-  auditCustomFieldModelAndSettings();
+  auditRoleBoundaryForFields();
   auditCatalogProvenance();
-  auditShrineDeityDependencyAndRelatedDates();
+  auditShrineContactAndDeityGuidance();
   auditSummaryHistoryNoteGuidance();
   auditGlobalNoRegression();
 
   console.log(JSON.stringify({
     ok: true,
     audits: [
-      "custom field model and settings",
+      "role boundary for fields",
       "catalog provenance",
-      "shrine deity dependency and related dates",
+      "shrine contact and deity guidance",
       "summary history note guidance",
       "global no regression",
     ],

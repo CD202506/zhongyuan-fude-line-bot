@@ -6,25 +6,30 @@ import { ModuleDetailPage } from "./routes/ModuleDetailPage";
 import { ModuleListPage } from "./routes/ModuleListPage";
 import { NewRecordPage } from "./routes/NewRecordPage";
 import { SettingsPage } from "./routes/SettingsPage";
+import { TestLoginPage } from "./routes/TestLoginPage";
+import { RoleProvider } from "./lib/roleContext";
 
 export function App() {
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        {modules.map((moduleItem) => (
-          <Route key={moduleItem.key} path={moduleItem.route} element={<ModuleListPage />} />
-        ))}
-        {modules.map((moduleItem) => (
-          <Route key={`${moduleItem.key}-new`} path={`${moduleItem.route}/new`} element={<NewRecordPage />} />
-        ))}
-        {modules.map((moduleItem) => (
-          <Route key={`${moduleItem.key}-detail`} path={`${moduleItem.route}/:id`} element={<ModuleDetailPage />} />
-        ))}
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Route>
-    </Routes>
+    <RoleProvider>
+      <Routes>
+        <Route path="/test-login" element={<TestLoginPage />} />
+        <Route element={<AppShell />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          {modules.map((moduleItem) => (
+            <Route key={moduleItem.key} path={moduleItem.route} element={<ModuleListPage />} />
+          ))}
+          {modules.map((moduleItem) => (
+            <Route key={`${moduleItem.key}-new`} path={`${moduleItem.route}/new`} element={<NewRecordPage />} />
+          ))}
+          {modules.map((moduleItem) => (
+            <Route key={`${moduleItem.key}-detail`} path={`${moduleItem.route}/:id`} element={<ModuleDetailPage />} />
+          ))}
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
+      </Routes>
+    </RoleProvider>
   );
 }

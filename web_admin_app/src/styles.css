@@ -34,6 +34,66 @@ button {
   cursor: pointer;
 }
 
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #f7f3ea;
+}
+
+.login-hero {
+  display: grid;
+  width: min(100%, 980px);
+  gap: 18px;
+}
+
+.login-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.login-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #ded4bf;
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.login-card h2,
+.login-card h3,
+.login-card p {
+  margin: 0;
+}
+
+.login-card p {
+  color: #4c5a4b;
+  line-height: 1.6;
+}
+
+.login-card button,
+.session-panel button {
+  width: fit-content;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #12351d;
+  color: #fffdf5;
+  font-weight: 800;
+}
+
+.session-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.session-panel button {
+  background: #e9dfca;
+  color: #162016;
+}
+
 .app-shell {
   display: grid;
   min-height: 100vh;
@@ -110,26 +170,6 @@ button {
   background: #fff8d8;
   color: #4a3709;
   font-weight: 700;
-}
-
-.role-switch {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.role-switch button {
-  min-height: 38px;
-  border: 1px solid #cbbfaa;
-  background: #fff;
-  color: #263026;
-  font-weight: 800;
-}
-
-.role-switch button.active {
-  border-color: #f3c74e;
-  background: #f3c74e;
-  color: #12351d;
 }
 
 .nav-list,
@@ -725,6 +765,47 @@ button {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid #e1d6c0;
+}
+
+.contact-edit-grid,
+.nested-methods {
+  display: grid;
+  gap: 10px;
+}
+
+.contact-edit-grid article,
+.nested-methods article,
+.archived-contact-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e1d6c0;
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.nested-methods {
+  padding-top: 8px;
+  border-top: 1px dashed #d6c8ad;
+}
+
+.compact-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.compact-info-grid span {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f7f3ea;
+}
+
+.archived-contact-panel summary {
+  cursor: pointer;
+  font-weight: 800;
 }
 
 .compact-heading {

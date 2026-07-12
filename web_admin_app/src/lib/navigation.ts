@@ -37,7 +37,6 @@ const adminNavGroups: NavGroup[] = [
       { type: "route", label: "權限設定", route: "/settings?section=permissions" },
       { type: "route", label: "類別 / 標籤", route: "/settings?section=categories-tags" },
       { type: "route", label: "基礎資料設定", route: "/settings?section=basic-data" },
-      { type: "route", label: "欄位與表單設定", route: "/settings?section=custom-fields" },
       { type: "route", label: "發布管道設定", route: "/settings?section=publish-channels" },
       { type: "route", label: "操作紀錄", route: "/settings?section=audit-log" },
     ],

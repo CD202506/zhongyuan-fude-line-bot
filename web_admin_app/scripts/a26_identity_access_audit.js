@@ -26,10 +26,10 @@ function auditIdentityModel() {
   const identity = read("src/lib/identity.ts");
   const requiredFields = [
     "currentUser",
-    "userId",
+    "identityId",
     "displayName",
-    "role",
-    "staffMemberId",
+    "displayRole",
+    "teamMemberId",
     "devoteeId",
     "linkedLineUser",
     "permissionSet",
@@ -54,15 +54,21 @@ function auditIdentityModel() {
 function auditRoleSwitchWording() {
   const appShell = read("src/components/AppShell.tsx");
   const identity = read("src/lib/identity.ts");
+  const testLogin = read("src/routes/TestLoginPage.tsx");
+  const roleContext = read("src/lib/roleContext.tsx");
 
-  includes(appShell, "目前角色：", "右上角色工具需以低干擾目前角色呈現");
+  includes(appShell, "identity.displayName", "右上需顯示目前登入者");
+  includes(appShell, "permissionLabel(role)", "右上需以低干擾目前身分呈現");
+  includes(appShell, "onClick={logout}", "右上只能提供登出，不提供直接角色切換");
+  includes(testLogin, "測試環境虛擬登入", "角色選擇需移到測試登入頁");
+  includes(roleContext, "sessionStorage", "測試登入需使用 sessionStorage 暫存");
   includes(identity, "正式版將依登入帳號與權限顯示，不能自行切換。", "需說明正式版不能自行切換");
-  includes(appShell, "aria-label=\"角色切換\"", "角色切換輔助標籤需是低干擾角色語意");
   excludes(appShell, "測試角色切換", "右上不應使用過度突出的測試角色切換文字");
   excludes(appShell, "目前測試身份", "右上不應使用目前測試身份文字");
   excludes(appShell, "LINE 綁定示意", "右上不應顯示 LINE 綁定示意");
   excludes(appShell, "身份檢視", "右上不應使用大面積身份檢視標題");
   excludes(appShell, "切換不同身份，查看各角色可見畫面。", "右上不應顯示測試工具說明");
+  excludes(appShell, "loginAs(\"admin\")", "AppShell 不應提供直接角色切換");
 }
 
 function auditAdminSettings() {

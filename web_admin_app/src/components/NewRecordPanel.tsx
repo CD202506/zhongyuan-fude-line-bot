@@ -3,12 +3,11 @@ import type { EditField } from "../data/mockRecords";
 import type { ModuleConfig } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { ApiRequestError } from "../api/webAdminApi";
-import { activeCustomFieldsForModule } from "../data/adminSettings";
+import { masterDataCatalogs } from "../data/adminSettings";
 import { adminConfirmModules, newRecordFields } from "../data/newRecordFields";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 import {
-  customFieldToEditField,
   devoteeRelatedRecordExamples,
   fieldOptionLabel,
   fieldOptionValue,
@@ -48,10 +47,8 @@ function submitErrorMessage(error: unknown) {
 
 export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmitRecord }: NewRecordPanelProps) {
   const fields = useMemo(() => {
-    const configuredFields = activeCustomFieldsForModule(moduleItem.key, "create")
-      .filter((field) => field.editableRoles.includes(role))
-      .map(customFieldToEditField);
-    return [...newRecordFields[moduleItem.key], ...configuredFields];
+    void role;
+    return newRecordFields[moduleItem.key];
   }, [moduleItem.key, role]);
   const initialValues = useMemo(() => {
     return fields.reduce<FormValues>((values, field) => {
@@ -68,6 +65,63 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
   const [shrineContacts, setShrineContacts] = useState<ShrineContact[]>([]);
   const [shrineRelatedRecords, setShrineRelatedRecords] = useState<ShrineRelatedRecord[]>([]);
   const needsAdminConfirm = role !== "admin" && adminConfirmModules.includes(moduleItem.key);
+
+  const updateShrineContact = (contactId: string, updates: Partial<ShrineContact>) => {
+    setShrineContacts((current) => current.map((contact) => contact.contactId === contactId ? { ...contact, ...updates } : contact));
+  };
+
+  const setPrimaryShrineContact = (contactId: string) => {
+    setShrineContacts((current) => current.map((contact) => ({
+      ...contact,
+      isPrimary: contact.contactId === contactId && contact.isActive && contact.contactStatus !== "已封存",
+    })));
+  };
+
+  const toggleShrineContactArchived = (contactId: string) => {
+    setShrineContacts((current) => current.map((contact) => {
+      if (contact.contactId !== contactId) return contact;
+      const nextActive = !contact.isActive;
+      return {
+        ...contact,
+        isActive: nextActive,
+        isPrimary: nextActive ? contact.isPrimary : false,
+        contactStatus: nextActive ? "可聯繫" : "已封存",
+        methods: contact.methods.map((method) => nextActive ? method : { ...method, isPrimary: false, status: "已封存" }),
+      };
+    }));
+  };
+
+  const updateShrineMethod = (contactId: string, methodId: string, updates: Record<string, string | boolean>) => {
+    setShrineContacts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: contact.methods.map((method) => method.id === methodId ? { ...method, ...updates } : method),
+    } : contact));
+  };
+
+  const setPrimaryShrineMethod = (contactId: string, methodId: string) => {
+    setShrineContacts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: contact.methods.map((method) => ({ ...method, isPrimary: method.id === methodId })),
+    } : contact));
+  };
+
+  const addShrineMethod = (contactId: string) => {
+    setShrineContacts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: [
+        ...contact.methods,
+        {
+          id: `${contact.contactId}-method-${contact.methods.length + 1}`,
+          type: masterDataCatalogs.contactTypes[0],
+          value: "",
+          isPrimary: contact.methods.length === 0,
+          availableTime: "",
+          note: "",
+          status: "使用中",
+        },
+      ],
+    } : contact));
+  };
 
   const updateField = (key: string, value: string | string[]) => {
     setValues((current) => ({ ...current, [key]: value }));
@@ -131,11 +185,13 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
     }
 
     if (field.type === "select") {
+      const primaryDeityDisabled = moduleItem.key === "shrines" && field.key === "primaryDeity" && effectiveOptions.length === 0;
       return (
         <label key={field.key} className="edit-field">
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
-          <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
+          <select value={primaryDeityDisabled ? "" : String(value)} disabled={primaryDeityDisabled} onChange={(event) => updateField(field.key, event.target.value)}>
+            {primaryDeityDisabled ? <option value="">請先選擇供奉神祇</option> : null}
             {effectiveOptions.map((option) => (
               <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
                 {fieldOptionLabel(option)}
@@ -370,21 +426,77 @@ export function NewRecordPanel({ moduleItem, role, onCancel, onComplete, onSubmi
             <div className="related-record-table">
               {shrineContacts.map((contact) => (
                 <article key={contact.contactId}>
-                  <strong>{contact.name}｜{contact.title}{contact.isPrimary ? "｜主要聯絡人" : ""}</strong>
-                  <span>{contact.contactStatus}｜{contact.isActive ? "使用中" : "已封存"}</span>
-                  <span>{contact.methods.map((method) => `${method.type}${method.isPrimary ? "（主要）" : ""}：${method.value}`).join("、")}</span>
+                  <div className="contact-edit-grid">
+                    <label>
+                      姓名 / 稱呼
+                      <input value={contact.name} onChange={(event) => updateShrineContact(contact.contactId, { name: event.target.value })} />
+                    </label>
+                    <label>
+                      職稱 / 身分
+                      <select value={contact.title} onChange={(event) => updateShrineContact(contact.contactId, { title: event.target.value })}>
+                        {masterDataCatalogs.contactRoleTypes.map((item) => <option key={item} value={item}>{item}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      聯絡人狀態
+                      <select value={contact.contactStatus} onChange={(event) => updateShrineContact(contact.contactId, { contactStatus: event.target.value, isActive: event.target.value !== "已封存" })}>
+                        {masterDataCatalogs.contactStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
+                      </select>
+                    </label>
+                    <label className="wide">
+                      備註
+                      <input value={contact.note} onChange={(event) => updateShrineContact(contact.contactId, { note: event.target.value })} placeholder="聯絡補充說明" />
+                    </label>
+                  </div>
+                  <strong>{contact.isPrimary ? "主要聯絡人" : "一般聯絡人"}｜{contact.isActive ? "使用中" : "聯絡人已封存"}</strong>
+                  <div className="related-record-table nested-methods">
+                    {contact.methods.map((method) => (
+                      <article key={method.id}>
+                        <div className="contact-edit-grid">
+                          <label>
+                            聯絡方式類型
+                            <select value={method.type} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { type: event.target.value })}>
+                              {masterDataCatalogs.contactTypes.map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                          </label>
+                          <label>
+                            聯絡內容
+                            <input value={method.value} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { value: event.target.value })} placeholder="請輸入聯絡內容" />
+                          </label>
+                          <label>
+                            適合聯絡時間
+                            <input value={method.availableTime ?? ""} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { availableTime: event.target.value })} placeholder="例如白天、活動期間" />
+                          </label>
+                          <label>
+                            聯絡方式備註
+                            <input value={method.note ?? ""} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { note: event.target.value })} placeholder="補充說明" />
+                          </label>
+                        </div>
+                        <div className="inline-action-row">
+                          <button type="button" className="secondary-inline-action" onClick={() => setPrimaryShrineMethod(contact.contactId, method.id)}>
+                            設為主要聯絡方式
+                          </button>
+                          <span>{method.isPrimary ? "主要方式" : "一般方式"}</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                   <div className="inline-action-row">
                     <button
                       type="button"
                       className="secondary-inline-action"
-                      onClick={() => setShrineContacts((current) => current.map((item) => ({ ...item, isPrimary: item.contactId === contact.contactId })))}
+                      disabled={!contact.isActive || contact.contactStatus === "已封存"}
+                      onClick={() => setPrimaryShrineContact(contact.contactId)}
                     >
                       設為主要聯絡人
+                    </button>
+                    <button type="button" className="secondary-inline-action" onClick={() => addShrineMethod(contact.contactId)}>
+                      新增聯絡方式
                     </button>
                     <button
                       type="button"
                       className="secondary-inline-action"
-                      onClick={() => setShrineContacts((current) => current.map((item) => item.contactId === contact.contactId ? { ...item, isActive: !item.isActive, contactStatus: item.isActive ? "已封存" : "可聯繫" } : item))}
+                      onClick={() => toggleShrineContactArchived(contact.contactId)}
                     >
                       {contact.isActive ? "封存聯絡人" : "還原聯絡人"}
                     </button>

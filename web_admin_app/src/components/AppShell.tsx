@@ -1,21 +1,24 @@
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { findModuleByKey, modules } from "../data/modules";
-import { mockUser, roleOptions, type UserRole } from "../data/mockUser";
 import { canEditDailyWork, canUseAdminSettings, permissionLabel } from "../lib/permissions";
 import { moduleKeysForRole, navGroupsForRole } from "../lib/navigation";
-import { RoleContext } from "../lib/roleContext";
+import { useRole } from "../lib/roleContext";
 
 export function AppShell() {
-  const [role, setRole] = useState<UserRole>(mockUser.role);
+  const { identity, role, logout } = useRole();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const currentModule = modules.find((moduleItem) => location.pathname === moduleItem.route || location.pathname.startsWith(`${moduleItem.route}/`));
   const isModuleHome = currentModule ? location.pathname === currentModule.route : false;
+  const isNewRoute = Boolean(currentModule && location.pathname === `${currentModule.route}/new`);
   const canAddCurrentModule = Boolean(currentModule && isModuleHome && canEditDailyWork(role));
   const visibleModuleKeys = moduleKeysForRole(role);
   const canAddVisibleModule = Boolean(currentModule && visibleModuleKeys.has(currentModule.key));
   const navGroups = navGroupsForRole(role);
+  const canViewCurrentModule = !currentModule || visibleModuleKeys.has(currentModule.key);
+  const settingsRouteBlocked = location.pathname === "/settings" && !canUseAdminSettings(role);
+  const newRouteBlocked = isNewRoute && !canEditDailyWork(role);
   const routeIsActive = (route: string) => {
     const [pathname, search = ""] = route.split("?");
     if (location.pathname !== pathname) return false;
@@ -56,8 +59,26 @@ export function AppShell() {
     });
   };
 
+  if (!identity) return <Navigate to="/test-login" replace />;
+
+  if (!canViewCurrentModule || settingsRouteBlocked || newRouteBlocked) {
+    return (
+      <div className="app-shell sidebar-closed">
+        <main className="main-content">
+          <section className="content-panel module-header">
+            <div>
+              <span className="eyebrow">權限提醒</span>
+              <h2>目前身分無法進入此頁面</h2>
+              <p>請回到主控台查看可瀏覽的資料。</p>
+            </div>
+            <Link to="/dashboard" className="primary-action">返回主控台</Link>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <RoleContext.Provider value={{ role, setRole }}>
       <div className={`app-shell ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
         {sidebarOpen ? (
         <aside className="sidebar" aria-label="主要導覽">
@@ -137,20 +158,14 @@ export function AppShell() {
                 </Link>
               ) : null}
             </div>
-            <div className="topbar-role preview-role-panel">
-              <span>目前角色：{permissionLabel(role)}</span>
-              <div className="role-switch" aria-label="角色切換">
-                {roleOptions.map((option) => (
-                  <button key={option} type="button" className={role === option ? "active" : ""} onClick={() => setRole(option)}>
-                    {permissionLabel(option)}
-                  </button>
-                ))}
-              </div>
+            <div className="topbar-role session-panel">
+              <strong>{identity.displayName}</strong>
+              <span>{permissionLabel(role)}</span>
+              <button type="button" onClick={logout}>登出</button>
             </div>
           </header>
           <Outlet />
         </main>
       </div>
-    </RoleContext.Provider>
   );
 }

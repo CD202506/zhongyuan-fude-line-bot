@@ -1,12 +1,12 @@
 import { webAdminApi, type ApiRecord, type ApiRecordPayload } from "../api/webAdminApi";
 import { isApiMode } from "../config/runtimeMode";
-import { activeCustomFieldsForModule, assignableTeamMemberOptions } from "../data/adminSettings";
+import { assignableTeamMemberOptions } from "../data/adminSettings";
 import type { EditField, MockRecord } from "../data/mockRecords";
 import { recordById, recordsForModule } from "../data/mockRecords";
 import type { ModuleKey } from "../data/modules";
 import type { UserRole } from "../data/mockUser";
 import { newRecordFields } from "../data/newRecordFields";
-import { assigneeSemantics, categorySemantics, customFieldToEditField, fieldOptionLabel, fieldPolicyFor, shrineSystemSummary, stateSemantics, tagSemantics } from "../lib/domainModel";
+import { assigneeSemantics, categorySemantics, fieldOptionLabel, fieldPolicyFor, shrineSystemSummary, stateSemantics, tagSemantics } from "../lib/domainModel";
 import type { DevoteeRelatedRecord, ShrineContact, ShrineDeityRecord, ShrineRelatedRecord } from "../lib/domainModel";
 import { formatDisplayDate, toIsoDateValue } from "../lib/dateFormat";
 
@@ -307,14 +307,15 @@ function relatedRecordSummary(record: ApiRecord, tags: string[]) {
 }
 
 function shrineContactSummary(contacts: ShrineContact[]) {
-  const activeContacts = contacts.filter((contact) => contact.isActive);
-  const primaryContact = contacts.find((contact) => contact.isPrimary) ?? activeContacts[0];
+  const activeContacts = contacts.filter((contact) => contact.isActive && contact.contactStatus !== "已封存");
+  const primaryContact = contacts.find((contact) => contact.isPrimary && contact.isActive && contact.contactStatus !== "已封存") ?? activeContacts[0];
   const primaryMethod = primaryContact?.methods.find((method) => method.isPrimary) ?? primaryContact?.methods[0];
 
   return {
     primaryContact: primaryContact?.name ?? "尚未建立",
     primaryMethod: primaryMethod ? `${primaryMethod.type}：${primaryMethod.value}` : "尚未建立",
     contactCount: `${contacts.length} 位`,
+    activeContactCount: `${activeContacts.length} 位`,
   };
 }
 
@@ -385,7 +386,8 @@ function listFieldsFor(record: ApiRecord, owner: string) {
     const contactSummary = shrineContactSummary(contacts);
     add(fields, "友宮分類", record.category);
     add(fields, "主要聯絡人", contactSummary.primaryContact);
-    add(fields, "聯絡人數", contactSummary.contactCount);
+    add(fields, "主要聯絡方式", contactSummary.primaryMethod);
+    add(fields, "有效聯絡人", contactSummary.activeContactCount);
     add(fields, "相關紀錄", shrineRelationSummary(relatedRecords));
     return fields;
   }
@@ -439,9 +441,6 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const shrineContacts = Array.isArray(record.fields_json.shrineContacts) ? record.fields_json.shrineContacts as ShrineContact[] : [];
   const shrineRelatedRecords = Array.isArray(record.fields_json.shrineRelatedRecords) ? record.fields_json.shrineRelatedRecords as ShrineRelatedRecord[] : [];
   const shrineDeities = Array.isArray(record.fields_json.shrineDeities) ? record.fields_json.shrineDeities as ShrineDeityRecord[] : [];
-  const customDetailFields = activeCustomFieldsForModule(record.module_key, "detail")
-    .map((field) => ({ label: field.label, value: displayValue(record.fields_json[`custom_${field.id}`]) }))
-    .filter((field) => field.value);
   const derivedShrineSummary = record.module_key === "shrines"
     ? shrineSystemSummary({
         title,
@@ -455,7 +454,6 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
   const detailFields = [
     ...(policy.showCategory ? [{ label: policy.categoryLabel ?? "類別", value: record.category || "未分類" }] : []),
     ...displayFields,
-    ...customDetailFields,
   ];
   const categoryOptions = categorySemantics.moduleCategories[record.module_key];
   const standardEditKeys = new Set([
@@ -486,13 +484,6 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
         value: Array.isArray(field.value) ? (Array.isArray(value) ? value : []) : String(value),
       } as EditField;
     });
-  const configuredCustomEditFields: EditField[] = activeCustomFieldsForModule(record.module_key, "edit")
-    .map(customFieldToEditField)
-    .map((field) => {
-      const rawValue = record.fields_json[field.key];
-      if (rawValue === undefined || rawValue === null) return field;
-      return { ...field, value: Array.isArray(field.value) ? (Array.isArray(rawValue) ? rawValue : []) : String(rawValue) } as EditField;
-    });
   const summaryEditField = editableSummaryField(record);
   const editFields: EditField[] = [
     { key: "title", label: "名稱", type: "text", value: record.title },
@@ -504,7 +495,6 @@ function apiRecordToMockRecord(record: ApiRecord): MockRecord {
     ...(policy.showCategory ? [{ key: "category", label: policy.categoryLabel ?? "類別", type: "select" as const, value: record.category || categoryOptions[0], options: categoryOptions, help: categorySemantics.note }] : []),
     ...(policy.showTags ? [{ key: "tags", label: "輔助標籤", type: "tags" as const, value: displayTags, options: Array.from(new Set([...displayTags, ...tagSemantics.commonTags])), help: tagSemantics.note }] : []),
     ...customEditFields,
-    ...configuredCustomEditFields,
     { key: "note", label: "備註", type: "textarea", value: hasEngineeringTestText(record.fields_json.note) || stringValue(record.fields_json.note) === "未填寫" ? "" : stringValue(record.fields_json.note) },
   ];
   const listFields = listFieldsFor(record, owner);

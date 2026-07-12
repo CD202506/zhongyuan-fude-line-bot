@@ -4,14 +4,12 @@ import {
   auditLogSettings,
   basicDataGroups,
   categorySettings,
-  customFieldDefinitions,
   permissionSettings,
   publishingChannelSettings,
   tagSettings,
   teamSettings,
   type BasicDataGroup,
   type CategorySetting,
-  type CustomFieldDefinition,
   type PermissionSetting,
   type PublishingChannelSetting,
   type SettingItemState,
@@ -20,9 +18,8 @@ import {
 } from "../data/adminSettings";
 import { canUseAdminSettings } from "../lib/permissions";
 import { useRole } from "../lib/roleContext";
-import { modules } from "../data/modules";
 
-type SettingSectionId = "overview" | "team" | "permissions" | "categories-tags" | "basic-data" | "custom-fields" | "publish-channels" | "audit-log";
+type SettingSectionId = "overview" | "team" | "permissions" | "categories-tags" | "basic-data" | "publish-channels" | "audit-log";
 
 type SettingSection = {
   id: Exclude<SettingSectionId, "overview">;
@@ -62,13 +59,6 @@ const settingSections: SettingSection[] = [
     route: "/settings?section=basic-data",
   },
   {
-    id: "custom-fields",
-    title: "欄位與表單設定",
-    body: "管理各模組可額外補充的自訂欄位；核心關聯欄位仍由系統固定管理。",
-    action: "管理自訂欄位",
-    route: "/settings?section=custom-fields",
-  },
-  {
     id: "publish-channels",
     title: "發布管道設定",
     body: "管理對外發布可使用的管道、核准需求與可見對象。",
@@ -90,7 +80,6 @@ const sectionAliases: Record<string, SettingSectionId> = {
   categories: "categories-tags",
   "categories-tags": "categories-tags",
   "basic-data": "basic-data",
-  "custom-fields": "custom-fields",
   "publishing-channels": "publish-channels",
   "publish-channels": "publish-channels",
   audit: "audit-log",
@@ -132,7 +121,6 @@ export function SettingsPage() {
   const [channels, setChannels] = useState(publishingChannelSettings);
   const [permissions, setPermissions] = useState(permissionSettings);
   const [team, setTeam] = useState(teamSettings);
-  const [customFields, setCustomFields] = useState(customFieldDefinitions);
 
   if (!canUse) {
     return (
@@ -213,16 +201,6 @@ export function SettingsPage() {
     setNotice(`已新增標籤「${value}」。`);
   }
 
-  function toggleCustomField(fieldId: string, key: keyof Pick<CustomFieldDefinition, "active" | "archived" | "required" | "showInList" | "showInDetail" | "showInCreate" | "showInEdit">) {
-    setCustomFields((items) => items.map((item) => item.id === fieldId ? { ...item, [key]: !item[key] } : item));
-    setNotice("自訂欄位設定已更新。");
-  }
-
-  function moveCustomField(fieldId: string, direction: -1 | 1) {
-    setCustomFields((items) => items.map((item) => item.id === fieldId ? { ...item, sortOrder: item.sortOrder + direction } : item));
-    setNotice("自訂欄位順序已調整。");
-  }
-
   return (
     <div className="page-stack">
       <section className="content-panel module-header">
@@ -241,7 +219,6 @@ export function SettingsPage() {
       {sectionId === "permissions" ? <PermissionsPanel permissions={permissions} onToggle={togglePermission} /> : null}
       {sectionId === "categories-tags" ? <CategoriesTagsPanel categories={categories} tags={tags} onAddCategory={addCategory} onAddTag={addTag} onToggleCategory={toggleCategory} onToggleTag={toggleTag} onNotice={setNotice} /> : null}
       {sectionId === "basic-data" ? <BasicDataPanel groups={basicGroups} onAddOption={addBasicOption} onToggleOption={updateBasicOption} onNotice={setNotice} /> : null}
-      {sectionId === "custom-fields" ? <CustomFieldsPanel fields={customFields} onToggle={toggleCustomField} onMove={moveCustomField} onNotice={setNotice} /> : null}
       {sectionId === "publish-channels" ? <PublishingChannelsPanel channels={channels} onToggle={toggleChannel} onNotice={setNotice} /> : null}
       {sectionId === "audit-log" ? <AuditLogPanel /> : null}
     </div>
@@ -437,98 +414,6 @@ function BasicDataGroupCard({ group, onAddOption, onToggleOption, onNotice }: { 
         ))}
       </div>
     </article>
-  );
-}
-
-function CustomFieldsPanel({
-  fields,
-  onToggle,
-  onMove,
-  onNotice,
-}: {
-  fields: CustomFieldDefinition[];
-  onToggle: (fieldId: string, key: keyof Pick<CustomFieldDefinition, "active" | "archived" | "required" | "showInList" | "showInDetail" | "showInCreate" | "showInEdit">) => void;
-  onMove: (fieldId: string, direction: -1 | 1) => void;
-  onNotice: (message: string) => void;
-}) {
-  const [moduleKey, setModuleKey] = useState("shrines");
-  const moduleFields = fields
-    .filter((field) => field.moduleKey === moduleKey)
-    .sort((left, right) => left.sortOrder - right.sortOrder);
-  const moduleTitle = modules.find((item) => item.key === moduleKey)?.title ?? "指定模組";
-
-  return (
-    <section className="content-panel">
-      <div className="section-heading">
-        <div>
-          <h3>自訂欄位管理</h3>
-          <span>補充欄位可依模組設定；友宮名稱、聯絡人、神祇與相關紀錄等核心欄位不可由自訂欄位取代。</span>
-        </div>
-        <button type="button" className="setting-action" onClick={() => onNotice("新增自訂欄位表單已開啟，可設定欄位名稱、類型、顯示位置與選項。")}>新增自訂欄位</button>
-      </div>
-      <label className="inline-select-control">
-        適用模組
-        <select value={moduleKey} onChange={(event) => setModuleKey(event.target.value)}>
-          {modules.map((moduleItem) => (
-            <option key={moduleItem.key} value={moduleItem.key}>{moduleItem.title}</option>
-          ))}
-        </select>
-      </label>
-      <div className="permission-strip compact">
-        <strong>{moduleTitle}</strong>
-        <span>自訂欄位只補充日常資訊，不取代聯絡人、活動、帳務、來訪、公文等結構化關聯。</span>
-      </div>
-      {moduleFields.length > 0 ? (
-        <div className="settings-table-wrap">
-          <table className="settings-table">
-            <thead>
-              <tr>
-                <th>欄位名稱</th>
-                <th>類型</th>
-                <th>顯示位置</th>
-                <th>必填</th>
-                <th>狀態</th>
-                <th>選項</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {moduleFields.map((field) => (
-                <tr key={field.id}>
-                  <td>
-                    <strong>{field.label}</strong>
-                    <span>{field.description}</span>
-                  </td>
-                  <td>{field.fieldType}</td>
-                  <td>
-                    {[
-                      field.showInList ? "列表" : "",
-                      field.showInDetail ? "詳情" : "",
-                      field.showInCreate ? "新增" : "",
-                      field.showInEdit ? "編輯" : "",
-                    ].filter(Boolean).join("、")}
-                  </td>
-                  <td><BooleanMark value={field.required} /></td>
-                  <td><SettingStatus>{field.archived ? "停用" : field.active ? "使用中" : "停用"}</SettingStatus></td>
-                  <td>{field.options.length > 0 ? field.options.join("、") : "無選項"}</td>
-                  <td>
-                    <div className="settings-row-actions">
-                      <button type="button" onClick={() => onToggle(field.id, "active")}>啟用 / 停用</button>
-                      <button type="button" onClick={() => onToggle(field.id, "archived")}>封存 / 還原</button>
-                      <button type="button" onClick={() => onToggle(field.id, "required")}>切換必填</button>
-                      <button type="button" onClick={() => onMove(field.id, -1)}>上移</button>
-                      <button type="button" onClick={() => onMove(field.id, 1)}>下移</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="empty-state">目前此模組尚未設定自訂欄位。</div>
-      )}
-    </section>
   );
 }
 

@@ -75,7 +75,7 @@ function auditHeaderAndRoleNoise() {
   excludes(appShell, "<span>{currentModule.boundary}</span>", "頁首不應突出顯示模組分類文字");
   excludes(appShell, "身份檢視", "角色工具不應顯示身份檢視大標題");
   excludes(appShell, "切換不同身份", "角色工具不應顯示測試切換說明");
-  includes(appShell, "目前角色：", "角色工具需維持低干擾目前角色顯示");
+  includes(appShell, "permissionLabel(role)", "角色工具需維持低干擾目前身分顯示");
 }
 
 function auditDevoteeOptionalFields() {

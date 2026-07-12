@@ -105,7 +105,7 @@ function auditUserFacingWording() {
     excludes(combined, forbidden, `使用者可見文字不應包含 ${forbidden}`);
   }
 
-  includes(combined, "目前角色：", "角色切換需使用低干擾目前角色語意");
+  includes(combined, "目前身分", "目前登入身分需使用低干擾使用者語意");
   excludes(combined, "切換不同身份，查看各角色可見畫面。", "角色切換不應顯示測試工具說明");
   excludes(combined, "測試模式", "使用者畫面不應顯示測試模式");
   excludes(combined, "模擬身份", "使用者畫面不應顯示模擬身份");

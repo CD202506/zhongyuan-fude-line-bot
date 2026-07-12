@@ -2,16 +2,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { modules } from "../data/modules";
 import { EditField, type MockRecord } from "../data/mockRecords";
-import { activeCustomFieldsForModule } from "../data/adminSettings";
+import { masterDataCatalogs } from "../data/adminSettings";
 import { DetailActionMode, DetailActionPanel } from "../components/DetailActionPanel";
 import { StatusBadge } from "../components/StatusBadge";
 import { useRole } from "../lib/roleContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { apiConnectionErrorMessage, archiveRecord, getRecord, restoreRecord, updateRecord } from "../services/recordService";
-import { customFieldToEditField, fieldOptionLabel, fieldOptionValue, fieldPolicyFor, shrineRelatedRecordLabel, shrineSystemSummary } from "../lib/domainModel";
+import { fieldOptionLabel, fieldOptionValue, fieldPolicyFor, shrineRelatedRecordLabel, shrineSystemSummary, type ShrineContact } from "../lib/domainModel";
 import { formatDisplayDate, formatRocDateInputValue, rocDateInputHint } from "../lib/dateFormat";
 
-type EditValues = Record<string, string | string[]>;
+type EditValues = Record<string, string | string[] | ShrineContact[]>;
 type PendingAction = "draft" | "submit" | "risk" | "restore" | "staffRisk" | null;
 
 export function ModuleDetailPage() {
@@ -28,20 +28,14 @@ export function ModuleDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeRelatedRecord, setActiveRelatedRecord] = useState<string | null>(null);
   const [relatedActionMessage, setRelatedActionMessage] = useState("");
+  const [shrineContactDrafts, setShrineContactDrafts] = useState<ShrineContact[]>([]);
   const moduleItem = record ? modules.find((item) => item.key === record.moduleKey) : undefined;
   const fieldPolicy = record ? fieldPolicyFor(record.moduleKey) : undefined;
   const isEditing = actionMode === "edit";
   const visibleEditFields = useMemo(() => {
     if (!record) return [];
-    const configuredFields = activeCustomFieldsForModule(record.moduleKey, "edit")
-      .filter((field) => field.editableRoles.includes(role))
-      .map(customFieldToEditField);
-    return [...record.editFields, ...configuredFields].filter((field) => role === "admin" || field.key !== "dataStatus");
+    return record.editFields.filter((field) => role === "admin" || field.key !== "dataStatus");
   }, [record, role]);
-  const detailCustomFields = useMemo(() => {
-    if (!record) return [];
-    return activeCustomFieldsForModule(record.moduleKey, "detail");
-  }, [record]);
   const relatedRecordItems = useMemo(() => {
     if (record?.relatedRecords && record.relatedRecords.length > 0) return record.relatedRecords.map((item) => item.id);
     if (record?.shrineRelatedRecords && record.shrineRelatedRecords.length > 0) return record.shrineRelatedRecords.map((item) => item.id);
@@ -194,12 +188,14 @@ export function ModuleDetailPage() {
 
   const startEdit = () => {
     setEditValues(initialEditValues);
+    setShrineContactDrafts(record?.shrineContacts ?? []);
     setActionErrorMessage("");
     setActionMode("edit");
   };
 
   const cancelEdit = () => {
     setEditValues(initialEditValues);
+    setShrineContactDrafts(record?.shrineContacts ?? []);
     setActionMode("view");
     if (moduleItem) {
       navigate(moduleItem.route);
@@ -214,7 +210,7 @@ export function ModuleDetailPage() {
 
     try {
       if ((nextMode === "draft" || nextMode === "submitted") && actionMode === "edit" && pendingAction !== "restore") {
-        await updateRecord(record.id, record.moduleKey, editValues, role);
+        await updateRecord(record.id, record.moduleKey, record.moduleKey === "shrines" ? { ...editValues, shrineContacts: shrineContactDrafts } : editValues, role);
       }
 
       if (nextMode === "riskSubmitted" && role === "admin") {
@@ -294,9 +290,87 @@ export function ModuleDetailPage() {
     setEditValues((current) => ({ ...current, [key]: value }));
   };
 
+  const updateShrineContact = (contactId: string, updates: Partial<ShrineContact>) => {
+    setShrineContactDrafts((current) => current.map((contact) => contact.contactId === contactId ? { ...contact, ...updates } : contact));
+  };
+
+  const setPrimaryShrineContact = (contactId: string) => {
+    setShrineContactDrafts((current) => current.map((contact) => ({
+      ...contact,
+      isPrimary: contact.contactId === contactId && contact.isActive && contact.contactStatus !== "已封存",
+    })));
+  };
+
+  const toggleShrineContactArchived = (contactId: string) => {
+    setShrineContactDrafts((current) => current.map((contact) => {
+      if (contact.contactId !== contactId) return contact;
+      const nextActive = !contact.isActive;
+      return {
+        ...contact,
+        isActive: nextActive,
+        isPrimary: nextActive ? contact.isPrimary : false,
+        contactStatus: nextActive ? "可聯繫" : "已封存",
+        methods: contact.methods.map((method) => nextActive ? method : { ...method, isPrimary: false, isActive: false, status: "已封存" }),
+      };
+    }));
+  };
+
+  const updateShrineMethod = (contactId: string, methodId: string, updates: Record<string, string | boolean>) => {
+    setShrineContactDrafts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: contact.methods.map((method) => method.id === methodId ? { ...method, ...updates } : method),
+    } : contact));
+  };
+
+  const setPrimaryShrineMethod = (contactId: string, methodId: string) => {
+    setShrineContactDrafts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: contact.methods.map((method) => ({ ...method, isPrimary: method.id === methodId })),
+    } : contact));
+  };
+
+  const addShrineContact = () => {
+    setShrineContactDrafts((current) => [
+      ...current,
+      {
+        contactId: `new-shrine-contact-${current.length + 1}`,
+        relatedShrineId: record?.id ?? "new-shrine",
+        name: "新聯絡人",
+        title: masterDataCatalogs.contactRoleTypes[0],
+        isPrimary: current.every((contact) => !contact.isPrimary),
+        isActive: true,
+        contactStatus: "可聯繫",
+        note: "",
+        methods: [],
+      },
+    ]);
+  };
+
+  const addShrineMethod = (contactId: string) => {
+    setShrineContactDrafts((current) => current.map((contact) => contact.contactId === contactId ? {
+      ...contact,
+      methods: [
+        ...contact.methods,
+        {
+          id: `${contact.contactId}-method-${contact.methods.length + 1}`,
+          methodId: `${contact.contactId}-method-${contact.methods.length + 1}`,
+          contactId,
+          type: masterDataCatalogs.contactTypes[0],
+          value: "",
+          isPrimary: contact.methods.length === 0,
+          isActive: true,
+          preferredTime: "",
+          availableTime: "",
+          note: "",
+          status: "使用中",
+        },
+      ],
+    } : contact));
+  };
+
   const toggleTag = (field: Extract<EditField, { type: "tags" }>, option: string) => {
     const currentValue = editValues[field.key] ?? field.value;
-    const selected = Array.isArray(currentValue) ? currentValue : [];
+    const selected = Array.isArray(currentValue) && currentValue.every((item) => typeof item === "string") ? currentValue : [];
     const nextValue = selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option];
     updateField(field.key, nextValue);
     if (record?.moduleKey === "shrines" && field.key === "deities") {
@@ -364,11 +438,13 @@ export function ModuleDetailPage() {
     }
 
     if (field.type === "select") {
+      const primaryDeityDisabled = record?.moduleKey === "shrines" && field.key === "primaryDeity" && effectiveOptions.length === 0;
       return (
         <label key={field.key} className="edit-field">
           <span>{field.label}</span>
           {field.help ? <small>{field.help}</small> : null}
-          <select value={String(value)} onChange={(event) => updateField(field.key, event.target.value)}>
+          <select value={primaryDeityDisabled ? "" : String(value)} disabled={primaryDeityDisabled} onChange={(event) => updateField(field.key, event.target.value)}>
+            {primaryDeityDisabled ? <option value="">請先選擇供奉神祇</option> : null}
             {effectiveOptions.map((option) => (
               <option key={fieldOptionValue(option)} value={fieldOptionValue(option)}>
                 {fieldOptionLabel(option)}
@@ -380,7 +456,7 @@ export function ModuleDetailPage() {
     }
 
     if (field.type === "tags") {
-      const selected = Array.isArray(value) ? value : [];
+      const selected = Array.isArray(value) && value.every((item) => typeof item === "string") ? value : [];
 
       return (
         <div key={field.key} className="edit-field wide">
@@ -451,8 +527,10 @@ export function ModuleDetailPage() {
     .map((field) => {
       const value = editValues[field.key];
       if (!value) return null;
+      if (Array.isArray(value) && value.some((item) => typeof item !== "string")) return null;
+      const displayValue: string | string[] = Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : String(value);
 
-      return { label: field.label, value: displayValueForField(field, Array.isArray(value) ? value : String(value)) };
+      return { label: field.label, value: displayValueForField(field, displayValue) };
     })
     .filter((entry): entry is { label: string; value: string } => Boolean(entry));
 
@@ -538,9 +616,96 @@ export function ModuleDetailPage() {
             </div>
           ) : null}
           {isEditing ? (
-            <div className="edit-form-grid">
-              {visibleEditFields.map((field) => renderEditField(field))}
-            </div>
+            <>
+              <div className="edit-form-grid">
+                {visibleEditFields.map((field) => renderEditField(field))}
+              </div>
+              {record.moduleKey === "shrines" ? (
+                <div className="related-record-editor">
+                  <div className="section-heading compact-heading">
+                    <div>
+                      <h4>友宮聯絡人</h4>
+                      <span>可新增多位聯絡人，每位聯絡人可有多種聯絡方式。</span>
+                    </div>
+                    <button type="button" className="secondary-inline-action" onClick={addShrineContact}>新增聯絡人</button>
+                  </div>
+                  {shrineContactDrafts.length > 0 ? (
+                    <div className="related-record-table">
+                      {shrineContactDrafts.map((contact) => (
+                        <article key={contact.contactId}>
+                          <div className="contact-edit-grid">
+                            <label>
+                              姓名 / 稱呼
+                              <input value={contact.name} onChange={(event) => updateShrineContact(contact.contactId, { name: event.target.value })} />
+                            </label>
+                            <label>
+                              職稱 / 身分
+                              <select value={contact.title} onChange={(event) => updateShrineContact(contact.contactId, { title: event.target.value })}>
+                                {masterDataCatalogs.contactRoleTypes.map((item) => <option key={item} value={item}>{item}</option>)}
+                              </select>
+                            </label>
+                            <label>
+                              聯絡人狀態
+                              <select value={contact.contactStatus} onChange={(event) => updateShrineContact(contact.contactId, { contactStatus: event.target.value, isActive: event.target.value !== "已封存" })}>
+                                {masterDataCatalogs.contactStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
+                              </select>
+                            </label>
+                            <label className="wide">
+                              備註
+                              <input value={contact.note} onChange={(event) => updateShrineContact(contact.contactId, { note: event.target.value })} placeholder="聯絡補充說明" />
+                            </label>
+                          </div>
+                          <strong>{contact.isPrimary ? "主要聯絡人" : "一般聯絡人"}｜{contact.isActive ? "使用中" : "聯絡人已封存"}</strong>
+                          <div className="related-record-table nested-methods">
+                            {contact.methods.map((method) => (
+                              <article key={method.id}>
+                                <div className="contact-edit-grid">
+                                  <label>
+                                    聯絡方式類型
+                                    <select value={method.type} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { type: event.target.value })}>
+                                      {masterDataCatalogs.contactTypes.map((item) => <option key={item} value={item}>{item}</option>)}
+                                    </select>
+                                  </label>
+                                  <label>
+                                    聯絡內容
+                                    <input value={method.value} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { value: event.target.value })} placeholder="請輸入聯絡內容" />
+                                  </label>
+                                  <label>
+                                    適合聯絡時間
+                                    <input value={method.availableTime ?? method.preferredTime ?? ""} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { availableTime: event.target.value, preferredTime: event.target.value })} placeholder="例如白天、活動期間" />
+                                  </label>
+                                  <label>
+                                    聯絡方式備註
+                                    <input value={method.note ?? ""} onChange={(event) => updateShrineMethod(contact.contactId, method.id, { note: event.target.value })} placeholder="補充說明" />
+                                  </label>
+                                </div>
+                                <div className="inline-action-row">
+                                  <button type="button" className="secondary-inline-action" onClick={() => setPrimaryShrineMethod(contact.contactId, method.id)}>設為主要聯絡方式</button>
+                                  <span>{method.isPrimary ? "主要方式" : "一般方式"}</span>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                          <div className="inline-action-row">
+                            <button type="button" className="secondary-inline-action" disabled={!contact.isActive || contact.contactStatus === "已封存"} onClick={() => setPrimaryShrineContact(contact.contactId)}>
+                              設為主要聯絡人
+                            </button>
+                            <button type="button" className="secondary-inline-action" onClick={() => addShrineMethod(contact.contactId)}>
+                              新增聯絡方式
+                            </button>
+                            <button type="button" className="secondary-inline-action" onClick={() => toggleShrineContactArchived(contact.contactId)}>
+                              {contact.isActive ? "封存聯絡人" : "還原聯絡人"}
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-inline-state">目前尚無聯絡人。</div>
+                  )}
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className="info-grid">
               <div><span>{fieldPolicy?.dateLabel ?? "日期"}</span><strong>{record.dateLabel}</strong></div>
@@ -553,19 +718,6 @@ export function ModuleDetailPage() {
               ))}
             </div>
           )}
-          {!isEditing && detailCustomFields.length > 0 ? (
-            <div className="note-panel">
-              <strong>自訂欄位</strong>
-              <div className="info-grid">
-                {detailCustomFields.map((field) => (
-                  <div key={field.id}>
-                    <span>{field.label}</span>
-                    <strong>尚未填寫</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
           {(actionMode === "draft" || actionMode === "submitted") && draftEntries && draftEntries.length > 0 ? (
             <div className="draft-summary">
               <strong>{actionMode === "draft" ? "目前草稿內容" : "本次送出內容"}</strong>
@@ -582,16 +734,37 @@ export function ModuleDetailPage() {
             <div className="note-panel">
               <strong>友宮聯絡人</strong>
               {record.shrineContacts && record.shrineContacts.length > 0 ? (
-                <div className="related-record-table">
-                  {record.shrineContacts.map((contact) => (
-                    <article key={contact.contactId}>
-                      <strong>{contact.name}｜{contact.title}{contact.isPrimary ? "｜主要聯絡人" : ""}</strong>
-                      <span>{contact.contactStatus}｜{contact.isActive ? "使用中" : "已封存"}</span>
-                      <span>{contact.methods.map((method) => `${method.type}${method.isPrimary ? "（主要）" : ""}：${method.value}`).join("、")}</span>
-                      {contact.note ? <span>{contact.note}</span> : null}
-                    </article>
-                  ))}
-                </div>
+                <>
+                  <div className="info-grid compact-info-grid">
+                    <div><span>聯絡人總數</span><strong>{record.shrineContacts.length} 位</strong></div>
+                    <div><span>有效聯絡人</span><strong>{record.shrineContacts.filter((contact) => contact.isActive && contact.contactStatus !== "已封存").length} 位</strong></div>
+                    <div><span>主要聯絡人</span><strong>{record.shrineContacts.find((contact) => contact.isPrimary && contact.isActive)?.name ?? "目前無主要聯絡人"}</strong></div>
+                  </div>
+                  <div className="related-record-table">
+                    {record.shrineContacts.filter((contact) => contact.isActive && contact.contactStatus !== "已封存").map((contact) => (
+                      <article key={contact.contactId}>
+                        <strong>{contact.name}｜{contact.title}{contact.isPrimary ? "｜主要聯絡人" : ""}</strong>
+                        <span>{contact.contactStatus}｜使用中</span>
+                        <span>{contact.methods.map((method) => `${method.type}${method.isPrimary ? "（主要）" : ""}：${method.value}`).join("、") || "尚無聯絡方式"}</span>
+                        {contact.note ? <span>{contact.note}</span> : null}
+                      </article>
+                    ))}
+                  </div>
+                  {record.shrineContacts.some((contact) => !contact.isActive || contact.contactStatus === "已封存") ? (
+                    <details className="archived-contact-panel">
+                      <summary>封存聯絡人</summary>
+                      <div className="related-record-table">
+                        {record.shrineContacts.filter((contact) => !contact.isActive || contact.contactStatus === "已封存").map((contact) => (
+                          <article key={contact.contactId}>
+                            <strong>{contact.name}｜{contact.title}</strong>
+                            <span>{contact.contactStatus}</span>
+                            <span>{contact.methods.map((method) => `${method.type}：${method.value}`).join("、") || "尚無聯絡方式"}</span>
+                          </article>
+                        ))}
+                      </div>
+                    </details>
+                  ) : null}
+                </>
               ) : (
                 <div className="empty-inline-state">目前尚無聯絡人。</div>
               )}
