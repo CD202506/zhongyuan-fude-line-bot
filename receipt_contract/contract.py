@@ -92,11 +92,9 @@ class Credential:
     provider: str
 
 
-def sign(key, kid, timestamp, nonce, raw):
+def sign(key, kid, timestamp, nonce, raw, path="/internal/channel-events/admit"):
     digest = hashlib.sha256(raw).hexdigest()
-    data = (
-        f"POST\n/internal/channel-events/admit\n{kid}\n{timestamp}\n{nonce}\n{digest}"
-    )
+    data = f"POST\n{path}\n{kid}\n{timestamp}\n{nonce}\n{digest}"
     return hmac.new(key, data.encode(), hashlib.sha256).hexdigest()
 
 
@@ -106,7 +104,7 @@ class Authenticator:
             raise ValueError("invalid_auth_configuration")
         self.keys, self.clock = dict(keys), clock
 
-    def verify(self, headers, raw):
+    def verify(self, headers, raw, path="/internal/channel-events/admit"):
         try:
             kid, nonce = headers["x-key-id"], headers["x-nonce"]
             stamp = headers["x-timestamp"]
@@ -115,7 +113,7 @@ class Authenticator:
                 raise ValueError
             if not re.fullmatch(r"[a-zA-Z0-9_-]{16,100}", nonce):
                 raise ValueError
-            expected = sign(credential.key, kid, stamp, nonce, raw)
+            expected = sign(credential.key, kid, stamp, nonce, raw, path)
             if not hmac.compare_digest(expected, headers["x-signature"]):
                 raise ValueError
         except (KeyError, ValueError, TypeError):

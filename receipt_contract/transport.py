@@ -32,6 +32,8 @@ class ReceiptTransport:
                 headers=headers,
                 timeout=3,
             )
+        except (httpx.ConnectError, httpx.ConnectTimeout):
+            raise ContractError("relay_connect_unavailable", 503) from None
         except httpx.HTTPError:
             raise ContractError("relay_transport_unknown", 503) from None
         if response.status_code in {401, 403}:

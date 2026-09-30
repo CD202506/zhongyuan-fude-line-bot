@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import secrets
 import logging
 from typing import Any
@@ -61,11 +63,31 @@ from shrine_visit_service import (
 logger = logging.getLogger("line_ingress")
 
 
-app = FastAPI(
-    title="Zhongyuan Fude LINE Bot",
-    version=APP_VERSION,
-)
+@asynccontextmanager
+async def relay_lifespan(app):
+    import os
 
+    mode = os.getenv("LEGACY_RELAY_RUNTIME", "disabled")
+    if mode == "disabled":
+        yield
+        return
+    if mode != "off_journal":
+        raise RuntimeError("unsupported_relay_mode")
+    from relay_runtime import RelayRuntime, runtime_journal
+
+    hardened_off_settings()
+    try:
+        journal = runtime_journal()
+    except Exception:
+        journal = None
+        logger.error("relay_journal_unavailable")
+    # V1 remains usable even if the journal disk becomes unavailable.
+    app.state.production_relay = RelayRuntime(journal)
+
+    yield
+
+
+app = FastAPI(title="Zhongyuan Fude LINE Bot", version=APP_VERSION, lifespan=relay_lifespan)
 
 @app.get("/health")
 async def health_check():
@@ -84,6 +106,14 @@ async def hardened_readiness():
             raise IngressError(503, "signature_verifier_unconfigured")
     except IngressError as exc:
         return JSONResponse(status_code=503, content={"error": exc.code})
+    runtime = getattr(app.state, "production_relay", None)
+    if runtime is not None:
+        try:
+            runtime.journal.metrics()
+        except Exception:
+            return JSONResponse(
+                status_code=503, content={"error": "relay_journal_unavailable"}
+            )
     return {
         "status": "ready",
         "mode": "hardened_off",
@@ -91,6 +121,7 @@ async def hardened_readiness():
         "allowlist_empty": True,
         "v2_outbound_enabled": False,
         "signature_configured": True,
+        "relay_journal_available": runtime is not None,
     }
 
 
@@ -187,6 +218,38 @@ def build_shrine_query_reply(
     }
 
 
+@app.post("/internal/relay/metrics")
+async def relay_metrics(request: Request):
+    import os
+    import time
+    from receipt_contract.contract import Authenticator, Credential, ContractError
+
+    runtime = getattr(request.app.state, "production_relay", None)
+    if runtime is None:
+        return JSONResponse(status_code=503, content={"error": "relay_unconfigured"})
+    raw = bytearray()
+    async for chunk in request.stream():
+        raw.extend(chunk)
+        if len(raw) > 64:
+            return JSONResponse(
+                status_code=413, content={"error": "metrics_body_limit"}
+            )
+    try:
+        kid = os.environ["RECEIPT_ADMISSION_KEY_ID"]
+        key = os.environ["RECEIPT_ADMISSION_HMAC"].encode()
+        auth = Authenticator(
+            {kid: Credential(key, "metrics", "metrics", "synthetic")}, time.time
+        )
+        auth.verify(request.headers, bytes(raw), "/internal/relay/metrics")
+        if bytes(raw) != b"{}":
+            raise ContractError("metrics_request_invalid", 400)
+        return runtime.journal.metrics()
+    except ContractError as error:
+        return JSONResponse(status_code=error.status, content={"error": error.code})
+    except Exception:
+        return JSONResponse(status_code=503, content={"error": "metrics_unavailable"})
+
+
 @app.post("/webhook")
 async def line_webhook(request: Request):
     try:
@@ -204,7 +267,10 @@ async def line_webhook(request: Request):
         )
         events = parse_verified_body(bytes(raw), settings)
         receipt_router = getattr(request.app.state, "receipt_contract_router", None)
-        if receipt_router is not None:
+        runtime = getattr(request.app.state, "production_relay", None)
+        if runtime is not None:
+            await runtime.dispatch_real(events, settings, dispatch_legacy_event)
+        elif receipt_router is not None:
             await receipt_router.process(events, settings, dispatch_legacy_event)
         elif settings.pilot_enabled and settings.pilot_allowlist:
             # No production queue binding is provided by this local Gate.
