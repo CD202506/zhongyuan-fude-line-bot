@@ -1,5 +1,3 @@
-import os
-import re
 import uuid
 from datetime import datetime
 from typing import Any
@@ -45,9 +43,10 @@ def append_line_query_log(
     query_type: str = "shrine",
     target_sheet: str = "shrines",
     error_message: str = "",
+    log_id: str | None = None,
 ) -> None:
     timestamp = now_taipei_iso()
-    log_id = f"LQ-{uuid.uuid4().hex[:12]}"
+    log_id = log_id or f"LQ-{uuid.uuid4().hex[:12]}"
 
     record = {
         "log_id": log_id,
@@ -89,22 +88,5 @@ def append_line_query_log(
 
 
 def safe_query_log_error(exc: Exception) -> str:
-    message = normalize_text(exc) or exc.__class__.__name__
-
-    for env_name in (
-        "LINE_CHANNEL_ACCESS_TOKEN",
-        "GOOGLE_SERVICE_ACCOUNT_JSON",
-        "GOOGLE_SHEET_ID",
-        "DEBUG_TOKEN",
-    ):
-        secret_value = os.getenv(env_name)
-
-        if secret_value:
-            message = message.replace(secret_value, f"<redacted:{env_name}>")
-
-    message = re.sub(
-        r'(?i)(private[_ -]?key)(["\']?\s*[:=]\s*)([^,\s}]+)',
-        r"\1\2<redacted>",
-        message,
-    )
-    return " ".join(message.split())[:500]
+    # Compatibility helper: never inspect exception text or runtime credentials.
+    return "query_log_failed"

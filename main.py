@@ -1,4 +1,5 @@
 import secrets
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -16,7 +17,6 @@ from line_client import reply_text_message
 from log_service import (
     LINE_QUERY_LOG_SHEET,
     append_line_query_log,
-    safe_query_log_error,
 )
 from permission_service import (
     can_view_internal_shrine,
@@ -43,11 +43,22 @@ from query_log_lookup_service import (
     find_recent_query_logs,
 )
 from sheets_client import read_sheet_records
+from webhook_security import (
+    IngressError,
+    MAX_BODY_BYTES,
+    hardened_off_settings,
+    verify_signature,
+    parse_verified_body,
+)
+
 from shrine_search_service import find_shrine
 from shrine_visit_service import (
     find_recent_shrine_visits,
     find_recent_shrine_visits_by_keyword,
 )
+
+
+logger = logging.getLogger("line_ingress")
 
 
 app = FastAPI(
@@ -65,6 +76,24 @@ async def health_check():
     }
 
 
+@app.get("/ready")
+async def hardened_readiness():
+    try:
+        settings = hardened_off_settings()
+        if not settings.channel_secret:
+            raise IngressError(503, "signature_verifier_unconfigured")
+    except IngressError as exc:
+        return JSONResponse(status_code=503, content={"error": exc.code})
+    return {
+        "status": "ready",
+        "mode": "hardened_off",
+        "pilot_enabled": False,
+        "allowlist_empty": True,
+        "v2_outbound_enabled": False,
+        "signature_configured": True,
+    }
+
+
 @app.get("/debug/sheets")
 async def debug_sheets(token: str | None = None):
     if not is_debug_endpoint_enabled():
@@ -78,9 +107,7 @@ async def debug_sheets(token: str | None = None):
 
     debug_token = get_debug_token()
 
-    if debug_token and (
-        not token or not secrets.compare_digest(token, debug_token)
-    ):
+    if debug_token and (not token or not secrets.compare_digest(token, debug_token)):
         return JSONResponse(
             status_code=403,
             content={
@@ -100,8 +127,8 @@ async def debug_sheets(token: str | None = None):
                 "members": build_sheet_summary(members),
             },
         }
-    except Exception as exc:
-        print("debug_sheets error:", str(exc))
+    except Exception:
+        logger.error("debug_sheets_failed")
         return JSONResponse(
             status_code=500,
             content={
@@ -163,37 +190,54 @@ def build_shrine_query_reply(
 @app.post("/webhook")
 async def line_webhook(request: Request):
     try:
-        body = await request.json()
-        events = body.get("events", [])
-
-        for event in events:
-            event_type = event.get("type")
-            reply_token = event.get("replyToken")
-            source = event.get("source", {})
-            user_id = source.get("userId")
-            message = event.get("message", {})
-            message_type = message.get("type")
-            message_text = message.get("text")
-
-            print("event_type:", event_type)
-            print("user_id_present:", bool(user_id))
-            print("message_type:", message_type)
-            print("message_text:", message_text)
-
-            if event_type == "message" and reply_token:
-                await handle_text_message(
-                    reply_token=reply_token,
-                    user_id=user_id,
-                    message_text=message_text,
-                    message_type=message_type,
-                )
-
+        provider = getattr(
+            request.app.state, "webhook_settings_provider", hardened_off_settings
+        )
+        settings = provider()
+        raw = bytearray()
+        async for chunk in request.stream():
+            if len(raw) + len(chunk) > MAX_BODY_BYTES:
+                raise IngressError(413, "body_too_large")
+            raw.extend(chunk)
+        verify_signature(
+            bytes(raw), request.headers.get("x-line-signature"), settings.channel_secret
+        )
+        events = parse_verified_body(bytes(raw), settings)
+        receipt_router = getattr(request.app.state, "receipt_contract_router", None)
+        if receipt_router is not None:
+            await receipt_router.process(events, settings, dispatch_legacy_event)
+        elif settings.pilot_enabled and settings.pilot_allowlist:
+            # No production queue binding is provided by this local Gate.
+            # Explicit injection is exclusively for synthetic local readiness tests.
+            router = getattr(request.app.state, "local_pilot_router", None)
+            if router is None:
+                raise IngressError(503, "durable_relay_not_configured")
+            await router.process(events, settings, dispatch_legacy_event)
+        else:
+            # OFF / empty allowlist: no relay/storage/worker dependency.
+            for event in events:
+                await dispatch_legacy_event(event)
         return JSONResponse(status_code=200, content={"status": "ok"})
-    except Exception as exc:
-        print("Webhook error:", str(exc))
+    except IngressError as exc:
+        logger.warning("webhook_rejected code=%s", exc.code)
+        return JSONResponse(status_code=exc.status, content={"error": exc.code})
+    except Exception:
+        # Never stringify provider/transport exceptions (may contain body/token).
+        logger.error("webhook_processing_failed")
         return JSONResponse(
-            status_code=200,
-            content={"status": "ok", "note": "received but parse failed"},
+            status_code=503, content={"error": "processing_unavailable"}
+        )
+
+
+async def dispatch_legacy_event(event: dict[str, Any], effects=None) -> None:
+    if event.get("type") == "message" and event.get("replyToken"):
+        message = event.get("message", {})
+        await handle_text_message(
+            reply_token=event["replyToken"],
+            user_id=event.get("source", {}).get("userId"),
+            message_text=message.get("text"),
+            message_type=message.get("type"),
+            effects=effects,
         )
 
 
@@ -203,6 +247,7 @@ async def handle_text_message(
     user_id: str | None,
     message_text: str | None,
     message_type: str = "text",
+    effects=None,
 ) -> None:
     command = parse_command(message_text, message_type)
     log_meta = {
@@ -217,17 +262,29 @@ async def handle_text_message(
 
     try:
         reply_text, log_meta = build_command_reply(command, user_id)
-    except Exception as exc:
-        error_message = str(exc)
-        print("build_command_reply error:", error_message)
+    except Exception:
+        error_message = "legacy_lookup_failed"
+        logger.error("legacy_lookup_failed")
         reply_text = "系統暫時無法查詢友宮資料，請稍後再試。"
         log_meta["error_message"] = error_message
 
+    delivery_unknown = False
+    if effects is not None:
+        effects.begin("line_reply")
     try:
         await reply_text_message(reply_token, reply_text)
-    except Exception as exc:
-        print("reply_text_message error:", str(exc))
+    except Exception:
+        delivery_unknown = True
+        logger.error("legacy_reply_failed")
+        if effects is not None:
+            effects.unknown("line_reply")
+            raise RuntimeError("legacy_side_effect_outcome_unknown") from None
+    else:
+        if effects is not None:
+            effects.confirmed("line_reply")
 
+    if effects is not None:
+        effects.begin("line_query_logs")
     try:
         append_line_query_log(
             line_user_id=user_id,
@@ -239,17 +296,18 @@ async def handle_text_message(
             query_type=normalize_text(log_meta.get("query_type")) or "unknown",
             target_sheet=normalize_text(log_meta.get("target_sheet")),
             error_message=normalize_text(log_meta.get("error_message")),
+            **({"log_id": effects.log_reference()} if effects is not None else {}),
         )
-    except Exception as exc:
-        query_type = normalize_text(log_meta.get("query_type")) or "unknown"
-        result_status = normalize_text(log_meta.get("result_status")) or "error"
-        print(
-            "[query_log] append failed: "
-            f"sheet={LINE_QUERY_LOG_SHEET}, "
-            f"query_type={query_type}, "
-            f"result_status={result_status}, "
-            f"error={safe_query_log_error(exc)}"
-        )
+    except Exception:
+        delivery_unknown = True
+        logger.error("legacy_query_log_failed")
+        if effects is not None:
+            effects.unknown("line_query_logs")
+    else:
+        if effects is not None:
+            effects.confirmed("line_query_logs")
+    if delivery_unknown and effects is not None:
+        raise RuntimeError("legacy_side_effect_outcome_unknown")
 
 
 def build_command_reply(
