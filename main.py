@@ -266,6 +266,15 @@ async def line_webhook(request: Request):
             bytes(raw), request.headers.get("x-line-signature"), settings.channel_secret
         )
         events = parse_verified_body(bytes(raw), settings)
+        from identity_capture import partition, runtime_capture
+        import json
+
+        capture = getattr(request.app.state, "identity_capture", None)
+        if capture is None:
+            capture = runtime_capture()
+        events, capture_failed = await partition(
+            events, json.loads(bytes(raw)).get("destination"), settings, capture
+        )
         receipt_router = getattr(request.app.state, "receipt_contract_router", None)
         runtime = getattr(request.app.state, "production_relay", None)
         if runtime is not None:
@@ -283,6 +292,8 @@ async def line_webhook(request: Request):
             # OFF / empty allowlist: no relay/storage/worker dependency.
             for event in events:
                 await dispatch_legacy_event(event)
+        if capture_failed:
+            logger.error("identity_capture_pending_operator_review")
         return JSONResponse(status_code=200, content={"status": "ok"})
     except IngressError as exc:
         logger.warning("webhook_rejected code=%s", exc.code)
