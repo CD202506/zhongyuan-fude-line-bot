@@ -71,6 +71,15 @@ async def relay_lifespan(app):
     if mode == "disabled":
         yield
         return
+    if mode == "controlled_line":
+        import httpx
+        from controlled_line_runtime import compose, controlled_settings
+        import os
+        async with httpx.AsyncClient(base_url=os.environ["RECEIPT_ADMISSION_URL"], follow_redirects=False, timeout=3) as client:
+            app.state.production_relay = compose(client)
+            app.state.webhook_settings_provider = controlled_settings
+            yield
+        return
     if mode != "off_journal":
         raise RuntimeError("unsupported_relay_mode")
     from relay_runtime import RelayRuntime, runtime_journal
@@ -101,7 +110,7 @@ async def health_check():
 @app.get("/ready")
 async def hardened_readiness():
     try:
-        settings = hardened_off_settings()
+        settings = getattr(app.state, "webhook_settings_provider", hardened_off_settings)()
         if not settings.channel_secret:
             raise IngressError(503, "signature_verifier_unconfigured")
     except IngressError as exc:
@@ -109,16 +118,19 @@ async def hardened_readiness():
     runtime = getattr(app.state, "production_relay", None)
     if runtime is not None:
         try:
-            runtime.journal.metrics()
+            if hasattr(runtime.journal, "metrics"):
+                runtime.journal.metrics()
+            else:
+                runtime.journal.paused()
         except Exception:
             return JSONResponse(
                 status_code=503, content={"error": "relay_journal_unavailable"}
             )
     return {
         "status": "ready",
-        "mode": "hardened_off",
-        "pilot_enabled": False,
-        "allowlist_empty": True,
+        "mode": "controlled_line" if hasattr(runtime, "transport") else "hardened_off",
+        "pilot_enabled": settings.pilot_enabled,
+        "allowlist_empty": not bool(settings.pilot_allowlist),
         "v2_outbound_enabled": False,
         "signature_configured": True,
         "relay_journal_available": runtime is not None,

@@ -95,8 +95,10 @@ class ReceiptRouter:
                         receipt = await asyncio.wait_for(
                             self.transport.accept(wire), min(self.timeout, remaining)
                         )
-                    except BaseException:
+                    except BaseException as error:
                         self.journal.relay_unknown(row["event_key"])
+                        if getattr(error, "code", None) == "relay_auth_rejected":
+                            self.journal.auth_failed(row["event_key"])
                         raise
                     # An authenticated adapter must validate its response before returning an ID.
                     from uuid import UUID

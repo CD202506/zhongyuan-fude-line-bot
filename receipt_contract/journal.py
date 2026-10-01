@@ -1,6 +1,7 @@
 """Independent Legacy journal: synthetic SQLite reference, NOT Render disk binding."""
 
 import sqlite3
+import time
 import uuid
 from contextlib import contextmanager
 
@@ -40,6 +41,11 @@ class LegacyJournal:
                 );
                 INSERT OR IGNORE INTO control VALUES(1,0,1,0);
             """)
+            columns = {r[1] for r in db.execute("PRAGMA table_info(owners)")}
+            if "received_at" not in columns:
+                db.execute("ALTER TABLE owners ADD COLUMN received_at REAL NOT NULL DEFAULT 0")
+            if "reason" not in columns:
+                db.execute("ALTER TABLE owners ADD COLUMN reason TEXT")
 
     @contextmanager
     def db(self):
@@ -55,6 +61,20 @@ class LegacyJournal:
             raise
         finally:
             db.close()
+
+    def metrics(self):
+        now = time.time()
+        with self.db() as db:
+            counts = {r[0]: r[1] for r in db.execute("SELECT state,count(*) FROM owners WHERE owner='v2' GROUP BY state")}
+            oldest = db.execute("SELECT min(received_at) FROM owners WHERE owner='v2' AND state<>'durably_accepted'").fetchone()[0]
+            return {"states": counts,
+                "auth_failures": db.execute("SELECT count(*) FROM owners WHERE reason='auth_rejected' AND state<>'durably_accepted'").fetchone()[0],
+                "stuck": db.execute("SELECT count(*) FROM owners WHERE state='claimed' AND lease_until<=?", (now,)).fetchone()[0],
+                "backlog_age": max(0, now-oldest) if oldest is not None else 0}
+
+    def auth_failed(self, key):
+        with self.db() as db:
+            db.execute("UPDATE owners SET reason='auth_rejected' WHERE event_key=?", (key,))
 
     def set_enabled(self, enabled):
         with self.db() as db:
@@ -105,13 +125,14 @@ class LegacyJournal:
                 ).fetchone()[0]
                 owner = "v2" if enabled and candidate else "v1"
                 db.execute(
-                    "INSERT INTO owners(event_key,message_key,fingerprint,owner,state) VALUES(?,?,?,?,?)",
+                    "INSERT INTO owners(event_key,message_key,fingerprint,owner,state,received_at) VALUES(?,?,?,?,?,?)",
                     (
                         item["event_key"],
                         item["message_key"],
                         item["fingerprint"],
                         owner,
                         "reserved",
+                        time.time(),
                     ),
                 )
                 row = db.execute(
